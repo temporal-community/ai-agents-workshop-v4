@@ -1,0 +1,3 @@
+#!/bin/bash
+pkill -f "f1-agent-python-task-queue" 2>/dev/null || true
+echo "Challenge 03 cleanup: OK"

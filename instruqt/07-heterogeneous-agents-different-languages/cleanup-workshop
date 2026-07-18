@@ -1,0 +1,6 @@
+#!/bin/bash
+pkill -f "worker_pa" 2>/dev/null || true
+pkill -f "worker_f1" 2>/dev/null || true
+pkill -f "travel-planner-java" 2>/dev/null || true
+pkill -f "TravelPlannerApplication" 2>/dev/null || true
+echo "Challenge 06b cleanup: OK"

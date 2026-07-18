@@ -1,0 +1,145 @@
+---
+slug: human-in-the-loop
+id: omyvoydii2je
+type: challenge
+title: 'Demo 4: Human-in-the-Loop'
+teaser: The agent pauses mid-execution to ask you a question. A Temporal signal resumes
+  it.
+notes:
+- type: text
+  contents: |-
+    # What if the agent needs to ask you something before it can continue?
+
+    The workflow is running. The agent realizes it doesn't have enough
+    information to proceed. It needs your input right now, mid-execution.
+
+    In a plain Python script, you'd have to restart. In Temporal, the
+    workflow suspends with no worker resources consumed - and resumes the
+    instant you answer.
+- type: text
+  contents: |-
+    # Three Temporal primitives working together
+
+    ask_user sets workflow state and awaits wait_condition. The workflow
+    is suspended - durably - holding no threads, no memory.
+
+    provide_user_input is a signal. It delivers your answer and unblocks
+    the wait_condition.
+
+    Two queries let the starter poll: is_input_needed and
+    get_pending_question. The starter asks the question on the terminal
+    and sends your answer as a signal.
+tabs:
+- id: hrubvxth7ui9
+  title: Worker
+  type: terminal
+  hostname: workshop
+  workdir: /root/workshop/demo4-hitl/exercise
+- id: wimstsxxbuud
+  title: Starter
+  type: terminal
+  hostname: workshop
+  workdir: /root/workshop/demo4-hitl/exercise
+- id: cbjsucaomvrg
+  title: Temporal UI
+  type: service
+  hostname: workshop
+  port: 8233
+- id: e1sim7ca2cyi
+  title: Network Control Panel
+  type: service
+  hostname: workshop
+  port: 5000
+- id: mxwobjyx8ugr
+  title: Editor
+  type: code
+  hostname: workshop
+  path: /root/workshop/demo4-hitl
+difficulty: basic
+timelimit: 1800
+enhanced_loading: null
+---
+
+# Demo 4: Human-in-the-Loop
+
+> [!NOTE]
+> **Tabs:** [button label="Worker" background="#444CE7"](tab-0) [button label="Starter" background="#444CE7"](tab-1) [button label="Temporal UI" background="#444CE7"](tab-2) [button label="Network Control Panel" background="#444CE7"](tab-3) [button label="Editor" background="#444CE7"](tab-4)
+
+## What Changed
+
+Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in `demo4-hitl`:
+
+- `tools_workflow.py` - an `ask_user` `@function_tool` is defined inside `run()` as a closure. It sets `self._input_needed = True` and blocks on `await workflow.wait_condition(...)`. The signal handler flips the flag to unblock it.
+- `start_workflow.py` - polls queries every 2 seconds. When `is_input_needed` is True, it prints the question, reads your response, and sends it as a signal.
+
+## Write the Suspension
+
+Open `exercise/tools_workflow.py`. Two TODO stubs: the `ask_user` function_tool body (set state, `await workflow.wait_condition(...)`, read back the answer) and the `provide_user_input` signal handler that unblocks it.
+
+Stuck? Compare against `solution/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab.
+
+## Start the Worker
+
+Click the [button label="Worker" background="#444CE7"](tab-0) terminal.
+
+```bash,run
+uv run python -m worker
+```
+
+You should see:
+
+```bash,nocopy
+Started worker on task queue: hitl-agent-python-task-queue
+```
+
+> **If it fails:** `OPENAI_API_KEY not set` means the key didn't carry into this terminal.
+
+## Run It
+
+Click the [button label="Starter" background="#444CE7"](tab-1) terminal. The agent can't answer without knowing your destination - it will pause and ask you.
+
+```bash,run
+uv run python -m start_workflow "What's the weather like where I'm traveling to this weekend?"
+```
+
+Type your destination when prompted and press Enter.
+
+> **If the prompt never shows:** the starter polls queries every 2 seconds - give it a few seconds. If it still doesn't appear, confirm the worker in tab-0 is still running.
+
+> **Predict before you look:** while the workflow is paused waiting for your answer, is it consuming a worker thread or activity slot? Now check the Web UI in the next step - were you right?
+
+## Watch the Suspension
+
+Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab while the workflow waits. The status shows **Running** but there are no pending activity tasks. The workflow is suspended on `wait_condition` - no worker threads consumed.
+
+When you respond, a new event appears in the history: the signal arrives, `wait_condition` unblocks, and the agent continues.
+
+<div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:640px;margin:16px 0;">
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME — click each stage</div>
+<div id="hitl-stages" style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;">
+  <div class="hitl-stage" data-note="The ask_user tool sets self._input_needed = True and calls workflow.wait_condition(...). The workflow task completes here - no thread is held." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#1e3a5f;cursor:pointer;transition:all .2s;">▶ Running<br><small>agent reasoning</small></div>
+  <div class="hitl-stage" data-note="Status still shows Running in the Web UI, but there are zero pending activity tasks. No worker CPU, no memory held for this wait - just a durable marker in the event history." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#4a3b1e;cursor:pointer;transition:all .2s;">⏸ Suspended<br><small>wait_condition</small></div>
+  <div class="hitl-stage" data-note="provide_user_input signal arrives, sets self._user_input and flips self._input_needed to False. That's the only thing that can unblock wait_condition - not a timer, not a poll." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#5f1e3a;cursor:pointer;transition:all .2s;">📨 Signal<br><small>provide_user_input</small></div>
+  <div class="hitl-stage" data-note="wait_condition returns, ask_user returns the answer to the agent loop, and the LLM resumes reasoning with the new information - same workflow, same history, picked up exactly where it left off." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#1e5f3a;cursor:pointer;transition:all .2s;">▶ Resumed<br><small>agent continues</small></div>
+</div>
+<div id="hitl-note" style="margin-top:12px;min-height:40px;font-size:14px;color:#c8ccd8;">Click a stage above to see what's actually happening underneath it.</div>
+</div>
+<script>
+document.querySelectorAll('.hitl-stage').forEach(function(el){
+  el.addEventListener('click', function(){
+    document.getElementById('hitl-note').textContent = el.getAttribute('data-note');
+    document.querySelectorAll('.hitl-stage').forEach(function(s){ s.style.outline = ''; });
+    el.style.outline = '2px solid #fff';
+  });
+});
+</script>
+
+## Reconnect to a Waiting Workflow
+
+If you interrupt the worker with **Ctrl+C** while the agent is waiting, the workflow keeps running on the server. Find the workflow ID in the [button label="Temporal UI" background="#444CE7"](tab-2), then reconnect by starting the worker again and running the starter with the workflow ID:
+
+```bash
+uv run python -m start_workflow --workflow-id <workflow-id-from-ui>
+```
+
+Click **Check** when you've completed a full interaction with the agent.

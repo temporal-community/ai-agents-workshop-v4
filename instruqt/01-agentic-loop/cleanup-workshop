@@ -1,0 +1,3 @@
+#!/bin/bash
+pkill -f "tool-invoking-agent" 2>/dev/null || true
+echo "Challenge 01 cleanup: OK"

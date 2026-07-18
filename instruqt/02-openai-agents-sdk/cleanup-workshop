@@ -1,0 +1,3 @@
+#!/bin/bash
+pkill -f "openai-agents-python-task-queue" 2>/dev/null || true
+echo "Challenge 02 cleanup: OK"

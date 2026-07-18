@@ -1,0 +1,17 @@
+#!/bin/bash
+set -euo pipefail
+
+if ! temporal operator cluster health --address 127.0.0.1:7233 2>/dev/null | grep -q "SERVING"; then
+    echo "FAIL: Temporal dev server is not healthy."
+    exit 1
+fi
+
+# Check OPENAI_API_KEY — sourced from .bashrc since secrets are lifecycle-scoped.
+OPENAI_API_KEY="${OPENAI_API_KEY:-$(grep -oP '(?<=OPENAI_API_KEY=).*' /root/.bashrc 2>/dev/null | tail -1 || true)}"
+if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+    echo "FAIL: OPENAI_API_KEY is not set. Ask your facilitator for assistance."
+    exit 1
+fi
+
+echo "OK: Temporal healthy, OPENAI_API_KEY set."
+exit 0

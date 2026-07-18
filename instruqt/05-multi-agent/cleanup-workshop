@@ -1,0 +1,4 @@
+#!/bin/bash
+pkill -f "worker_pa" 2>/dev/null || true
+pkill -f "worker_f1" 2>/dev/null || true
+echo "Challenge 05 cleanup: OK"

@@ -1,0 +1,3 @@
+#!/bin/bash
+pkill -f "hitl-agent-python-task-queue" 2>/dev/null || true
+echo "Challenge 04 cleanup: OK"
