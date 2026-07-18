@@ -77,6 +77,77 @@ ai-agents-workshop-v4/
         └── travel-planner-java/
 ```
 
+## Instruqt track
+
+This repo is also the source for a hands-on Instruqt lab: eight challenges (an environment-setup prologue plus one per demo) that walk an attendee through the same progression in a browser-based sandbox, no local setup required.
+
+```
+instruqt/
+├── track.yml                                        # track metadata, lab_config, loading messages
+├── config.yml                                        # sandbox container reference + secrets
+├── justfile                                          # create/push/pull/validate/test recipes
+├── track_scripts/
+│   ├── setup-workshop                                # track-level: starts services, injects secrets, warms caches
+│   └── cleanup-workshop
+├── docker/
+│   ├── Dockerfile                                    # sandbox image
+│   ├── warmup_f1_cache.py                            # pre-warms FastF1 data at build time
+│   └── proxy/                                        # mitmproxy addon + Flask control panel
+├── 00-environment-setup/
+├── 01-agentic-loop/
+├── 02-openai-agents-sdk/
+├── 03-mcp-tools/
+├── 04-human-in-the-loop/
+├── 05-multi-agent/
+├── 06-heterogeneous-agents-different-sdks/
+└── 07-heterogeneous-agents-different-languages/
+    ├── assignment.md                                 # challenge instructions + tab definitions
+    ├── setup-workshop                                 # stages that chapter's code, kills straggler processes
+    ├── check-workshop                                 # verifies the attendee completed the challenge
+    ├── solve-workshop                                 # simulates a learner for `instruqt track test`
+    └── cleanup-workshop
+```
+
+### What the sandbox image bakes in
+
+- Python 3.10 + `uv`, JDK 21 (Temurin), Node.js 20, the Temporal CLI
+- All seven demos' `exercise/` and `solution/` dependencies, pre-synced with `uv sync`
+- A pinned clone of the [F1 MCP server](https://github.com/rakeshgangwar/f1-mcp-server) with a pre-warmed FastF1 cache for the current season
+- `mitmproxy` with a trusted CA cert, used by the network control panel to fault-inject external calls during demos
+- Maven dependencies for demo6b's Java + Spring AI travel planner
+
+### Tab inventory per challenge
+
+Every challenge has a **Temporal UI** tab (port 8233) and a **Network Control Panel** tab (port 5000, a Flask app that toggles the mitmproxy addon per external service). Coding challenges add a **Worker** terminal, a **Starter** terminal, and an **Editor** tab (native `type: code`, opened on that demo's directory).
+
+### Network control panel
+
+The control panel toggles four external services on and off mid-demo so attendees can watch Temporal retry a failing activity and resume once the service comes back: OpenAI, the F1 MCP server, IP geolocation, and weather. It's driven by `docker/proxy/controlpanel.py` and `docker/proxy/toggle_addon.py`, both started by `track_scripts/setup-workshop`.
+
+### Instruqt CLI workflow
+
+```bash
+just validate       # instruqt track validate
+just push           # instruqt track push
+just pull           # instruqt track pull (populates server-assigned ids)
+just test           # instruqt track test (runs check/solve scripts end to end)
+```
+
+First-time track creation:
+
+```bash
+just create                      # registers the slug server-side, once
+cd instruqt && instruqt track push --force
+cd - && just pull
+git add instruqt/ && git commit -m "Pin Instruqt track and tab ids"
+```
+
+### Known issues
+
+- **F1 MCP server commit pin.** `docker/Dockerfile` clones `rakeshgangwar/f1-mcp-server` at a pinned commit (`F1_MCP_COMMIT` build arg). Refresh it periodically with `git ls-remote https://github.com/rakeshgangwar/f1-mcp-server HEAD`.
+- **Local `F1_MCP_SERVER_HOME` path.** The top-level README's prerequisites list a local path (`~/Projects/Temporal/AI/MCP/f1-mcp-server/`) for running demos outside Instruqt. Inside the sandbox this is overwritten to `/opt/f1-mcp-server` — don't assume the checked-in demo READMEs describe the sandbox path.
+- **Undocumented `track.yml` fields.** `lab_config.override_challenge_layout`, `default_layout`, and `default_layout_sidebar_size` work in production but aren't part of Instruqt's published schema; they're carried over from prior tracks.
+
 ## Related
 
 This workshop has a [Java / Spring AI sibling](https://github.com/temporal-community/springio-agents-springai-temporal) that covers the same progression using Spring AI instead of the OpenAI Agents SDK. The two implementations diverge in interesting ways where the frameworks differ — see `docs/research/tool-execution-strategies-java-vs-python.md` for one such comparison.

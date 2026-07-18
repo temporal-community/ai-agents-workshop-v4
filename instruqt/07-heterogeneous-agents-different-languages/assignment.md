@@ -139,7 +139,7 @@ In the **orchestrator** history, the travel planner path now shows `NexusOperati
 Then find the **`TravelPlannerAgentWorkflow`** on `travel-planner-agent-tq`. Its history shows per-step activities: a `ChatModelActivity` for each LLM call, individual activities for each tool call. That's Spring AI giving the Java agent the same per-step durability the OpenAI Agents SDK gives the Python agents.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:680px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME — click each demo to see how the travel planner's durability changed</div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME: click each demo to see how the travel planner's durability changed</div>
 <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
   <div class="lang-demo" data-detail="Python + Strands, called as a direct activity. Whole loop = one ScheduleActivityTask: ask_travel_planner. A worker crash mid-loop restarts the entire travel-planning conversation from scratch." style="text-align:center;padding:12px;border-radius:8px;background:#5f1e3a;cursor:pointer;min-width:150px;">demo 6a<br><small>Python · Strands · direct activity</small></div>
   <div style="font-size:20px;color:#8b8fa3;align-self:center;">→</div>

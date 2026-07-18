@@ -122,7 +122,7 @@ Open the orchestrator workflow in the [button label="Temporal UI" background="#4
 That contrast is the point.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:680px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME — toggle between the two durability shapes</div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME: toggle between the two durability shapes</div>
 <div style="text-align:center;margin-bottom:10px;">
   <button id="dur-fine-btn" onclick="document.getElementById('dur-fine').style.display='block';document.getElementById('dur-coarse').style.display='none';this.style.background='#1e5f3a';document.getElementById('dur-coarse-btn').style.background='#242832';" style="padding:8px 16px;border:none;border-radius:6px 0 0 6px;background:#1e5f3a;color:#fff;cursor:pointer;">Per-step (OpenAI Agents)</button><button id="dur-coarse-btn" onclick="document.getElementById('dur-coarse').style.display='block';document.getElementById('dur-fine').style.display='none';this.style.background='#5f1e3a';document.getElementById('dur-fine-btn').style.background='#242832';" style="padding:8px 16px;border:none;border-radius:0 6px 6px 0;background:#242832;color:#fff;cursor:pointer;">Coarse (Strands)</button>
 </div>

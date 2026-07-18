@@ -1,7 +1,7 @@
 # ABOUTME: Sandbox image for Building Durable AI Agents with Python and Temporal.
 # Bakes in: Python 3.10 + uv, JDK 21 (Temurin), Node.js 20, Temporal CLI,
 # workshop source (main branch), all Python deps, Maven deps, F1 MCP server,
-# FastF1 cache warm, mitmproxy + CA cert, control panel, code-server.
+# FastF1 cache warm, mitmproxy + CA cert, control panel.
 #
 # Build context must be repo root. GHA workflow checks out the companion code
 # repo at ./ai-agents-workshop-python/ alongside this Dockerfile.
@@ -113,7 +113,7 @@ RUN git clone https://github.com/rakeshgangwar/f1-mcp-server.git "${F1_MCP_HOME}
 ENV F1_MCP_SERVER_HOME=/opt/f1-mcp-server
 
 # ── 10. Pre-warm FastF1 cache ─────────────────────────────────────────────────
-COPY docker/warmup_f1_cache.py /tmp/warmup_f1_cache.py
+COPY instruqt/docker/warmup_f1_cache.py /tmp/warmup_f1_cache.py
 RUN mkdir -p "${F1_MCP_HOME}/cache" \
     && "${F1_MCP_HOME}/.venv/bin/python" /tmp/warmup_f1_cache.py || echo "FastF1 cache warm failed (non-fatal)"
 
@@ -139,16 +139,10 @@ RUN mitmdump --listen-port 8889 --set block_global=false & \
 
 # ── 12. Network control panel ─────────────────────────────────────────────────
 RUN mkdir -p /opt/proxy/static
-COPY docker/proxy/toggle_addon.py /opt/proxy/toggle_addon.py
-COPY docker/proxy/controlpanel.py /opt/proxy/controlpanel.py
-COPY docker/proxy/state.json      /opt/proxy/state.json
-COPY docker/proxy/static/         /opt/proxy/static/
-
-# ── 13. code-server ───────────────────────────────────────────────────────────
-RUN curl -fsSL https://code-server.dev/install.sh | sh \
-    && mkdir -p /root/.local/share/code-server/User \
-    && printf '{\n    "workbench.colorTheme": "Default Dark+",\n    "workbench.startupEditor": "none",\n    "security.workspace.trust.enabled": false,\n    "editor.fontSize": 14,\n    "editor.tabSize": 4,\n    "workbench.activityBar.visible": false\n}\n' \
-       > /root/.local/share/code-server/User/settings.json
+COPY instruqt/docker/proxy/toggle_addon.py /opt/proxy/toggle_addon.py
+COPY instruqt/docker/proxy/controlpanel.py /opt/proxy/controlpanel.py
+COPY instruqt/docker/proxy/state.json      /opt/proxy/state.json
+COPY instruqt/docker/proxy/static/         /opt/proxy/static/
 
 # ── 14. Shell environment ──────────────────────────────────────────────────────
 RUN echo '' >> /etc/bash.bashrc \

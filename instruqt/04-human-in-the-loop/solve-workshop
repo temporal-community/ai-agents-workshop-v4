@@ -1,2 +1,18 @@
 #!/bin/bash
-echo "Challenge 04 solve: OK"
+# Drives demo4's solution through a full ask_user interaction, non-interactively.
+# `yes` supplies the same canned answer to every question the agent asks -
+# start_workflow.py reads answers from stdin one line at a time.
+set -uo pipefail
+cd /root/workshop/demo4-hitl/solution || exit 0
+
+pkill -f "python -m worker" 2>/dev/null || true
+sleep 1
+
+nohup uv run python -m worker > /tmp/solve-04-worker.log 2>&1 &
+WORKER_PID=$!
+sleep 12
+
+yes "Yes, that works for me." | timeout 120 uv run python -m start_workflow "Should I bring rain gear to the F1 race?"
+
+kill "$WORKER_PID" 2>/dev/null || true
+exit 0

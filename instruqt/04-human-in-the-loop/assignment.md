@@ -115,7 +115,7 @@ Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab while the
 When you respond, a new event appears in the history: the signal arrives, `wait_condition` unblocks, and the agent continues.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:640px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME — click each stage</div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME: click each stage</div>
 <div id="hitl-stages" style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;">
   <div class="hitl-stage" data-note="The ask_user tool sets self._input_needed = True and calls workflow.wait_condition(...). The workflow task completes here - no thread is held." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#1e3a5f;cursor:pointer;transition:all .2s;">▶ Running<br><small>agent reasoning</small></div>
   <div class="hitl-stage" data-note="Status still shows Running in the Web UI, but there are zero pending activity tasks. No worker CPU, no memory held for this wait - just a durable marker in the event history." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#4a3b1e;cursor:pointer;transition:all .2s;">⏸ Suspended<br><small>wait_condition</small></div>

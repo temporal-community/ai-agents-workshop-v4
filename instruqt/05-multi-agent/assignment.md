@@ -138,7 +138,7 @@ Click the [button label="Temporal UI" background="#444CE7"](tab-3) tab. Look for
 Each specialist is independently observable, independently retryable, and could run on a different team's infrastructure.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:680px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME — click a specialist to see its shape in the orchestrator's history</div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME: click a specialist to see its shape in the orchestrator's history</div>
 <div style="display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;">
   <div style="text-align:center;padding:14px;border-radius:8px;background:#242832;min-width:140px;">🧭 Orchestrator<br><small>orchestrator-tq</small></div>
   <div style="font-size:20px;color:#8b8fa3;">→</div>
@@ -150,7 +150,7 @@ Each specialist is independently observable, independently retryable, and could 
 <script>
 document.querySelectorAll('.ma-specialist').forEach(function(el){
   el.addEventListener('click', function(){
-    document.getElementById('ma-note').innerHTML = '<strong>' + el.getAttribute('data-shape') + '</strong> — ' + el.getAttribute('data-note');
+    document.getElementById('ma-note').innerHTML = '<strong>' + el.getAttribute('data-shape') + '</strong>: ' + el.getAttribute('data-note');
     document.querySelectorAll('.ma-specialist').forEach(function(s){ s.style.outline = ''; });
     el.style.outline = '2px solid #fff';
   });
