@@ -44,12 +44,15 @@ in plain text. Today's date is {date}.
 """
 
 
+# Workflow: durable, replayable orchestration logic.
 @workflow.defn
 class PersonalAssistantWorkflow:
+    # Entry point Temporal calls to start the workflow.
     @workflow.run
     async def run(self, question: str) -> str:
         today = workflow.now().strftime("%Y-%m-%d")
 
+        # Wraps a child workflow as an agent-SDK tool call: the specialist runs as its own independently durable workflow execution.
         weather_tool = child_workflow_as_tool(
             WeatherAgentWorkflow.run,
             name="ask_weather_agent",
@@ -57,10 +60,12 @@ class PersonalAssistantWorkflow:
                 "Delegate a weather-related question to the weather forecasting "
                 "specialist. Pass the full question as plain English."
             ),
+            # Task queue: the named queue a worker polls and a client targets to run this workflow/activity.
             task_queue="weather-agent-tq",
             execution_timeout=timedelta(minutes=5),
         )
 
+        # Wraps a Nexus operation as an agent-SDK tool call: the specialist is reached over a Nexus boundary — here, across a language boundary into the Java service.
         f1_tool = nexus_operation_as_tool(
             F1ExpertService.ask_f1_expert,
             service=F1ExpertService,

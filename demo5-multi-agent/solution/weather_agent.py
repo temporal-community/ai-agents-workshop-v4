@@ -32,8 +32,10 @@ Answer the question concisely as plain text. Today's date is {date}.
 """
 
 
+# Workflow: durable, replayable orchestration logic.
 @workflow.defn
 class WeatherAgentWorkflow:
+    # Entry point Temporal calls to start the workflow.
     @workflow.run
     async def run(self, question: str) -> str:
         today = workflow.now().strftime("%Y-%m-%d")
@@ -42,7 +44,9 @@ class WeatherAgentWorkflow:
             instructions=SYSTEM_PROMPT.format(date=today),
             model="gpt-4o",
             tools=[
+                # Wraps a Temporal activity as an agent-SDK tool call, so every tool invocation becomes a durable, retryable Temporal activity.
                 activity_as_tool(
+                    # Start-to-close timeout: max time Temporal allows one activity attempt to run.
                     get_ip_address, start_to_close_timeout=timedelta(seconds=30)
                 ),
                 activity_as_tool(

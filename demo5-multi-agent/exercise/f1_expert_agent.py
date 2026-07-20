@@ -23,6 +23,7 @@ class AskResponse(BaseModel):
     answer: str
 
 
+# Defines the typed contract for a Nexus operation — the boundary the orchestrator calls across.
 @nexusrpc.service
 class F1ExpertService:
     # Operation attribute name doubles as the operation name. Naming this
@@ -48,8 +49,10 @@ Answer concisely as plain text. Today's date is {date}.
 """
 
 
+# Workflow: durable, replayable orchestration logic.
 @workflow.defn
 class F1ExpertAgentWorkflow:
+    # Entry point Temporal calls to start the workflow.
     @workflow.run
     async def run(self, request: AskRequest) -> AskResponse:
         today = workflow.now().strftime("%Y-%m-%d")

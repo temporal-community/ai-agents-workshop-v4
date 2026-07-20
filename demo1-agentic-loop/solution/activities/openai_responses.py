@@ -19,6 +19,7 @@ class OpenAIResponsesRequest:
     tools: list[dict[str, Any]]
 
 
+# Activity: a durable, retryable unit of non-deterministic work (I/O, API calls).
 @activity.defn
 async def create(request: OpenAIResponsesRequest) -> Response:
     # Retries are Temporal's job, not the client's.
@@ -37,6 +38,7 @@ async def create(request: OpenAIResponsesRequest) -> Response:
         raise ApplicationError(
             f"OpenAI authentication failed: {e}",
             type="AuthenticationError",
+            # Marks a failure as permanent so Temporal won't retry it.
             non_retryable=True,
         )
     except openai.BadRequestError as e:

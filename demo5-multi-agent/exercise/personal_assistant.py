@@ -38,8 +38,10 @@ in plain text. Today's date is {date}.
 """
 
 
+# Workflow: durable, replayable orchestration logic.
 @workflow.defn
 class PersonalAssistantWorkflow:
+    # Entry point Temporal calls to start the workflow.
     @workflow.run
     async def run(self, question: str) -> str:
         today = workflow.now().strftime("%Y-%m-%d")

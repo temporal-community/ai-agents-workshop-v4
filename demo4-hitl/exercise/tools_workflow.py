@@ -39,6 +39,7 @@ Today's date is {date}.
 """
 
 
+# Workflow: durable, replayable orchestration logic.
 @workflow.defn
 class AgentWorkflow:
     def __init__(self) -> None:
@@ -47,6 +48,7 @@ class AgentWorkflow:
         self._question: str = ""
         self._user_input: str = ""
 
+    # Entry point Temporal calls to start the workflow.
     @workflow.run
     async def run(self, question: str) -> str:
         today = workflow.now().strftime("%Y-%m-%d")
@@ -82,6 +84,8 @@ class AgentWorkflow:
             model="gpt-4o",
             mcp_servers=[f1],
             tools=[
+                # Wraps a Temporal activity as an agent-SDK tool call, so every tool invocation becomes a durable, retryable Temporal activity.
+                # Start-to-close timeout: max time Temporal allows one activity attempt to run.
                 activity_as_tool(
                     get_ip_address, start_to_close_timeout=timedelta(seconds=30)
                 ),
@@ -101,6 +105,7 @@ class AgentWorkflow:
         result = await Runner.run(agent, input=question)
         return result.final_output
 
+    # Signal: an async message that can wake a suspended workflow and mutate its state.
     @workflow.signal
     def provide_user_input(self, user_input: str) -> None:
         """Deliver the user's response to a pending ask_user call."""
@@ -111,6 +116,7 @@ class AgentWorkflow:
         # 2. Set self._input_needed = False
         raise NotImplementedError("TODO: implement provide_user_input signal handler")
 
+    # Query: a read-only, side-effect-free snapshot of workflow state; doesn't append to history.
     @workflow.query
     def is_input_needed(self) -> bool:
         return self._input_needed

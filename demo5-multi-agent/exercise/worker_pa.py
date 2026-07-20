@@ -27,8 +27,10 @@ ORCHESTRATOR_TASK_QUEUE = "orchestrator-tq"
 
 
 async def main() -> None:
+    # Plugin that makes the OpenAI Agents SDK's LLM calls and tool calls run as Temporal activities automatically.
     plugin = OpenAIAgentsPlugin(
         model_params=ModelActivityParameters(
+            # Start-to-close timeout: max time Temporal allows one activity attempt to run.
             start_to_close_timeout=timedelta(seconds=60),
         ),
         # No mcp_server_providers — the F1 MCP server is owned by the F1 worker.
@@ -38,11 +40,13 @@ async def main() -> None:
 
     config = ClientConfig.load_client_connect_config()
     config.setdefault("target_host", "localhost:7233")
+    # Client: connects to the Temporal server to start, signal, and query workflows.
     client = await Client.connect(**config, plugins=[plugin])
 
+    # Worker: polls a task queue and executes the workflow/activity code registered here.
     weather_worker = Worker(
         client,
-        task_queue=WEATHER_TASK_QUEUE,
+        task_queue=WEATHER_TASK_QUEUE,  # Task queue: the named queue a worker polls and a client targets to run this workflow/activity.
         workflows=[WeatherAgentWorkflow],
         activities=[
             get_ip_address,

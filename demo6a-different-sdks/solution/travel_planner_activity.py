@@ -4,6 +4,7 @@
 from temporalio import activity
 
 
+# Activity: a durable, retryable unit of non-deterministic work (I/O, API calls) — here it wraps an entire third-party agent loop as ONE opaque activity.
 @activity.defn
 async def ask_travel_planner(question: str) -> str:
     """Delegate a travel-planning question to the travel planner specialist.

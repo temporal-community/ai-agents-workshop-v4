@@ -9,6 +9,7 @@ import io.nexusrpc.Service;
 
 // Service name MUST equal the Python @nexusrpc.service class name "TravelPlannerService".
 // (The unqualified interface name already is that; name= is stated for an explicit contract.)
+// Defines the typed contract both sides of the Nexus boundary agree on — Python and Java share no code, only this interface.
 @Service(name = "TravelPlannerService")
 public interface TravelPlannerService {
 

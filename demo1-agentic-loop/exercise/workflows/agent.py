@@ -3,13 +3,16 @@ from datetime import timedelta
 
 import json
 
+# Marks these imports as side-effect-free so the workflow sandbox allows them without re-validating determinism.
 with workflow.unsafe.imports_passed_through():
     from tools import get_tools
     from helpers import tool_helpers
     from activities import openai_responses
 
+# Workflow: durable, replayable orchestration logic.
 @workflow.defn
 class AgentWorkflow:
+    # Entry point Temporal calls to start the workflow.
     @workflow.run
     async def run(self, input: str) -> str:
 
@@ -78,9 +81,11 @@ class AgentWorkflow:
         # and the arguments crafted by the LLM
         args = json.loads(item.arguments) if isinstance(item.arguments, str) else item.arguments
 
+        # Activity: a durable, retryable unit of non-deterministic work (I/O, API calls).
         tool_output = await workflow.execute_activity(
             item.name,
             args,
+            # Start-to-close timeout: max time Temporal allows one activity attempt to run.
             start_to_close_timeout=timedelta(seconds=30),
         )
 

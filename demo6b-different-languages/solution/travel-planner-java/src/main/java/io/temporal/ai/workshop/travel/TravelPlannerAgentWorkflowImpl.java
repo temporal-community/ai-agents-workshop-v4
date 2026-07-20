@@ -35,6 +35,7 @@ public class TravelPlannerAgentWorkflowImpl implements TravelPlannerAgentWorkflo
                 Workflow.newActivityStub(
                         TravelTools.class,
                         ActivityOptions.newBuilder()
+                                // Start-to-close timeout: max time Temporal allows one activity attempt to run.
                                 .setStartToCloseTimeout(Duration.ofSeconds(30))
                                 .build());
 

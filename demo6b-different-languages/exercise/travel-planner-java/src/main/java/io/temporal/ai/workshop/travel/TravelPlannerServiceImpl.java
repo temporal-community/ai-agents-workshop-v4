@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component("travelPlannerServiceImpl")
+// Defines the typed contract both sides of the Nexus boundary agree on — Python and Java share no code, only this interface.
 @ServiceImpl(service = TravelPlannerService.class)
 public class TravelPlannerServiceImpl {
 

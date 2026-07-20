@@ -7,6 +7,7 @@ import io.temporal.activity.ActivityMethod;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 
+// Activity: a durable, retryable unit of non-deterministic work (I/O, API calls) — here, one per LLM call and one per tool call, giving the Java travel planner per-step durability.
 @ActivityInterface
 public interface TravelTools {
 

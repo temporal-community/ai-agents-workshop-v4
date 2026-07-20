@@ -6,6 +6,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 from temporalio import workflow
+# Wraps a Temporal activity as an agent-SDK tool call, so every tool invocation becomes a durable, retryable Temporal activity.
 from temporalio.contrib.openai_agents.workflow import activity_as_tool
 
 with workflow.unsafe.imports_passed_through():
@@ -34,8 +35,10 @@ When you have enough information to fully answer, provide your final response as
 """
 
 
+# Workflow: durable, replayable orchestration logic.
 @workflow.defn
 class ToolsWorkflow:
+    # Entry point Temporal calls to start the workflow.
     @workflow.run
     async def run(self, question: str) -> str:
         # TODO: Construct an `Agent` (from the `agents` package) named "Agent",
