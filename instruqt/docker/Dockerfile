@@ -1,4 +1,4 @@
-# ABOUTME: Sandbox image for Building Durable AI Agents with Python and Temporal.
+# ABOUTME: Sandbox image for Build AI Agents That Survive Failure.
 # Bakes in: Python 3.10 + uv, JDK 21 (Temurin), Node.js 20, Temporal CLI,
 # workshop source (main branch), all Python deps, Maven deps, F1 MCP server,
 # FastF1 cache warm, mitmproxy + CA cert, control panel.
