@@ -121,11 +121,11 @@ instruqt/
 
 Every challenge has a **Temporal UI** tab (port 8233) and a **Network Control Panel** tab (port 5000, a Flask app that toggles the mitmproxy addon per external service). Coding challenges add a **Worker** terminal, a **Starter** terminal, and an **Editor** tab (`type: service` on port 8080, deep-linked into `code-server` via `?folder=` to that demo's directory). `code-server` is used instead of the native `type: code` tab so attendees get real syntax highlighting and cross-file navigation (go-to-definition, symbol search) while editing.
 
-### LLM access
+### LLM access (per-attendee keys via the secret broker)
 
-Attendees don't type an API key. The track declares an `OPENAI_API_KEY` secret (set once in Track Settings > Secrets), and `track_scripts/setup-workshop` injects it into every attendee's shell (`~/.bashrc` and `/etc/environment`) at lab start. The workshop code reads `OPENAI_API_KEY` normally.
+Attendees never supply an API key, and there's no shared key either. The track declares one team-scoped secret, `TEMPORAL_LITELLM_BROKER_SECRET` (an HMAC signing key, not an LLM credential). At lab start, `track_scripts/setup-workshop` downloads the `secret-broker` CLI and runs `secret-broker litellm --duration=1d --budget=5`, which mints a **short-lived, per-attendee, budget-capped key** (1-day TTL, $5 cap) to a managed LiteLLM gateway and writes OpenAI-compatible env vars into the attendee shell. The workshop code uses the OpenAI SDK normally; `OPENAI_BASE_URL` routes calls through the gateway, which holds the real upstream credentials centrally. The setup also patches the network control panel so the OpenAI toggle disrupts the gateway host.
 
-This is a **single shared key across all attendees**, which is fine for small, trusted runs (~10 people). For a large or public workshop (say 250 people) a shared key hits OpenAI rate limits and is a leak/abuse liability, so prefer per-attendee keys: the sibling `temporal-python-ai-agents-v3` track uses a LiteLLM broker that mints a short-lived, track-scoped key per attendee at lab start (declared as `TEMPORAL_LITELLM_BROKER_SECRET`, an HMAC signing secret, instead of `OPENAI_API_KEY`). Cutting v4 over to that broker requires registering the `temporal-ai-agents-python-v4` track id on the broker allowlist first.
+Per-attendee keys are the right model for large or public workshops: one attendee's key leaking or exhausting its budget doesn't affect anyone else, and there's no shared OpenAI rate limit to contend with. The track id sent to the broker is the track's own slug (`INSTRUQT_LITELLM_TRACK_ID` defaults to `INSTRUQT_TRACK_SLUG`), and no per-track allowlist registration is required. This matches the sibling `temporal-python-ai-agents-v3` track. `TEMPORAL_LITELLM_BROKER_SECRET` must be set in Track Settings > Secrets (it's team-scoped, so it's shared across Temporal's tracks).
 
 ### Network control panel
 

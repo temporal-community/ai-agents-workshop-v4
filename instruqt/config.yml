@@ -5,4 +5,4 @@ containers:
   shell: /bin/bash
   memory: 6144
 secrets:
-- name: OPENAI_API_KEY
+- name: TEMPORAL_LITELLM_BROKER_SECRET
