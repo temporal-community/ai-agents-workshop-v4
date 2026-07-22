@@ -1,6 +1,6 @@
 ---
 slug: openai-agents-sdk
-id: 6w7pumj75txp
+id: fcltf6zbrfhd
 type: challenge
 title: 'Demo 2: OpenAI Agents SDK + Temporal'
 teaser: The same agent, but the SDK drives the loop. Durability becomes automatic.
@@ -25,27 +25,27 @@ notes:
 
     The developer writes standard SDK code. Temporal durability is free.
 tabs:
-- id: fzmgwmgyqkjq
+- id: 31rcl28ut32k
   title: Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo2-openai-temporal-integration/exercise
-- id: vq28pzf9sgpu
+- id: qglx40kbt9zk
   title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo2-openai-temporal-integration/exercise
-- id: 6bybwvv0p1qu
+- id: e3elkflqcjty
   title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: u6yvktd9jtnc
+- id: xu508dgplvoa
   title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: tvpdykfxjkpn
+- id: efhnipg7vbyx
   title: Editor
   type: code
   hostname: workshop

@@ -1,6 +1,6 @@
 ---
 slug: heterogeneous-agents-different-sdks
-id: peggpxypjsyc
+id: dt0rx8urtvry
 type: challenge
 title: 'Demo 6a: Heterogeneous Agents - Different SDKs'
 teaser: A Strands agent joins the OpenAI specialists. Same orchestrator, different
@@ -29,32 +29,32 @@ notes:
     Same orchestrator. Same Temporal primitives. Fundamentally different
     visibility in the event history.
 tabs:
-- id: sczihhxt3wca
+- id: ypgwuxt0kziq
   title: Worker PA
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6a-different-sdks/exercise
-- id: a2m2wu4viukd
+- id: fpbdqvlxagej
   title: Worker F1
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6a-different-sdks/exercise
-- id: ol3axumbixvq
+- id: af8skzp4kqnl
   title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6a-different-sdks/exercise
-- id: olb8es6jbrpg
+- id: xyhiebpqolsq
   title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: o3hojnswqk2a
+- id: tildfwfxblec
   title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: xe6cqnpmcbvf
+- id: i13kgascdn3j
   title: Editor
   type: code
   hostname: workshop

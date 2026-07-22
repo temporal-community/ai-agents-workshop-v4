@@ -1,5 +1,5 @@
-slug: temporal-python-ai-agents-v2
-id: gfzpjblkgae4
+slug: temporal-ai-agents-python-v4
+id: xnemkij8fssg
 title: Building Durable AI Agents with Python and Temporal
 teaser: From a hand-written agentic loop to heterogeneous multi-agent systems. Seven
   progressive demos, one Temporal dev server, zero infrastructure headaches.
@@ -26,6 +26,7 @@ developers:
 - marcus.merrell@temporal.io
 - cornelia@temporal.io
 - nikolay.advolodkin@temporal.io
+maintenance: true
 idle_timeout: 900
 timelimit: 10800
 lab_config:
@@ -75,5 +76,5 @@ lab_config:
   hideStopButton: false
   default_layout: AssignmentLeft
   default_layout_sidebar_size: 35
-checksum: "4796380388455212898"
+checksum: "4738367823720224290"
 enhanced_loading: false

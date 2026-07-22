@@ -1,6 +1,6 @@
 ---
 slug: human-in-the-loop
-id: omyvoydii2je
+id: rdwjlkm5nqgh
 type: challenge
 title: 'Demo 4: Human-in-the-Loop'
 teaser: The agent pauses mid-execution to ask you a question. A Temporal signal resumes
@@ -30,27 +30,27 @@ notes:
     get_pending_question. The starter asks the question on the terminal
     and sends your answer as a signal.
 tabs:
-- id: hrubvxth7ui9
+- id: yn3i7qixi0m1
   title: Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo4-hitl/exercise
-- id: wimstsxxbuud
+- id: gv8yohlwieu9
   title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo4-hitl/exercise
-- id: cbjsucaomvrg
+- id: gyxato8ckiyt
   title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: e1sim7ca2cyi
+- id: qlhf7tnschez
   title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: mxwobjyx8ugr
+- id: epxhrhufmgek
   title: Editor
   type: code
   hostname: workshop

@@ -1,6 +1,6 @@
 ---
 slug: heterogeneous-agents-different-languages
-id: sxfuduetezvx
+id: vm5iwoklkhqc
 type: challenge
 title: 'Demo 6b: Heterogeneous Agents - Different Languages'
 teaser: The travel planner moves to Java and Spring AI. Per-step durability across
@@ -30,37 +30,37 @@ notes:
 
     Compare the two histories side by side.
 tabs:
-- id: wuhmheksfvbj
+- id: jk6wyakcueq7
   title: Java Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6b-different-languages/exercise/travel-planner-java
-- id: qvbbeyvbqa16
+- id: n9ffeuwu2acu
   title: Worker PA
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6b-different-languages/exercise
-- id: linlzgiwwetj
+- id: ycxqxzewm3yg
   title: Worker F1
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6b-different-languages/exercise
-- id: tff3kjs1m61c
+- id: xv6pjormhtjr
   title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6b-different-languages/exercise
-- id: nfbjfjujuaw8
+- id: ew0eepcvrwxl
   title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: 1ktdnrqxf7n7
+- id: x0ce7tdgsxwf
   title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: jtydohne7boe
+- id: r5q2o5unbfxv
   title: Editor
   type: code
   hostname: workshop

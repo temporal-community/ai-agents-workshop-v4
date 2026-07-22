@@ -1,6 +1,6 @@
 ---
 slug: agentic-loop
-id: jhjmk33je3jb
+id: vdvkh3wmfng4
 type: challenge
 title: 'Demo 1: The Hand-Written Agentic Loop'
 teaser: Build an agentic loop from scratch as a Temporal workflow. Watch it survive
@@ -29,27 +29,27 @@ notes:
     The LLM call is one activity. Each tool dispatch is another. Every step
     appears in the event history.
 tabs:
-- id: lwctpem6uc5b
+- id: xkk86anvxhdt
   title: Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo1-agentic-loop/exercise
-- id: yvpvqjosguer
+- id: vjifb9kwn5wq
   title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo1-agentic-loop/exercise
-- id: zt7hqroq3xgg
+- id: ry4phhbyngl0
   title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: k63ba3axuacz
+- id: tavjdlf1myuw
   title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: vplvdkfqzcb3
+- id: hdladectcmw7
   title: Editor
   type: code
   hostname: workshop
