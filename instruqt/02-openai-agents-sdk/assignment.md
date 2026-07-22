@@ -99,9 +99,9 @@ You should see a final answer describing Tokyo's current weather, printed after 
 
 ## Watch the Event History
 
-Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab. Look at a completed workflow. `InvokeModelActivity` appears as its own named entry - the SDK's model calls are now first-class Temporal activities alongside the tool calls.
+Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab. Look at a completed workflow. `invoke_model_activity` appears as its own named entry - the SDK's model calls are now first-class Temporal activities alongside the tool calls.
 
-> **Compare to demo 1:** demo 1's event history had one LLM-call activity per loop iteration, hand-dispatched by your own code. This one has `InvokeModelActivity` entries instead - same idea, but the SDK's `Runner.run()` is what's calling them now, not your `while True` loop. Same durability, one line of code.
+> **Compare to demo 1:** demo 1's event history had one LLM-call activity per loop iteration, hand-dispatched by your own code. This one has `invoke_model_activity` entries instead - same idea, but the SDK's `Runner.run()` is what's calling them now, not your `while True` loop. Same durability, one line of code.
 
 ## Break It
 

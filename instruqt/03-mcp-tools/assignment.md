@@ -102,7 +102,7 @@ You should see a final answer combining the next race's date/location with curre
 
 Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab. Three kinds of activity entries are listed in the workflow history:
 
-- `InvokeModelActivity` - LLM reasoning steps
+- `invoke_model_activity` - LLM reasoning steps
 - Weather activities (`get_coordinates`, `get_weather`, etc.)
 - `f1-data-list-tools` and `f1-data-call-tool-v2` - MCP operations, each a durable activity
 

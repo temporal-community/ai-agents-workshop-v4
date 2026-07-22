@@ -155,7 +155,7 @@ uv run python -m start_workflow "What were the results of the last Monaco Grand 
 
 View running workflows in the Temporal Web UI at [http://localhost:8233](http://localhost:8233). You'll see three kinds of activity entries in the history:
 
-- `InvokeModelActivity` — the LLM calls.
+- `invoke_model_activity` — the LLM calls.
 - Weather activities (`get_coordinates`, `get_weather`, etc.) — the `@activity.defn` tools from demo2.
 - `f1-data-list-tools` and `f1-data-call-tool-v2` — the MCP operations, each dispatched as its own Temporal activity.
 
