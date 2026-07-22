@@ -12,7 +12,11 @@ set -euo pipefail
 
 BROKER_URL="${INSTRUQT_BROKER_URL:-https://litellm-broker-instruqt.tmprl-demo.cloud}"
 BROKER_KEY_ID="${INSTRUQT_BROKER_KEY_ID:-v1}"
-LITELLM_TRACK_ID="${INSTRUQT_LITELLM_TRACK_ID:-${INSTRUQT_TRACK_SLUG:-testing-temporal-python-ai-agents-v2}}"
+# INTERIM: borrow v3's broker registration until temporal-ai-agents-python-v4
+# is added to the LiteLLM broker allowlist. Once v4 is registered, drop this
+# override so the track scopes its own LLM usage:
+#   LITELLM_TRACK_ID="${INSTRUQT_LITELLM_TRACK_ID:-${INSTRUQT_TRACK_SLUG:-...}}"
+LITELLM_TRACK_ID="${INSTRUQT_LITELLM_TRACK_ID:-temporal-python-ai-agents-v3}"
 OPENAI_MODEL="${OPENAI_MODEL:-gpt-4o}"
 LITELLM_ENV_FILE="/root/.litellm-env"
 LITELLM_PROXY_HOST="${LITELLM_PROXY_HOST:-litellm-instruqt.tmprl-demo.cloud}"
