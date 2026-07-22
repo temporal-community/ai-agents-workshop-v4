@@ -97,11 +97,7 @@ Click the [button label="Worker" background="#444CE7"](tab-0) terminal.
 uv run python -m worker
 ```
 
-You should see:
-
-```bash,nocopy
-Started worker on task queue: tool-invoking-agent-python-task-queue
-```
+The worker starts polling its task queue and keeps running. It prints no startup banner and does not return you to the prompt. That blocked terminal is the worker doing its job. Leave it running and move on.
 
 > **If it fails:** `ModuleNotFoundError` means `uv sync` hasn't run yet in this directory - it runs automatically the first time, but if you see this, run `uv sync` by hand. `OPENAI_API_KEY not set` means the auto-provisioned key didn't carry into this terminal - open a fresh terminal tab and re-check `echo $OPENAI_API_KEY`.
 

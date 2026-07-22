@@ -98,9 +98,12 @@ uv run python -m worker_pa
 You should see:
 
 ```bash,nocopy
-Started worker on task queue: orchestrator-tq
-Started worker on task queue: weather-agent-tq
+PA worker running:
+  - weather-agent-tq (WeatherAgentWorkflow)
+  - orchestrator-tq (PersonalAssistantWorkflow)
 ```
+
+The worker keeps running after that banner. Leave it and open the next terminal.
 
 Click the [button label="Worker F1" background="#444CE7"](tab-1) terminal.
 
@@ -111,7 +114,9 @@ uv run python -m worker_f1
 You should see:
 
 ```bash,nocopy
-Started worker on task queue: f1-expert-agent-tq
+F1 worker running:
+  - f1-expert-agent-tq (F1ExpertAgentWorkflow + Nexus handler)
+  - plugin: add_temporal_spans=False (Nexus trace gap workaround)
 ```
 
 > **If either fails:** `OPENAI_API_KEY not set` means the key didn't carry into this terminal. If Nexus endpoint errors appear, the track setup registers them automatically - retry after both workers are up.

@@ -98,7 +98,7 @@ Click the [button label="Worker F1" background="#444CE7"](tab-1) terminal.
 uv run python -m worker_f1
 ```
 
-Both should print `Started worker on task queue: ...` lines like demo 5. If either fails on `OPENAI_API_KEY not set`, open a fresh terminal tab.
+Each prints a `PA worker running:` / `F1 worker running:` banner like demo 5, then keeps running. If either fails on `OPENAI_API_KEY not set`, open a fresh terminal tab.
 
 ## Run It
 

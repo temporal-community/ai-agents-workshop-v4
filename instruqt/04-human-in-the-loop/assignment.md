@@ -87,11 +87,7 @@ Click the [button label="Worker" background="#444CE7"](tab-0) terminal.
 uv run python -m worker
 ```
 
-You should see:
-
-```bash,nocopy
-Started worker on task queue: hitl-agent-python-task-queue
-```
+The worker starts polling its task queue and keeps running. It prints no startup banner and does not return you to the prompt. That blocked terminal is the worker doing its job. Leave it running and move on.
 
 > **If it fails:** `OPENAI_API_KEY not set` means the key didn't carry into this terminal.
 
