@@ -47,9 +47,10 @@ tabs:
   port: 5000
 - id: efhnipg7vbyx
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo2-openai-temporal-integration
+  path: /?folder=/root/workshop/demo2-openai-temporal-integration
+  port: 8080
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null

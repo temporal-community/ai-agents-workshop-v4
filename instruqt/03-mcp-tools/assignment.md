@@ -46,9 +46,10 @@ tabs:
   port: 5000
 - id: tp4mmajg6cdu
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo3-mcp
+  path: /?folder=/root/workshop/demo3-mcp
+  port: 8080
 difficulty: basic
 timelimit: 1500
 enhanced_loading: null

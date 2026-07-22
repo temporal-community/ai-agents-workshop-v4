@@ -1,7 +1,7 @@
 # ABOUTME: Sandbox image for Build AI Agents That Survive Failure.
 # Bakes in: Python 3.10 + uv, JDK 21 (Temurin), Node.js 20, Temporal CLI,
 # workshop source (main branch), all Python deps, Maven deps, F1 MCP server,
-# FastF1 cache warm, mitmproxy + CA cert, control panel.
+# FastF1 cache warm, mitmproxy + CA cert, control panel, code-server.
 #
 # Build context must be repo root. GHA workflow checks out the companion code
 # repo at ./ai-agents-workshop-python/ alongside this Dockerfile.
@@ -143,6 +143,12 @@ COPY instruqt/docker/proxy/toggle_addon.py /opt/proxy/toggle_addon.py
 COPY instruqt/docker/proxy/controlpanel.py /opt/proxy/controlpanel.py
 COPY instruqt/docker/proxy/state.json      /opt/proxy/state.json
 COPY instruqt/docker/proxy/static/         /opt/proxy/static/
+
+# ── 13. code-server ───────────────────────────────────────────────────────────
+RUN curl -fsSL https://code-server.dev/install.sh | sh \
+    && mkdir -p /root/.local/share/code-server/User \
+    && printf '{\n    "workbench.colorTheme": "Default Dark+",\n    "workbench.startupEditor": "none",\n    "security.workspace.trust.enabled": false,\n    "editor.fontSize": 14,\n    "editor.tabSize": 4,\n    "workbench.activityBar.visible": false\n}\n' \
+       > /root/.local/share/code-server/User/settings.json
 
 # ── 14. Shell environment ──────────────────────────────────────────────────────
 RUN echo '' >> /etc/bash.bashrc \

@@ -57,9 +57,10 @@ tabs:
   port: 5000
 - id: uzhfldcmiky9
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo5-multi-agent
+  path: /?folder=/root/workshop/demo5-multi-agent
+  port: 8080
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null

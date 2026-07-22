@@ -115,10 +115,11 @@ instruqt/
 - A pinned clone of the [F1 MCP server](https://github.com/rakeshgangwar/f1-mcp-server) with a pre-warmed FastF1 cache for the current season
 - `mitmproxy` with a trusted CA cert, used by the network control panel to fault-inject external calls during demos
 - Maven dependencies for demo6b's Java + Spring AI travel planner
+- `code-server` (VS Code in the browser), pre-configured with a dark theme and no workspace-trust prompt
 
 ### Tab inventory per challenge
 
-Every challenge has a **Temporal UI** tab (port 8233) and a **Network Control Panel** tab (port 5000, a Flask app that toggles the mitmproxy addon per external service). Coding challenges add a **Worker** terminal, a **Starter** terminal, and an **Editor** tab (native `type: code`, opened on that demo's directory).
+Every challenge has a **Temporal UI** tab (port 8233) and a **Network Control Panel** tab (port 5000, a Flask app that toggles the mitmproxy addon per external service). Coding challenges add a **Worker** terminal, a **Starter** terminal, and an **Editor** tab (`type: service` on port 8080, deep-linked into `code-server` via `?folder=` to that demo's directory). `code-server` is used instead of the native `type: code` tab so attendees get real syntax highlighting and cross-file navigation (go-to-definition, symbol search) while editing.
 
 ### Network control panel
 
@@ -147,6 +148,7 @@ git add instruqt/ && git commit -m "Pin Instruqt track and tab ids"
 - **F1 MCP server commit pin.** `docker/Dockerfile` clones `rakeshgangwar/f1-mcp-server` at a pinned commit (`F1_MCP_COMMIT` build arg). Refresh it periodically with `git ls-remote https://github.com/rakeshgangwar/f1-mcp-server HEAD`.
 - **Local `F1_MCP_SERVER_HOME` path.** The top-level README's prerequisites list a local path (`~/Projects/Temporal/AI/MCP/f1-mcp-server/`) for running demos outside Instruqt. Inside the sandbox this is overwritten to `/opt/f1-mcp-server` — don't assume the checked-in demo READMEs describe the sandbox path.
 - **Undocumented `track.yml` fields.** `lab_config.override_challenge_layout`, `default_layout`, and `default_layout_sidebar_size` work in production but aren't part of Instruqt's published schema; they're carried over from prior tracks.
+- **`code-server` runs with `--auth none`.** It's reachable only through Instruqt's per-attendee sandbox proxy (not directly from the internet), so this is the accepted tradeoff for a disposable, single-attendee workshop VM — but it's worth knowing it's an unauthenticated VS Code instance if anything about the sandbox's network exposure model changes.
 
 ## Related
 

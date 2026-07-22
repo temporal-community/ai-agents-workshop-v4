@@ -56,9 +56,10 @@ tabs:
   port: 5000
 - id: i13kgascdn3j
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo6a-different-sdks
+  path: /?folder=/root/workshop/demo6a-different-sdks
+  port: 8080
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null

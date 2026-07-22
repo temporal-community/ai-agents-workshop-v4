@@ -62,9 +62,10 @@ tabs:
   port: 5000
 - id: r5q2o5unbfxv
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo6b-different-languages
+  path: /?folder=/root/workshop/demo6b-different-languages
+  port: 8080
 difficulty: basic
 timelimit: 2400
 enhanced_loading: null

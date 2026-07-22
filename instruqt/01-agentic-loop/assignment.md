@@ -51,9 +51,10 @@ tabs:
   port: 5000
 - id: hdladectcmw7
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo1-agentic-loop
+  path: /?folder=/root/workshop/demo1-agentic-loop
+  port: 8080
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null

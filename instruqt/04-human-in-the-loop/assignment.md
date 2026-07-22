@@ -52,9 +52,10 @@ tabs:
   port: 5000
 - id: epxhrhufmgek
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo4-hitl
+  path: /?folder=/root/workshop/demo4-hitl
+  port: 8080
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null
