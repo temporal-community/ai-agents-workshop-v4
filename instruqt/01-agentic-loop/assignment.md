@@ -103,7 +103,7 @@ You should see:
 Started worker on task queue: tool-invoking-agent-python-task-queue
 ```
 
-> **If it fails:** `ModuleNotFoundError` means `uv sync` hasn't run yet in this directory - it runs automatically the first time, but if you see this, run `uv sync` by hand. `OPENAI_API_KEY not set` means the key from Environment Setup didn't carry into this terminal - open a fresh terminal tab and re-check `echo $OPENAI_API_KEY`.
+> **If it fails:** `ModuleNotFoundError` means `uv sync` hasn't run yet in this directory - it runs automatically the first time, but if you see this, run `uv sync` by hand. `OPENAI_API_KEY not set` means the auto-provisioned key didn't carry into this terminal - open a fresh terminal tab and re-check `echo $OPENAI_API_KEY`.
 
 ## Run It
 

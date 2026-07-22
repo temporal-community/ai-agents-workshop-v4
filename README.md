@@ -121,6 +121,10 @@ instruqt/
 
 Every challenge has a **Temporal UI** tab (port 8233) and a **Network Control Panel** tab (port 5000, a Flask app that toggles the mitmproxy addon per external service). Coding challenges add a **Worker** terminal, a **Starter** terminal, and an **Editor** tab (`type: service` on port 8080, deep-linked into `code-server` via `?folder=` to that demo's directory). `code-server` is used instead of the native `type: code` tab so attendees get real syntax highlighting and cross-file navigation (go-to-definition, symbol search) while editing.
 
+### LLM access (no attendee API key)
+
+Attendees never supply an OpenAI key. The track declares a single team-scoped secret, `TEMPORAL_LITELLM_BROKER_SECRET` (an HMAC signing key, not an LLM credential). At lab start, `track_scripts/setup-workshop` signs a per-attendee request with that secret and calls a Temporal-hosted broker, which mints a short-lived, track-scoped key to a managed LiteLLM gateway. The script then writes standard OpenAI-compatible env vars (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, plus the `SPRING_AI_*` equivalents for demo6b) into the attendee shell. The workshop code is unchanged: it uses the OpenAI SDK normally, but `OPENAI_BASE_URL` routes every call through the gateway, which holds the real upstream credentials centrally. This mirrors the sibling `temporal-python-ai-agents-v3` track. The setup script also patches the network control panel so the OpenAI toggle disrupts the gateway host.
+
 ### Network control panel
 
 The control panel toggles four external services on and off mid-demo so attendees can watch Temporal retry a failing activity and resume once the service comes back: OpenAI, the F1 MCP server, IP geolocation, and weather. It's driven by `docker/proxy/controlpanel.py` and `docker/proxy/toggle_addon.py`, both started by `track_scripts/setup-workshop`.

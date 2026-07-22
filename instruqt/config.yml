@@ -6,4 +6,3 @@ containers:
   memory: 6144
 secrets:
 - name: TEMPORAL_LITELLM_BROKER_SECRET
-- name: OPENAI_API_KEY

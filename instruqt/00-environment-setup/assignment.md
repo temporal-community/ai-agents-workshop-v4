@@ -64,21 +64,15 @@ Click the [button label="Temporal UI" background="#444CE7"](tab-1) tab. An empty
 python --version && uv --version && temporal --version && node --version && java -version
 ```
 
-## Set your API key
+## Confirm your LLM access
 
-You need your own OpenAI API key for this workshop. Run this command with your actual key:
-
-```bash,run
-echo 'export OPENAI_API_KEY=sk-your-key-here' >> ~/.bashrc && source ~/.bashrc
-```
-
-Replace `sk-your-key-here` with your actual key. Verify it took:
+No API key to set up. The sandbox provisions a workshop-scoped LLM key for you at startup and points the OpenAI SDK at a managed gateway. Confirm it landed:
 
 ```bash,run
-echo $OPENAI_API_KEY
+echo "$OPENAI_API_KEY" && echo "$OPENAI_BASE_URL"
 ```
 
-You should see your key starting with `sk-`. Every terminal tab you open from here will have it automatically.
+You should see a key value and a gateway URL. Every terminal tab you open from here inherits both automatically, so the demos work out of the box.
 
 ## Check the Network Control Panel
 
