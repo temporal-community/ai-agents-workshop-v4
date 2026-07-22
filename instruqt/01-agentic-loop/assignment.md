@@ -65,6 +65,15 @@ enhanced_loading: null
 > [!NOTE]
 > **Tabs:** [button label="Worker" background="#444CE7"](tab-0) [button label="Starter" background="#444CE7"](tab-1) [button label="Temporal UI" background="#444CE7"](tab-2) [button label="Network Control Panel" background="#444CE7"](tab-3) [button label="Editor" background="#444CE7"](tab-4)
 
+## Why
+
+An agentic loop is the engine behind every AI agent. Most frameworks hide it from you. Module 1 makes you write it by hand, so you see exactly what it is:
+
+- Call the LLM with the conversation and available tools
+- Check whether the model asked for a tool
+- Run the tool, feed the result back into the conversation
+- Repeat until the model returns a plain text answer
+
 ## The Code
 
 Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in `demo1-agentic-loop`:
