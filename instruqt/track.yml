@@ -26,7 +26,7 @@ developers:
 - marcus.merrell@temporal.io
 - cornelia@temporal.io
 - nikolay.advolodkin@temporal.io
-maintenance: true
+maintenance: false
 idle_timeout: 900
 timelimit: 10800
 lab_config:
