@@ -48,21 +48,14 @@ class AgentWorkflow:
         # workflow.now() is deterministic under replay, unlike datetime.now().
         today = workflow.now().strftime("%Y-%m-%d")
 
-        # TODO: Get a handle to the F1 MCP server registered on the worker.
-        # A stateless_mcp_server("f1-data") call gives the agent a handle to
-        # the MCP server. Each listTools/callTool becomes a Temporal activity
-        # (durable, retryable) automatically. Uncomment and pass the result
-        # to the Agent's mcp_servers list below:
-        #   f1 = stateless_mcp_server(name="f1-data", cache_tools_list=True)
-        raise NotImplementedError(
-            "TODO: call stateless_mcp_server(name=\"f1-data\", cache_tools_list=True) "
-            "to get a handle to the F1 MCP server, and pass it to Agent(mcp_servers=[f1])"
-        )
-
         agent = Agent(
             name="Agent",
             instructions=SYSTEM_PROMPT.format(date=today),
             model="gpt-4o",
+            # TODO: Uncomment mcp_servers below to hand the agent the F1 MCP
+            # server registered on the worker. Each MCP tool call the agent makes
+            # then becomes its own durable, retryable Temporal activity.
+            # mcp_servers=[stateless_mcp_server(name="f1-data", cache_tools_list=True)],
             tools=[
                 # Wraps a Temporal activity as an agent-SDK tool call, so every tool invocation becomes a durable, retryable Temporal activity.
                 activity_as_tool(

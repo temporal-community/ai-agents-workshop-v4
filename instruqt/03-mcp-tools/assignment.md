@@ -69,7 +69,10 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Wire Up the MCP Server
 
-Open `exercise/worker.py` and `exercise/tools_workflow.py`. Both have TODO stubs: register the `StatelessMCPServerProvider` on the plugin in `worker.py`, then call `stateless_mcp_server("f1-data")` and add it to the agent's `mcp_servers` in `tools_workflow.py`.
+Two one-line edits, one per file. Each has a `TODO` comment right above a commented-out line. Uncomment it.
+
+1. In `exercise/worker.py`, uncomment the `mcp_server_providers=[...]` block. That registers the F1 MCP server with Temporal, so its operations run as durable activities.
+2. In `exercise/tools_workflow.py`, uncomment the `mcp_servers=[...]` line. That hands the registered server to the agent, so it can call the F1 tools.
 
 Stuck? Compare against `solution/worker.py` and `solution/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab.
 
