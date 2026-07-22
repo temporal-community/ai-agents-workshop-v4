@@ -66,13 +66,13 @@ python --version && uv --version && temporal --version && node --version && java
 
 ## Confirm your LLM access
 
-No API key to set up. The sandbox provisions a workshop-scoped LLM key for you at startup and points the OpenAI SDK at a managed gateway. Confirm it landed:
+No API key to set up. The sandbox injects an OpenAI key for you at startup. Confirm it landed:
 
 ```bash,run
-echo "$OPENAI_API_KEY" && echo "$OPENAI_BASE_URL"
+echo "$OPENAI_API_KEY"
 ```
 
-You should see a key value and a gateway URL. Every terminal tab you open from here inherits both automatically, so the demos work out of the box.
+You should see a key value starting with `sk-`. Every terminal tab you open from here inherits it automatically, so the demos work out of the box.
 
 ## Check the Network Control Panel
 
