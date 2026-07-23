@@ -69,7 +69,7 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Wire Up the MCP Server
 
-Open `exercise/worker.py` and `exercise/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab and follow the `TODO` in each. Both are one-line uncomments.
+Open `exercise/worker.py` and `exercise/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab and follow the `TODO` in each.
 
 Stuck? Compare against `solution/worker.py` and `solution/tools_workflow.py`.
 
