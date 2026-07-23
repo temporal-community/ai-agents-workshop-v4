@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # ABOUTME: Track-level setup. Runs once when the attendee enters the track.
 # Everything heavy is baked into the image. This script only:
