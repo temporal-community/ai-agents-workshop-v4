@@ -1,6 +1,6 @@
 ---
 slug: heterogeneous-agents-different-languages
-id: sxfuduetezvx
+id: vm5iwoklkhqc
 type: challenge
 title: 'Demo 6b: Heterogeneous Agents - Different Languages'
 teaser: The travel planner moves to Java and Spring AI. Per-step durability across
@@ -30,41 +30,42 @@ notes:
 
     Compare the two histories side by side.
 tabs:
-- id: wuhmheksfvbj
+- id: jk6wyakcueq7
   title: Java Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6b-different-languages/exercise/travel-planner-java
-- id: qvbbeyvbqa16
+- id: n9ffeuwu2acu
   title: Worker PA
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6b-different-languages/exercise
-- id: linlzgiwwetj
+- id: ycxqxzewm3yg
   title: Worker F1
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6b-different-languages/exercise
-- id: tff3kjs1m61c
+- id: xv6pjormhtjr
   title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo6b-different-languages/exercise
-- id: nfbjfjujuaw8
+- id: ew0eepcvrwxl
   title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: 1ktdnrqxf7n7
+- id: x0ce7tdgsxwf
   title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: jtydohne7boe
+- id: r5q2o5unbfxv
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo6b-different-languages
+  path: /?folder=/root/workshop/demo6b-different-languages
+  port: 8080
 difficulty: basic
 timelimit: 2400
 enhanced_loading: null
@@ -86,9 +87,9 @@ enhanced_loading: null
 
 ## Wire Up the Nexus Call
 
-Open `exercise/personal_assistant.py`. One TODO stub: wire the travel planner in as a third tool via `nexus_operation_as_tool(...)` pointed at the Java service, over the same Nexus boundary the F1 expert already uses.
+In the [button label="Editor" background="#444CE7"](tab-6) tab, open `exercise/personal_assistant.py` and follow the `TODO`.
 
-Stuck? Compare against `solution/personal_assistant.py` in the [button label="Editor" background="#444CE7"](tab-6) tab.
+Stuck? Compare against `solution/personal_assistant.py`.
 
 ## Start the Java Worker
 
@@ -116,7 +117,7 @@ Click the [button label="Worker F1" background="#444CE7"](tab-2) terminal.
 uv run python -m worker_f1
 ```
 
-Both should print `Started worker on task queue: ...` lines. `OPENAI_API_KEY not set` means the key didn't carry into this terminal.
+Each prints a `PA worker running:` / `F1 worker running:` banner, then keeps running. `OPENAI_API_KEY not set` means the key didn't carry into this terminal.
 
 ## Run It
 
@@ -139,7 +140,7 @@ In the **orchestrator** history, the travel planner path now shows `NexusOperati
 Then find the **`TravelPlannerAgentWorkflow`** on `travel-planner-agent-tq`. Its history shows per-step activities: a `ChatModelActivity` for each LLM call, individual activities for each tool call. That's Spring AI giving the Java agent the same per-step durability the OpenAI Agents SDK gives the Python agents.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:680px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME — click each demo to see how the travel planner's durability changed</div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME: click each demo to see how the travel planner's durability changed</div>
 <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
   <div class="lang-demo" data-detail="Python + Strands, called as a direct activity. Whole loop = one ScheduleActivityTask: ask_travel_planner. A worker crash mid-loop restarts the entire travel-planning conversation from scratch." style="text-align:center;padding:12px;border-radius:8px;background:#5f1e3a;cursor:pointer;min-width:150px;">demo 6a<br><small>Python · Strands · direct activity</small></div>
   <div style="font-size:20px;color:#8b8fa3;align-self:center;">→</div>

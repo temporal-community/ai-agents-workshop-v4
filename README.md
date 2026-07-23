@@ -77,6 +77,142 @@ ai-agents-workshop-v4/
         └── travel-planner-java/
 ```
 
+## Instruqt track
+
+This repo is also the source for a hands-on Instruqt lab: eight challenges (an environment-setup prologue plus one per demo) that walk an attendee through the same progression in a browser-based sandbox, no local setup required.
+
+```
+instruqt/
+├── track.yml                                        # track metadata, lab_config, loading messages
+├── config.yml                                        # sandbox container reference + secrets
+├── justfile                                          # create/push/pull/validate/test recipes
+├── track_scripts/
+│   ├── setup-workshop                                # track-level: starts services, injects secrets, warms caches
+│   └── cleanup-workshop
+├── docker/
+│   ├── Dockerfile                                    # sandbox image
+│   ├── warmup_f1_cache.py                            # pre-warms FastF1 data at build time
+│   └── proxy/                                        # mitmproxy addon + Flask control panel
+├── 00-environment-setup/
+├── 01-agentic-loop/
+├── 02-openai-agents-sdk/
+├── 03-mcp-tools/
+├── 04-human-in-the-loop/
+├── 05-multi-agent/
+├── 06-heterogeneous-agents-different-sdks/
+└── 07-heterogeneous-agents-different-languages/
+    ├── assignment.md                                 # challenge instructions + tab definitions
+    ├── setup-workshop                                 # stages that chapter's code, kills straggler processes
+    ├── check-workshop                                 # verifies the attendee completed the challenge
+    ├── solve-workshop                                 # simulates a learner for `instruqt track test`
+    └── cleanup-workshop
+```
+
+### What the sandbox image bakes in
+
+- Python 3.10 + `uv`, JDK 21 (Temurin), Node.js 20, the Temporal CLI
+- All seven demos' `exercise/` and `solution/` dependencies, pre-synced with `uv sync`
+- A pinned clone of the [F1 MCP server](https://github.com/rakeshgangwar/f1-mcp-server) with a pre-warmed FastF1 cache for the current season
+- `mitmproxy` with a trusted CA cert, used by the network control panel to fault-inject external calls during demos
+- Maven dependencies for demo6b's Java + Spring AI travel planner
+- `code-server` (VS Code in the browser), pre-configured with a dark theme and no workspace-trust prompt
+
+### Tab inventory per challenge
+
+Every challenge has a **Temporal UI** tab (port 8233) and a **Network Control Panel** tab (port 5000, a Flask app that toggles the mitmproxy addon per external service). Coding challenges add a **Worker** terminal, a **Starter** terminal, and an **Editor** tab (`type: service` on port 8080, deep-linked into `code-server` via `?folder=` to that demo's directory). `code-server` is used instead of the native `type: code` tab so attendees get real syntax highlighting and cross-file navigation (go-to-definition, symbol search) while editing.
+
+### LLM access (per-attendee keys via the LiteLLM secret broker)
+
+Attendees never supply an API key, and there is no shared key. Every attendee gets their own short-lived, budget-capped key to a managed LiteLLM gateway, minted at lab start. This section explains how it works end to end and how to debug it, because the setup is easy to get wrong and its failures show up as an unhelpful "Failed to start track" error.
+
+#### The one secret you need
+
+The track declares exactly one secret in `config.yml`:
+
+```yaml
+secrets:
+- name: TEMPORAL_LITELLM_BROKER_SECRET
+```
+
+`TEMPORAL_LITELLM_BROKER_SECRET` is **not an OpenAI key**. It's an HMAC signing secret the broker uses to authenticate the sandbox's request. It is **team-scoped** in Instruqt (Team Settings > Secrets), so it already exists and is shared across all of Temporal's tracks. You do not set a per-track value, and there is no OpenAI key to rotate per workshop. It must be present, or setup aborts immediately with `TEMPORAL_LITELLM_BROKER_SECRET is not set`.
+
+#### What happens at lab start
+
+`track_scripts/setup-workshop` does this (see `mint_litellm_token`):
+
+1. Downloads the `secret-broker` CLI installer from S3 (`SECRET_BROKER_BASE_URL`) and installs it. `curl` retries up to 10 times, so a transient network blip self-heals.
+2. Runs `secret-broker litellm --duration=1d --budget=5`. The CLI signs a request with `TEMPORAL_LITELLM_BROKER_SECRET`, calls the broker, and the broker mints a **per-attendee LiteLLM virtual key** scoped to this track, valid for 1 day, capped at $5 of spend.
+3. Writes OpenAI-compatible env vars (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, plus the `SPRING_AI_*` equivalents for demo6b's Java worker) to `/root/.litellm-env`, which every attendee terminal inherits.
+
+The workshop code is unchanged: it uses the OpenAI SDK normally. The trick is `OPENAI_BASE_URL`, which points at the LiteLLM gateway (`litellm-instruqt.tmprl-demo.cloud`) instead of `api.openai.com`. The gateway holds the real upstream OpenAI credentials centrally; they never touch a sandbox. `setup-workshop` also patches the network control panel (`patch_runtime_proxy_config`) so the "OpenAI" fault-injection toggle disrupts the gateway host.
+
+#### Configuration knobs (all have defaults, override via track env vars)
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `SECRET_BROKER_BASE_URL` | S3 bucket URL | Where the `secret-broker` installer is fetched from |
+| `SECRET_BROKER_VERSION` | `main` | Installer version/channel |
+| `LITELLM_KEY_DURATION` | `1d` | TTL of each minted key |
+| `LITELLM_MAX_BUDGET` | `5` | Per-key spend cap in USD |
+| `INSTRUQT_LITELLM_TRACK_ID` | the track slug (`INSTRUQT_TRACK_SLUG`) | Track id sent to the broker |
+| `OPENAI_MODEL` | `gpt-4o` | Model the demos request through the gateway |
+| `LITELLM_PROXY_HOST` | `litellm-instruqt.tmprl-demo.cloud` | Gateway host the proxy panel toggles |
+
+#### Why per-attendee keys (not one shared OpenAI key)
+
+For a small, trusted run (~10 people) a single shared `OPENAI_API_KEY` secret works. At scale (say 250 people) it does not: one shared key hits OpenAI's per-org rate limits under synchronized load, and the key is readable in every attendee's sandbox, so it is a leak and abuse liability. Per-attendee keys fix both: each key has its own budget and rate scope, one attendee cannot starve or bill the others, and a leaked key is capped at $5 and expires in a day. That is why this track uses the broker rather than a shared key, and it matches the sibling `temporal-python-ai-agents-v3` track.
+
+#### Troubleshooting (lessons learned the hard way)
+
+- **"Failed to start track" / "Could not start track: expected status 'started', but got 'stopped'."** The mint runs under `set -e`, so *any* failure in `setup-workshop` aborts the entire lab start. To see the real cause, run `instruqt track test` from the `instruqt/` directory: on failure it prints the setup log, including the exact `curl`/broker error. (On success it prints nothing, which is why you only see detail when it breaks.)
+- **`instruqt track test` runs your LOCAL track files, not the deployed track.** You can validate a `setup-workshop` change before pushing. Handy, but also means a green local test does not prove the *deployed* track is fixed until you push.
+- **No allowlist registration is required.** The current `secret-broker` CLI mints against the track's own slug (`INSTRUQT_LITELLM_TRACK_ID` defaults to `INSTRUQT_TRACK_SLUG`). Earlier broker versions required each track id to be pre-registered on the broker; symptoms of that era were **HTTP 404** (track id not on the allowlist) and **HTTP 422** (request rejected, e.g. a stale/borrowed track id or an exhausted per-track key quota). If you see those, you are likely on an old setup script or pointing at a track id the broker does not accept. Do **not** work around it by borrowing another track's id (we tried; it 422'd once quota was hit). Fix the setup script instead.
+- **The image is not involved.** The `secret-broker` installer is fetched from S3 at runtime, and `setup-workshop` is part of the track definition. Changing any of this needs only `instruqt track push`, never a sandbox image rebuild.
+- **Do not silently fall back to a shared `OPENAI_API_KEY`** for anything beyond a tiny internal test. If the broker is down, prefer fixing the broker path over shipping a shared key to a large audience (see the scaling note above).
+
+### Network control panel
+
+The control panel toggles four external services on and off mid-demo so attendees can watch Temporal retry a failing activity and resume once the service comes back: OpenAI, the F1 MCP server, IP geolocation, and weather. It's driven by `docker/proxy/controlpanel.py` and `docker/proxy/toggle_addon.py`, both started by `track_scripts/setup-workshop`.
+
+### Instruqt CLI workflow
+
+```bash
+just validate       # instruqt track validate
+just push           # instruqt track push
+just pull           # instruqt track pull (populates server-assigned ids)
+just test           # instruqt track test (runs check/solve scripts end to end)
+```
+
+First-time track creation:
+
+```bash
+just create                      # registers the slug server-side, once
+cd instruqt && instruqt track push --force
+cd - && just pull
+git add instruqt/ && git commit -m "Pin Instruqt track and tab ids"
+```
+
+### Publishing (manual, no CI)
+
+There is no GitHub Actions pipeline; publishing is manual, and what you run depends on what changed:
+
+- **Changed an `assignment.md`, lifecycle script, `track.yml`, or `config.yml`** (anything under `instruqt/`): run `instruqt track push`. No image rebuild.
+- **Changed exercise/solution code, the `Dockerfile`, or anything else baked into the sandbox** (`demo*/`, `instruqt/docker/`): rebuild and push the image, then launch a fresh sandbox to pick it up:
+  ```bash
+  docker buildx build --platform linux/amd64 \
+    -f instruqt/docker/Dockerfile \
+    -t docker.io/nadvolod/ai-agents-workshop-v4-sandbox:latest --push .
+  ```
+
+`instruqt track test` runs the track's *local* files against the deployed image, so it's the way to verify a change before pushing.
+
+### Known issues
+
+- **F1 MCP server commit pin.** `docker/Dockerfile` clones `rakeshgangwar/f1-mcp-server` at a pinned commit (`F1_MCP_COMMIT` build arg). Refresh it periodically with `git ls-remote https://github.com/rakeshgangwar/f1-mcp-server HEAD`.
+- **Local `F1_MCP_SERVER_HOME` path.** The top-level README's prerequisites list a local path (`~/Projects/Temporal/AI/MCP/f1-mcp-server/`) for running demos outside Instruqt. Inside the sandbox this is overwritten to `/opt/f1-mcp-server` — don't assume the checked-in demo READMEs describe the sandbox path.
+- **Undocumented `track.yml` fields.** `lab_config.override_challenge_layout`, `default_layout`, and `default_layout_sidebar_size` work in production but aren't part of Instruqt's published schema; they're carried over from prior tracks.
+- **`code-server` runs with `--auth none`.** It's reachable only through Instruqt's per-attendee sandbox proxy (not directly from the internet), so this is the accepted tradeoff for a disposable, single-attendee workshop VM — but it's worth knowing it's an unauthenticated VS Code instance if anything about the sandbox's network exposure model changes.
+
 ## Related
 
 This workshop has a [Java / Spring AI sibling](https://github.com/temporal-community/springio-agents-springai-temporal) that covers the same progression using Spring AI instead of the OpenAI Agents SDK. The two implementations diverge in interesting ways where the frameworks differ — see `docs/research/tool-execution-strategies-java-vs-python.md` for one such comparison.

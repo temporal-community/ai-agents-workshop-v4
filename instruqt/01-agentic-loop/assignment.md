@@ -1,6 +1,6 @@
 ---
 slug: agentic-loop
-id: jhjmk33je3jb
+id: vdvkh3wmfng4
 type: challenge
 title: 'Demo 1: The Hand-Written Agentic Loop'
 teaser: Build an agentic loop from scratch as a Temporal workflow. Watch it survive
@@ -29,31 +29,32 @@ notes:
     The LLM call is one activity. Each tool dispatch is another. Every step
     appears in the event history.
 tabs:
-- id: lwctpem6uc5b
+- id: xkk86anvxhdt
   title: Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo1-agentic-loop/exercise
-- id: yvpvqjosguer
+- id: vjifb9kwn5wq
   title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo1-agentic-loop/exercise
-- id: zt7hqroq3xgg
+- id: ry4phhbyngl0
   title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: k63ba3axuacz
+- id: tavjdlf1myuw
   title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: vplvdkfqzcb3
+- id: hdladectcmw7
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo1-agentic-loop
+  path: /?folder=/root/workshop/demo1-agentic-loop
+  port: 8080
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null
@@ -63,6 +64,15 @@ enhanced_loading: null
 
 > [!NOTE]
 > **Tabs:** [button label="Worker" background="#444CE7"](tab-0) [button label="Starter" background="#444CE7"](tab-1) [button label="Temporal UI" background="#444CE7"](tab-2) [button label="Network Control Panel" background="#444CE7"](tab-3) [button label="Editor" background="#444CE7"](tab-4)
+
+## Why
+
+An agentic loop is the engine behind every AI agent. Most frameworks hide it from you. Module 1 makes you write it by hand, so you see exactly what it is:
+
+- Call the LLM with the conversation and available tools
+- Check whether the model asked for a tool
+- Run the tool, feed the result back into the conversation
+- Repeat until the model returns a plain text answer
 
 ## The Code
 
@@ -75,9 +85,9 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Write the Loop
 
-Open `exercise/workflows/agent.py`. The loop body is a `TODO` stub - your job is to write the four steps described above: call the LLM activity, check whether the result is a tool call, dispatch the tool, feed the output back into `input_list`, and repeat until the model returns a final message.
+In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/workflows/agent.py` and follow the `TODO`.
 
-Stuck? Compare your work against `solution/workflows/agent.py` in the [button label="Editor" background="#444CE7"](tab-4) tab - same file, fully implemented.
+Stuck? Compare your work against `solution/workflows/agent.py` in the same tab, fully implemented.
 
 ## Start the Worker
 
@@ -87,13 +97,9 @@ Click the [button label="Worker" background="#444CE7"](tab-0) terminal.
 uv run python -m worker
 ```
 
-You should see:
+The worker starts polling its task queue and keeps running. It prints no startup banner and does not return you to the prompt. That blocked terminal is the worker doing its job. Leave it running and move on.
 
-```bash,nocopy
-Started worker on task queue: tool-invoking-agent-python-task-queue
-```
-
-> **If it fails:** `ModuleNotFoundError` means `uv sync` hasn't run yet in this directory - it runs automatically the first time, but if you see this, run `uv sync` by hand. `OPENAI_API_KEY not set` means the key from Environment Setup didn't carry into this terminal - open a fresh terminal tab and re-check `echo $OPENAI_API_KEY`.
+> **If it fails:** `ModuleNotFoundError` means `uv sync` hasn't run yet in this directory - it runs automatically the first time, but if you see this, run `uv sync` by hand. `OPENAI_API_KEY not set` means the auto-provisioned key didn't carry into this terminal - open a fresh terminal tab and re-check `echo $OPENAI_API_KEY`.
 
 ## Run It
 

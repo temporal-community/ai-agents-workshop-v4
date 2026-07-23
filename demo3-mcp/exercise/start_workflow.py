@@ -23,11 +23,14 @@ async def main() -> None:
     # client — providers are lazy — but including the provider keeps the
     # plugin config symmetric and makes the starter worker-ready if we ever
     # run them co-located.
+    # Plugin that makes the OpenAI Agents SDK's LLM calls and tool calls run as Temporal activities automatically.
     plugin = OpenAIAgentsPlugin(
         model_params=ModelActivityParameters(
+            # Start-to-close timeout: max time Temporal allows one activity attempt to run.
             start_to_close_timeout=timedelta(seconds=60),
         ),
         mcp_server_providers=[
+            # Runs an MCP server's listTools/callTool operations as Temporal activities, so MCP tool calls get the same durability as any other activity.
             StatelessMCPServerProvider(
                 name=MCP_SERVER_NAME,
                 server_factory=_f1_server_factory,
@@ -37,6 +40,7 @@ async def main() -> None:
 
     config = ClientConfig.load_client_connect_config()
     config.setdefault("target_host", "localhost:7233")
+    # Client: connects to the Temporal server to start, signal, and query workflows.
     client = await Client.connect(**config, plugins=[plugin])
 
     query = (
@@ -50,10 +54,12 @@ async def main() -> None:
     # would be created with no parent trace and the Agents SDK would log
     # "No active trace" plus a 400 when exporting to OpenAI.
     with trace("AgentWorkflow"):
+        # Starts a new workflow execution and waits for its result.
         result = await client.execute_workflow(
             AgentWorkflow.run,
             query,
             id=f"f1-agent-demo-{uuid.uuid4()}",
+            # Task queue: the named queue a worker polls and a client targets to run this workflow/activity.
             task_queue=TASK_QUEUE,
         )
     print(f"Result: {result}")

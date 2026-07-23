@@ -1,8 +1,8 @@
 version: "3"
 containers:
 - name: workshop
-  image: mmerrell/ai-agents-workshop-python-instruqt-v2:latest
+  image: nadvolod/ai-agents-workshop-v4-sandbox:latest
   shell: /bin/bash
   memory: 6144
 secrets:
-- name: OPENAI_API_KEY
+- name: TEMPORAL_LITELLM_BROKER_SECRET

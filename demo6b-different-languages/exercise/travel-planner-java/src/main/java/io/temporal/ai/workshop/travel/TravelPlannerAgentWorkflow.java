@@ -5,6 +5,7 @@ package io.temporal.ai.workshop.travel;
 import io.temporal.workflow.WorkflowInterface;
 import io.temporal.workflow.WorkflowMethod;
 
+// Workflow: durable, replayable orchestration logic.
 @WorkflowInterface
 public interface TravelPlannerAgentWorkflow {
     @WorkflowMethod

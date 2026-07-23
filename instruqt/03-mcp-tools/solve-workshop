@@ -1,2 +1,16 @@
 #!/bin/bash
-echo "Challenge 03 solve: OK"
+# Drives demo3's solution to one completed workflow, non-interactively.
+set -uo pipefail
+cd /root/workshop/demo3-mcp/solution || exit 0
+
+pkill -f "python -m worker" 2>/dev/null || true
+sleep 1
+
+nohup uv run python -m worker > /tmp/solve-03-worker.log 2>&1 &
+WORKER_PID=$!
+sleep 12
+
+timeout 120 uv run python -m start_workflow "What is the weather in Barcelona?"
+
+kill "$WORKER_PID" 2>/dev/null || true
+exit 0

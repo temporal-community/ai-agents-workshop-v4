@@ -7,6 +7,7 @@ import httpx
 from temporalio import activity
 
 
+# Activity: a durable, retryable unit of non-deterministic work (I/O, API calls).
 @activity.defn
 async def get_ip_address() -> str:
     """Get the IP address of the current machine."""

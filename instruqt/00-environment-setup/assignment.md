@@ -64,21 +64,15 @@ Click the [button label="Temporal UI" background="#444CE7"](tab-1) tab. An empty
 python --version && uv --version && temporal --version && node --version && java -version
 ```
 
-## Set your API key
+## Confirm your LLM access
 
-You need your own OpenAI API key for this workshop. Run this command with your actual key:
-
-```bash,run
-echo 'export OPENAI_API_KEY=sk-your-key-here' >> ~/.bashrc && source ~/.bashrc
-```
-
-Replace `sk-your-key-here` with your actual key. Verify it took:
+No API key to set up. The sandbox injects an OpenAI key for you at startup. Confirm it landed:
 
 ```bash,run
-echo $OPENAI_API_KEY
+echo "$OPENAI_API_KEY"
 ```
 
-You should see your key starting with `sk-`. Every terminal tab you open from here will have it automatically.
+You should see a key value starting with `sk-`. Every terminal tab you open from here inherits it automatically, so the demos work out of the box.
 
 ## Check the Network Control Panel
 
@@ -90,9 +84,9 @@ Click the [button label="Network Control Panel" background="#444CE7"](tab-2) tab
 ls /root/workshop
 ```
 
-Seven demo directories. Each is self-contained with its own dependencies and task queue. Each one also has an `exercise/` folder where you'll write code, and a `solution/` folder with the finished version — if you get stuck in any demo, diff your `exercise/` work against its `solution/` folder to see exactly what's different.
+Seven demo directories. Each is self-contained with its own dependencies and task queue. Each one also has an `exercise/` folder where you'll write code, and a `solution/` folder with the finished version. If you get stuck in any demo, diff your `exercise/` work against its `solution/` folder to see exactly what's different.
 
 > [!NOTE]
-> **Why Instruqt only?** This workshop's environment is intentionally heavy — a pinned F1 data server, a Java + Maven toolchain for the later demos, and a network proxy with its own CA certificate for the fault-injection demos. That combination is easy to get wrong locally. This sandbox is the supported path. If you want to run the demos on your own machine later, the companion code repo's README documents the local setup, but it's unsupported — environment issues (language runtime versions, missing dependencies, port conflicts) are yours to troubleshoot.
+> **Why Instruqt only?** This workshop's environment is intentionally heavy: a pinned F1 data server, a Java + Maven toolchain for the later demos, and a network proxy with its own CA certificate for the fault-injection demos. That combination is easy to get wrong locally. This sandbox is the supported path. If you want to run the demos on your own machine later, the companion code repo's README documents the local setup, but it's unsupported. Environment issues (language runtime versions, missing dependencies, port conflicts) are yours to troubleshoot.
 
 Click **Check** when you're ready to continue.

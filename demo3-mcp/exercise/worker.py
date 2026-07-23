@@ -50,39 +50,32 @@ def _f1_server_factory() -> MCPServerStdio:
 
 
 async def main() -> None:
-    # TODO: Register a StatelessMCPServerProvider with the plugin.
-    # StatelessMCPServerProvider routes every MCP operation through Temporal.
-    # Each listTools and callTool becomes its own activity in the workflow
-    # history - durable, retryable, observable - without extra code from you.
-    # It should launch the F1 MCP server process (via _f1_server_factory) and
-    # wrap its operations as Temporal activities automatically. Build the
-    # plugin with:
-    #   OpenAIAgentsPlugin(
-    #       model_params=ModelActivityParameters(...),
-    #       mcp_server_providers=[
-    #           StatelessMCPServerProvider(
-    #               name=MCP_SERVER_NAME,
-    #               server_factory=_f1_server_factory,
-    #           ),
-    #       ],
-    #   )
-    raise NotImplementedError(
-        "TODO: build an OpenAIAgentsPlugin and register a "
-        "StatelessMCPServerProvider(name=MCP_SERVER_NAME, "
-        "server_factory=_f1_server_factory) in its mcp_server_providers list"
-    )
+    # Plugin that makes the OpenAI Agents SDK's LLM calls and tool calls run as Temporal activities automatically.
     plugin = OpenAIAgentsPlugin(
         model_params=ModelActivityParameters(
+            # Start-to-close timeout: max time Temporal allows one activity attempt to run.
             start_to_close_timeout=timedelta(seconds=60),
         ),
+        # TODO: Uncomment the mcp_server_providers argument below.
+        # StatelessMCPServerProvider launches the F1 MCP server and runs each of
+        # its listTools/callTool operations as its own durable Temporal activity.
+        # mcp_server_providers=[
+        #     StatelessMCPServerProvider(
+        #         name=MCP_SERVER_NAME,
+        #         server_factory=_f1_server_factory,
+        #     ),
+        # ],
     )
 
     config = ClientConfig.load_client_connect_config()
     config.setdefault("target_host", "localhost:7233")
+    # Client: connects to the Temporal server to start, signal, and query workflows.
     client = await Client.connect(**config, plugins=[plugin])
 
+    # Worker: polls a task queue and executes the workflow/activity code registered here.
     worker = Worker(
         client,
+        # Task queue: the named queue a worker polls and a client targets to run this workflow/activity.
         task_queue=TASK_QUEUE,
         workflows=[AgentWorkflow],
         activities=[

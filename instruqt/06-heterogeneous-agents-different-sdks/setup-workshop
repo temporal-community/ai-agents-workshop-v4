@@ -1,3 +1,7 @@
 #!/bin/bash
 set -euo pipefail
+pkill -f "python -m worker_pa\|python -m worker_f1" 2>/dev/null || true
+# Demo 5 and demo 6a share the orchestrator-tq task queue, so the check must
+# only count workflows started during THIS challenge. Record the start time.
+date -u +%Y-%m-%dT%H:%M:%SZ > /tmp/demo6a-start
 echo "Challenge 06a ready."

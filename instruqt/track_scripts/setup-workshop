@@ -3,11 +3,84 @@
 # Everything heavy is baked into the image. This script only:
 #   1. Stages /opt/workshop -> /root/workshop (attendee's writable copy)
 #   2. Copies proxy state to a writable location
-#   3. Starts background services
-#   4. Waits for Temporal health
-#   5. Registers Nexus endpoints
-#   6. Bridges OPENAI_API_KEY secret into the attendee shell
+#   3. Patches the runtime proxy config for LiteLLM
+#   4. Starts background services
+#   5. Waits for Temporal health
+#   6. Registers Nexus endpoints
+#   7. Mints a learner-scoped LiteLLM key and writes OpenAI-compatible env
 set -euo pipefail
+
+SECRET_BROKER_BASE_URL="${SECRET_BROKER_BASE_URL:-https://tmprl-dem-cld-secret-broker-429214323166-us-west-1.s3.us-west-1.amazonaws.com/secret-broker}"
+SECRET_BROKER_VERSION="${SECRET_BROKER_VERSION:-main}"
+LITELLM_KEY_DURATION="${LITELLM_KEY_DURATION:-1d}"
+LITELLM_MAX_BUDGET="${LITELLM_MAX_BUDGET:-5}"
+LITELLM_ENV_FILE="/root/.litellm-env"
+
+export INSTRUQT_BROKER_URL="${INSTRUQT_BROKER_URL:-https://litellm-broker-instruqt.tmprl-demo.cloud}"
+export INSTRUQT_BROKER_KEY_ID="${INSTRUQT_BROKER_KEY_ID:-v1}"
+export INSTRUQT_LITELLM_TRACK_ID="${INSTRUQT_LITELLM_TRACK_ID:-${INSTRUQT_TRACK_SLUG:-testing-temporal-python-ai-agents-v2}}"
+export OPENAI_MODEL="${OPENAI_MODEL:-gpt-4o}"
+
+LITELLM_PROXY_HOST="${LITELLM_PROXY_HOST:-litellm-instruqt.tmprl-demo.cloud}"
+
+patch_runtime_proxy_config() {
+    local toggle_addon="/root/proxy/toggle_addon.py"
+    local controlpanel="/root/proxy/controlpanel.py"
+    local openai_pattern='^[[:space:]]*"openai"[[:space:]]*:[[:space:]]*\[[^]]*\][[:space:]]*,[[:space:]]*$'
+    local matches
+
+    case "${LITELLM_PROXY_HOST}" in
+        "" | *[!A-Za-z0-9.-]*)
+            echo "ERROR: Invalid LiteLLM proxy hostname: ${LITELLM_PROXY_HOST}" >&2
+            exit 1
+            ;;
+    esac
+
+    matches="$(grep -Ec "${openai_pattern}" "${toggle_addon}" || true)"
+    if [ "${matches}" -ne 1 ]; then
+        echo "ERROR: Expected exactly one OpenAI host list in ${toggle_addon}; found ${matches}." >&2
+        exit 1
+    fi
+
+    sed -E -i \
+        "s|^([[:space:]]*\"openai\"[[:space:]]*:[[:space:]]*)\[[^]]*\]([[:space:]]*,[[:space:]]*)$|\\1[\"api.openai.com\", \"${LITELLM_PROXY_HOST}\"]\\2|" \
+        "${toggle_addon}"
+
+    sed -i \
+        's|"openai":      "OpenAI  (api.openai.com)"|"openai":      "OpenAI  (LiteLLM gateway)"|' \
+        "${controlpanel}"
+}
+
+mint_litellm_token() {
+    if [ -z "${TEMPORAL_LITELLM_BROKER_SECRET:-}" ]; then
+        echo "ERROR: TEMPORAL_LITELLM_BROKER_SECRET is not set. Configure the Instruqt secret before starting the track." >&2
+        exit 1
+    fi
+
+    local installer="/tmp/install-secret-broker.sh"
+
+    curl --fail --silent --show-error --location \
+        --retry 10 \
+        --retry-all-errors \
+        --retry-delay 2 \
+        --retry-max-time 60 \
+        --connect-timeout 10 \
+        "${SECRET_BROKER_BASE_URL}/${SECRET_BROKER_VERSION}/install.sh" \
+        --output "${installer}"
+
+    SECRET_BROKER_BASE_URL="${SECRET_BROKER_BASE_URL}" \
+    SECRET_BROKER_VERSION="${SECRET_BROKER_VERSION}" \
+        sh "${installer}"
+
+    export TEMPORAL_LITELLM_BROKER_SECRET
+    secret-broker litellm \
+        --duration="${LITELLM_KEY_DURATION}" \
+        --budget="${LITELLM_MAX_BUDGET}"
+
+    # Make the minted key available to the remainder of this lifecycle script too.
+    # shellcheck disable=SC1090
+    . "${LITELLM_ENV_FILE}"
+}
 
 # 1. Stage workshop source into writable home directory.
 if [ ! -d /root/workshop ]; then
@@ -18,7 +91,10 @@ fi
 mkdir -p /root/proxy/static
 cp -r /opt/proxy/* /root/proxy/
 
-# 3. Start background services.
+# 3. Patch the writable proxy config before mitmproxy loads it.
+patch_runtime_proxy_config
+
+# 4. Start background services.
 nohup mitmdump \
     --listen-port 8888 \
     --set block_global=false \
@@ -43,7 +119,7 @@ nohup code-server \
     /root/workshop \
     > /tmp/code-server.log 2>&1 &
 
-# 4. Wait for Temporal health.
+# 5. Wait for Temporal health.
 for i in $(seq 1 60); do
     if temporal operator cluster health --address 127.0.0.1:7233 >/dev/null 2>&1; then
         echo "Temporal server healthy."
@@ -52,7 +128,7 @@ for i in $(seq 1 60); do
     sleep 1
 done
 
-# 5. Register Nexus endpoints (idempotent).
+# 6. Register Nexus endpoints (idempotent).
 temporal operator nexus endpoint create \
     --name f1-expert \
     --target-namespace default \
@@ -71,41 +147,15 @@ temporal operator nexus endpoint create \
     --target-task-queue travel-planner-agent-tq \
     --address 127.0.0.1:7233 || true
 
-# 6. Bridge OPENAI_API_KEY secret into the attendee shell.
-if [ -n "${OPENAI_API_KEY:-}" ]; then
-    cat >> /root/.bashrc <<EOF
-export OPENAI_API_KEY=${OPENAI_API_KEY}
-EOF
-    # Also write to /etc/environment so all sessions see it.
-    echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> /etc/environment
-    echo "OPENAI_API_KEY injected."
+# 7. Mint a learner-scoped LiteLLM key and expose it as OpenAI-compatible env.
+mint_litellm_token
+
+# 8. Re-run the standalone cache helper baked into the image. This is
+# asynchronous and non-fatal because the image already includes a warm cache.
+if [ -f /tmp/warmup_f1_cache.py ]; then
+    nohup "${F1_MCP_HOME}/.venv/bin/python" /tmp/warmup_f1_cache.py \
+        > /tmp/f1-cache-warm.log 2>&1 &
+    echo "FastF1 background cache warm started (see /tmp/f1-cache-warm.log)"
 else
-    echo "WARNING: OPENAI_API_KEY not set. Configure a secret in the Instruqt web UI."
+    echo "FastF1 cache helper not found; retaining the cache baked into the image." >&2
 fi
-
-# 7. Background FastF1 cache warm for current season.
-# Runs asynchronously so it doesn't block track startup.
-# Fetches the last 3 completed 2026 races so F1 queries don't cold-fetch
-# during the workshop. Non-fatal if it fails.
-nohup "${F1_MCP_HOME}/.venv/bin/python" - <<'PYWARM' > /tmp/f1-cache-warm.log 2>&1 &
-import fastf1, os, datetime
-cache_dir = '/opt/f1-mcp-server/cache'
-os.makedirs(cache_dir, exist_ok=True)
-fastf1.Cache.enable_cache(cache_dir)
-
-current_year = datetime.datetime.now().year
-try:
-    schedule = fastf1.get_event_schedule(current_year, include_testing=False)
-    completed = schedule[schedule['EventDate'] < datetime.datetime.now()]
-    recent = completed.tail(3)
-    for _, row in recent.iterrows():
-        try:
-            s = fastf1.get_session(current_year, row['EventName'], 'R')
-            s.load(telemetry=False, weather=False, messages=False)
-            print(f"Warmed {current_year} {row['EventName']} Race")
-        except Exception as e:
-            print(f"Skipped {row['EventName']}: {e}")
-except Exception as e:
-    print(f"Schedule fetch failed: {e}")
-PYWARM
-echo "FastF1 background cache warm started (see /tmp/f1-cache-warm.log)"

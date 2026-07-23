@@ -39,6 +39,7 @@ Today's date is {date}.
 """
 
 
+# Workflow: durable, replayable orchestration logic.
 @workflow.defn
 class AgentWorkflow:
     def __init__(self) -> None:
@@ -47,6 +48,7 @@ class AgentWorkflow:
         self._question: str = ""
         self._user_input: str = ""
 
+    # Entry point Temporal calls to start the workflow.
     @workflow.run
     async def run(self, question: str) -> str:
         today = workflow.now().strftime("%Y-%m-%d")
@@ -62,17 +64,22 @@ class AgentWorkflow:
             Args:
                 question_text: The question to ask the user.
             """
-            # TODO: ask_user sets workflow state and awaits wait_condition.
-            # The workflow is suspended - durably - holding no threads, no
-            # memory.
+            # TODO: Uncomment the block below to set workflow state and
+            # suspend the workflow durably until the user answers, then read
+            # the answer back and return it.
             #
-            # 1. Set self._question = question_text
-            # 2. Set self._input_needed = True
-            # 3. await workflow.wait_condition(lambda: not self._input_needed)
-            # 4. Read the answer back from self._user_input
-            # 5. Reset self._question and self._user_input so subsequent
-            #    ask_user calls start clean, then return the answer.
-            raise NotImplementedError("TODO: implement ask_user's wait/signal choreography")
+            # self._question = question_text
+            # self._input_needed = True
+            # workflow.logger.info("Waiting for user input: %s", question_text)
+            #
+            # # Suspends the workflow durably until the condition is true — no polling loop, no cost while it waits, survives worker restarts.
+            # await workflow.wait_condition(lambda: not self._input_needed)
+            #
+            # answer = self._user_input
+            # # Reset so subsequent ask_user calls start clean.
+            # self._question = ""
+            # self._user_input = ""
+            # return answer
 
         f1 = stateless_mcp_server(name="f1-data", cache_tools_list=True)
 
@@ -82,6 +89,8 @@ class AgentWorkflow:
             model="gpt-4o",
             mcp_servers=[f1],
             tools=[
+                # Wraps a Temporal activity as an agent-SDK tool call, so every tool invocation becomes a durable, retryable Temporal activity.
+                # Start-to-close timeout: max time Temporal allows one activity attempt to run.
                 activity_as_tool(
                     get_ip_address, start_to_close_timeout=timedelta(seconds=30)
                 ),
@@ -101,16 +110,17 @@ class AgentWorkflow:
         result = await Runner.run(agent, input=question)
         return result.final_output
 
+    # Signal: an async message that can wake a suspended workflow and mutate its state.
     @workflow.signal
     def provide_user_input(self, user_input: str) -> None:
         """Deliver the user's response to a pending ask_user call."""
-        # TODO: provide_user_input is a signal. It delivers your answer and
-        # unblocks the wait_condition.
+        # TODO: Uncomment the block below to deliver the answer and unblock
+        # the wait_condition.
         #
-        # 1. Set self._user_input = user_input
-        # 2. Set self._input_needed = False
-        raise NotImplementedError("TODO: implement provide_user_input signal handler")
+        # self._user_input = user_input
+        # self._input_needed = False
 
+    # Query: a read-only, side-effect-free snapshot of workflow state; doesn't append to history.
     @workflow.query
     def is_input_needed(self) -> bool:
         return self._input_needed

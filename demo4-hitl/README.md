@@ -122,7 +122,7 @@ Find the workflow ID in the Temporal UI at [http://localhost:8233](http://localh
 
 In the Temporal UI, running workflows show:
 
-- `InvokeModelActivity` — LLM calls.
+- `invoke_model_activity` — LLM calls.
 - Weather activities (`get_coordinates`, `get_weather`, etc.) — the `@activity.defn` tools.
 - `f1-data-list-tools` / `f1-data-call-tool-v2` — F1 MCP operations.
 - Signal events (`provide_user_input`) when the user responds.

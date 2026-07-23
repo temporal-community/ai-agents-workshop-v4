@@ -22,14 +22,17 @@ async def main() -> None:
     # Starter is client-only — no need for MCP providers (they're consumed only
     # when a Worker registers their activities; Workers live in the worker_*.py
     # processes). Keep the plugin minimal.
+    # Plugin that makes the OpenAI Agents SDK's LLM calls and tool calls run as Temporal activities automatically.
     plugin = OpenAIAgentsPlugin(
         model_params=ModelActivityParameters(
+            # Start-to-close timeout: max time Temporal allows one activity attempt to run.
             start_to_close_timeout=timedelta(seconds=60),
         ),
     )
 
     config = ClientConfig.load_client_connect_config()
     config.setdefault("target_host", "localhost:7233")
+    # Client: connects to the Temporal server to start, signal, and query workflows.
     client = await Client.connect(**config, plugins=[plugin])
 
     query = (
@@ -44,10 +47,12 @@ async def main() -> None:
     # currently propagate trace context across — see worker_f1.py and
     # docs/research/openai-agents-plugin-starter-trace-requirement.md.
     with trace("PersonalAssistant"):
+        # Starts a new workflow execution and waits for its result.
         result = await client.execute_workflow(
             PersonalAssistantWorkflow.run,
             query,
             id=f"personal-assistant-{uuid.uuid4()}",
+            # Task queue: the named queue a worker polls and a client targets to run this workflow/activity.
             task_queue=ORCHESTRATOR_TASK_QUEUE,
         )
     print(f"Result: {result}")

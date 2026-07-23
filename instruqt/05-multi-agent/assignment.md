@@ -1,6 +1,6 @@
 ---
 slug: multi-agent
-id: bgvlffymxc8u
+id: rxgcngqixygm
 type: challenge
 title: 'Demo 5: Multi-Agent Orchestration'
 teaser: Three agents, three workflows. A personal assistant delegates to specialists
@@ -30,36 +30,37 @@ notes:
     Same result from the orchestrator's point of view. Different shapes
     in the event history.
 tabs:
-- id: mxfyeq9hrvp7
+- id: hx6jhpz5nbvh
   title: Worker PA
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo5-multi-agent/exercise
-- id: l2rtjamym8q6
+- id: g9ziyqybjjrj
   title: Worker F1
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo5-multi-agent/exercise
-- id: wyykjfu4i6yv
+- id: yj5yjnquaygz
   title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo5-multi-agent/exercise
-- id: zv27fekpruih
+- id: eh9k2exhtlvz
   title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: jgmuec1bmeuc
+- id: qerxtnbnpbg8
   title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: eufjafkekbwj
+- id: uzhfldcmiky9
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo5-multi-agent
+  path: /?folder=/root/workshop/demo5-multi-agent
+  port: 8080
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null
@@ -82,9 +83,9 @@ Click the [button label="Editor" background="#444CE7"](tab-5) tab. Key files in 
 
 ## Wire Up the Orchestrator
 
-Open `exercise/personal_assistant.py`. One TODO stub: build `weather_tool` with `child_workflow_as_tool` and `f1_tool` with `nexus_operation_as_tool`, then wire both into the orchestrator Agent's tools list.
+In the [button label="Editor" background="#444CE7"](tab-5) tab, open `exercise/personal_assistant.py` and follow the `TODO`s to uncomment the two specialist tools and wire them into the orchestrator.
 
-Stuck? Compare against `solution/personal_assistant.py` in the [button label="Editor" background="#444CE7"](tab-5) tab.
+Stuck? Compare against `solution/personal_assistant.py`.
 
 ## Start the Workers
 
@@ -97,9 +98,12 @@ uv run python -m worker_pa
 You should see:
 
 ```bash,nocopy
-Started worker on task queue: orchestrator-tq
-Started worker on task queue: weather-agent-tq
+PA worker running:
+  - weather-agent-tq (WeatherAgentWorkflow)
+  - orchestrator-tq (PersonalAssistantWorkflow)
 ```
+
+The worker keeps running after that banner. Leave it and open the next terminal.
 
 Click the [button label="Worker F1" background="#444CE7"](tab-1) terminal.
 
@@ -110,7 +114,9 @@ uv run python -m worker_f1
 You should see:
 
 ```bash,nocopy
-Started worker on task queue: f1-expert-agent-tq
+F1 worker running:
+  - f1-expert-agent-tq (F1ExpertAgentWorkflow + Nexus handler)
+  - plugin: add_temporal_spans=False (Nexus trace gap workaround)
 ```
 
 > **If either fails:** `OPENAI_API_KEY not set` means the key didn't carry into this terminal. If Nexus endpoint errors appear, the track setup registers them automatically - retry after both workers are up.
@@ -138,7 +144,7 @@ Click the [button label="Temporal UI" background="#444CE7"](tab-3) tab. Look for
 Each specialist is independently observable, independently retryable, and could run on a different team's infrastructure.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:680px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME — click a specialist to see its shape in the orchestrator's history</div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME: click a specialist to see its shape in the orchestrator's history</div>
 <div style="display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;">
   <div style="text-align:center;padding:14px;border-radius:8px;background:#242832;min-width:140px;">🧭 Orchestrator<br><small>orchestrator-tq</small></div>
   <div style="font-size:20px;color:#8b8fa3;">→</div>
@@ -150,7 +156,7 @@ Each specialist is independently observable, independently retryable, and could 
 <script>
 document.querySelectorAll('.ma-specialist').forEach(function(el){
   el.addEventListener('click', function(){
-    document.getElementById('ma-note').innerHTML = '<strong>' + el.getAttribute('data-shape') + '</strong> — ' + el.getAttribute('data-note');
+    document.getElementById('ma-note').innerHTML = '<strong>' + el.getAttribute('data-shape') + '</strong>: ' + el.getAttribute('data-note');
     document.querySelectorAll('.ma-specialist').forEach(function(s){ s.style.outline = ''; });
     el.style.outline = '2px solid #fff';
   });

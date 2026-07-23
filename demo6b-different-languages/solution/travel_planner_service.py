@@ -18,6 +18,7 @@ class AskResponse(BaseModel):
     answer: str
 
 
+# Defines the typed contract both sides of the Nexus boundary agree on — Python and Java share no code, only this interface.
 @nexusrpc.service
 class TravelPlannerService:
     # The service name defaults to the class name ("TravelPlannerService") and

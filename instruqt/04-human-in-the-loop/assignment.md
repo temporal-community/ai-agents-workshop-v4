@@ -1,6 +1,6 @@
 ---
 slug: human-in-the-loop
-id: omyvoydii2je
+id: rdwjlkm5nqgh
 type: challenge
 title: 'Demo 4: Human-in-the-Loop'
 teaser: The agent pauses mid-execution to ask you a question. A Temporal signal resumes
@@ -30,31 +30,32 @@ notes:
     get_pending_question. The starter asks the question on the terminal
     and sends your answer as a signal.
 tabs:
-- id: hrubvxth7ui9
+- id: yn3i7qixi0m1
   title: Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo4-hitl/exercise
-- id: wimstsxxbuud
+- id: gv8yohlwieu9
   title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo4-hitl/exercise
-- id: cbjsucaomvrg
+- id: gyxato8ckiyt
   title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: e1sim7ca2cyi
+- id: qlhf7tnschez
   title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: mxwobjyx8ugr
+- id: epxhrhufmgek
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo4-hitl
+  path: /?folder=/root/workshop/demo4-hitl
+  port: 8080
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null
@@ -74,9 +75,9 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Write the Suspension
 
-Open `exercise/tools_workflow.py`. Two TODO stubs: the `ask_user` function_tool body (set state, `await workflow.wait_condition(...)`, read back the answer) and the `provide_user_input` signal handler that unblocks it.
+In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/tools_workflow.py` and follow the `TODO`s to uncomment the two blocks.
 
-Stuck? Compare against `solution/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab.
+Stuck? Compare against `solution/tools_workflow.py`.
 
 ## Start the Worker
 
@@ -86,11 +87,7 @@ Click the [button label="Worker" background="#444CE7"](tab-0) terminal.
 uv run python -m worker
 ```
 
-You should see:
-
-```bash,nocopy
-Started worker on task queue: hitl-agent-python-task-queue
-```
+The worker starts polling its task queue and keeps running. It prints no startup banner and does not return you to the prompt. That blocked terminal is the worker doing its job. Leave it running and move on.
 
 > **If it fails:** `OPENAI_API_KEY not set` means the key didn't carry into this terminal.
 
@@ -115,7 +112,7 @@ Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab while the
 When you respond, a new event appears in the history: the signal arrives, `wait_condition` unblocks, and the agent continues.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:640px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME — click each stage</div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME: click each stage</div>
 <div id="hitl-stages" style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;">
   <div class="hitl-stage" data-note="The ask_user tool sets self._input_needed = True and calls workflow.wait_condition(...). The workflow task completes here - no thread is held." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#1e3a5f;cursor:pointer;transition:all .2s;">▶ Running<br><small>agent reasoning</small></div>
   <div class="hitl-stage" data-note="Status still shows Running in the Web UI, but there are zero pending activity tasks. No worker CPU, no memory held for this wait - just a durable marker in the event history." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#4a3b1e;cursor:pointer;transition:all .2s;">⏸ Suspended<br><small>wait_condition</small></div>

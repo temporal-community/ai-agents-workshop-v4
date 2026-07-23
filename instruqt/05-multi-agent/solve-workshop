@@ -1,2 +1,20 @@
 #!/bin/bash
-echo "Challenge 05 solve: OK"
+# Drives demo5's solution to one completed orchestrator workflow, non-interactively.
+# Two workers: worker_pa (orchestrator + weather specialist) and worker_f1
+# (F1 expert, called over the pre-registered "f1-expert" Nexus endpoint).
+set -uo pipefail
+cd /root/workshop/demo5-multi-agent/solution || exit 0
+
+pkill -f "python -m worker_pa\|python -m worker_f1" 2>/dev/null || true
+sleep 1
+
+nohup uv run python -m worker_pa > /tmp/solve-05-worker-pa.log 2>&1 &
+PA_PID=$!
+nohup uv run python -m worker_f1 > /tmp/solve-05-worker-f1.log 2>&1 &
+F1_PID=$!
+sleep 12
+
+timeout 90 uv run python -m start_workflow "What's the weather at the next F1 race?"
+
+kill "$PA_PID" "$F1_PID" 2>/dev/null || true
+exit 0

@@ -8,6 +8,7 @@ from agents import FunctionTool, function_tool
 from temporalio import workflow
 
 
+# Wraps a child workflow as an agent-SDK tool call: the specialist runs as its own independently durable workflow execution, not an inline function.
 def child_workflow_as_tool(
     workflow_run_method: Callable,
     *,
@@ -34,11 +35,12 @@ def child_workflow_as_tool(
 
     @function_tool(name_override=name, description_override=description)
     async def _tool(question: str) -> str:
+        # Starts another workflow as a child of this one; parent-child semantics and trace context propagate automatically.
         return await workflow.execute_child_workflow(
             workflow_run_method,
             question,
             id=f"{name}-{workflow.uuid4()}",
-            task_queue=task_queue,
+            task_queue=task_queue,  # Task queue: the named queue a worker polls and a client targets to run this workflow/activity.
             execution_timeout=execution_timeout,
         )
 

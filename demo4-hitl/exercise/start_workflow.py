@@ -45,11 +45,13 @@ async def _interact(handle) -> str:
     print("Agent is working...")
     while not result_task.done():
         try:
+            # Reads workflow state without affecting its execution or history.
             if await handle.query(AgentWorkflow.is_input_needed):
                 question = await handle.query(AgentWorkflow.get_pending_question)
                 print()
                 print(f"Agent asks: {question}")
                 response = await _read_line_async("Your response: ")
+                # Sends a signal to a running workflow execution from outside.
                 await handle.signal(AgentWorkflow.provide_user_input, response)
                 print("Agent is working...")
         except Exception:
@@ -70,8 +72,10 @@ async def _interact(handle) -> str:
 async def main() -> None:
     workflow_id, goal = _parse_args(sys.argv)
 
+    # Plugin that makes the OpenAI Agents SDK's LLM calls and tool calls run as Temporal activities automatically.
     plugin = OpenAIAgentsPlugin(
         model_params=ModelActivityParameters(
+            # Start-to-close timeout: max time Temporal allows one activity attempt to run.
             start_to_close_timeout=timedelta(seconds=60),
         ),
         mcp_server_providers=[
@@ -84,6 +88,7 @@ async def main() -> None:
 
     config = ClientConfig.load_client_connect_config()
     config.setdefault("target_host", "localhost:7233")
+    # Client: connects to the Temporal server to start, signal, and query workflows.
     client = await Client.connect(**config, plugins=[plugin])
 
     if workflow_id is not None:
@@ -101,6 +106,7 @@ async def main() -> None:
                 AgentWorkflow.run,
                 goal,
                 id=new_id,
+                # Task queue: the named queue a worker polls and a client targets to run this workflow/activity.
                 task_queue=TASK_QUEUE,
             )
             result = await _interact(handle)

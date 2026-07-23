@@ -6,6 +6,7 @@ import uuid
 from datetime import timedelta
 
 from agents import trace
+# Client: connects to the Temporal server to start, signal, and query workflows.
 from temporalio.client import Client
 from temporalio.contrib.openai_agents import (
     ModelActivityParameters,
@@ -19,8 +20,10 @@ TASK_QUEUE = "openai-agents-python-task-queue"
 
 
 async def main() -> None:
+    # Plugin that makes the OpenAI Agents SDK's LLM calls and tool calls run as Temporal activities automatically — no manual execute_activity calls needed.
     plugin = OpenAIAgentsPlugin(
         model_params=ModelActivityParameters(
+            # Start-to-close timeout: max time Temporal allows one activity attempt to run.
             start_to_close_timeout=timedelta(seconds=60),
         )
     )
@@ -40,10 +43,12 @@ async def main() -> None:
     # would be created with no parent trace and the Agents SDK would log
     # "No active trace" plus a 400 when exporting to OpenAI.
     with trace("ToolsWorkflow"):
+        # Starts a new workflow execution and waits for its result.
         result = await client.execute_workflow(
             ToolsWorkflow.run,
             query,
             id=f"openai-agents-demo-{uuid.uuid4()}",
+            # Task queue: the named queue a worker polls and a client targets to run this workflow/activity.
             task_queue=TASK_QUEUE,
         )
     print(f"Result: {result}")

@@ -1,6 +1,6 @@
 ---
 slug: mcp-tools
-id: gu6xgg9hoav2
+id: eixdwgq1mcnb
 type: challenge
 title: 'Demo 3: MCP Tool Servers'
 teaser: Add a Formula 1 data server via MCP. Each tool call becomes a durable Temporal
@@ -24,31 +24,32 @@ notes:
     Each listTools and callTool becomes its own activity in the workflow
     history - durable, retryable, observable - without extra code from you.
 tabs:
-- id: yquvcc9tnyrc
+- id: ulbyf3gigvst
   title: Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo3-mcp/exercise
-- id: rb9hxf6uvs0t
+- id: xw03sdytqtnh
   title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo3-mcp/exercise
-- id: w5fbbcrdygzz
+- id: vjjnetdkfrn5
   title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: k5c4ucnjkewa
+- id: kbxte9sbqok0
   title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: vddwjbst8fym
+- id: tp4mmajg6cdu
   title: Editor
-  type: code
+  type: service
   hostname: workshop
-  path: /root/workshop/demo3-mcp
+  path: /?folder=/root/workshop/demo3-mcp
+  port: 8080
 difficulty: basic
 timelimit: 1500
 enhanced_loading: null
@@ -68,9 +69,9 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Wire Up the MCP Server
 
-Open `exercise/worker.py` and `exercise/tools_workflow.py`. Both have TODO stubs: register the `StatelessMCPServerProvider` on the plugin in `worker.py`, then call `stateless_mcp_server("f1-data")` and add it to the agent's `mcp_servers` in `tools_workflow.py`.
+Open `exercise/worker.py` and `exercise/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab and follow the `TODO` in each.
 
-Stuck? Compare against `solution/worker.py` and `solution/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab.
+Stuck? Compare against `solution/worker.py` and `solution/tools_workflow.py`.
 
 ## Start the Worker
 
@@ -80,11 +81,7 @@ Click the [button label="Worker" background="#444CE7"](tab-0) terminal.
 uv run python -m worker
 ```
 
-You should see:
-
-```bash,nocopy
-Started worker on task queue: mcp-agent-python-task-queue
-```
+The worker starts polling its task queue and keeps running. It prints no startup banner and does not return you to the prompt. That blocked terminal is the worker doing its job. Leave it running and move on.
 
 > **If it fails:** an F1 MCP server startup error usually means it's still spawning - wait a few seconds and check the worker log again before restarting. `OPENAI_API_KEY not set` means the key didn't carry into this terminal.
 
@@ -105,7 +102,7 @@ You should see a final answer combining the next race's date/location with curre
 
 Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab. Three kinds of activity entries are listed in the workflow history:
 
-- `InvokeModelActivity` - LLM reasoning steps
+- `invoke_model_activity` - LLM reasoning steps
 - Weather activities (`get_coordinates`, `get_weather`, etc.)
 - `f1-data-list-tools` and `f1-data-call-tool-v2` - MCP operations, each a durable activity
 
