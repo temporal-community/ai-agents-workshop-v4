@@ -121,11 +121,54 @@ instruqt/
 
 Every challenge has a **Temporal UI** tab (port 8233) and a **Network Control Panel** tab (port 5000, a Flask app that toggles the mitmproxy addon per external service). Coding challenges add a **Worker** terminal, a **Starter** terminal, and an **Editor** tab (`type: service` on port 8080, deep-linked into `code-server` via `?folder=` to that demo's directory). `code-server` is used instead of the native `type: code` tab so attendees get real syntax highlighting and cross-file navigation (go-to-definition, symbol search) while editing.
 
-### LLM access (per-attendee keys via the secret broker)
+### LLM access (per-attendee keys via the LiteLLM secret broker)
 
-Attendees never supply an API key, and there's no shared key either. The track declares one team-scoped secret, `TEMPORAL_LITELLM_BROKER_SECRET` (an HMAC signing key, not an LLM credential). At lab start, `track_scripts/setup-workshop` downloads the `secret-broker` CLI and runs `secret-broker litellm --duration=1d --budget=5`, which mints a **short-lived, per-attendee, budget-capped key** (1-day TTL, $5 cap) to a managed LiteLLM gateway and writes OpenAI-compatible env vars into the attendee shell. The workshop code uses the OpenAI SDK normally; `OPENAI_BASE_URL` routes calls through the gateway, which holds the real upstream credentials centrally. The setup also patches the network control panel so the OpenAI toggle disrupts the gateway host.
+Attendees never supply an API key, and there is no shared key. Every attendee gets their own short-lived, budget-capped key to a managed LiteLLM gateway, minted at lab start. This section explains how it works end to end and how to debug it, because the setup is easy to get wrong and its failures show up as an unhelpful "Failed to start track" error.
 
-Per-attendee keys are the right model for large or public workshops: one attendee's key leaking or exhausting its budget doesn't affect anyone else, and there's no shared OpenAI rate limit to contend with. The track id sent to the broker is the track's own slug (`INSTRUQT_LITELLM_TRACK_ID` defaults to `INSTRUQT_TRACK_SLUG`), and no per-track allowlist registration is required. This matches the sibling `temporal-python-ai-agents-v3` track. `TEMPORAL_LITELLM_BROKER_SECRET` must be set in Track Settings > Secrets (it's team-scoped, so it's shared across Temporal's tracks).
+#### The one secret you need
+
+The track declares exactly one secret in `config.yml`:
+
+```yaml
+secrets:
+- name: TEMPORAL_LITELLM_BROKER_SECRET
+```
+
+`TEMPORAL_LITELLM_BROKER_SECRET` is **not an OpenAI key**. It's an HMAC signing secret the broker uses to authenticate the sandbox's request. It is **team-scoped** in Instruqt (Team Settings > Secrets), so it already exists and is shared across all of Temporal's tracks. You do not set a per-track value, and there is no OpenAI key to rotate per workshop. It must be present, or setup aborts immediately with `TEMPORAL_LITELLM_BROKER_SECRET is not set`.
+
+#### What happens at lab start
+
+`track_scripts/setup-workshop` does this (see `mint_litellm_token`):
+
+1. Downloads the `secret-broker` CLI installer from S3 (`SECRET_BROKER_BASE_URL`) and installs it. `curl` retries up to 10 times, so a transient network blip self-heals.
+2. Runs `secret-broker litellm --duration=1d --budget=5`. The CLI signs a request with `TEMPORAL_LITELLM_BROKER_SECRET`, calls the broker, and the broker mints a **per-attendee LiteLLM virtual key** scoped to this track, valid for 1 day, capped at $5 of spend.
+3. Writes OpenAI-compatible env vars (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, plus the `SPRING_AI_*` equivalents for demo6b's Java worker) to `/root/.litellm-env`, which every attendee terminal inherits.
+
+The workshop code is unchanged: it uses the OpenAI SDK normally. The trick is `OPENAI_BASE_URL`, which points at the LiteLLM gateway (`litellm-instruqt.tmprl-demo.cloud`) instead of `api.openai.com`. The gateway holds the real upstream OpenAI credentials centrally; they never touch a sandbox. `setup-workshop` also patches the network control panel (`patch_runtime_proxy_config`) so the "OpenAI" fault-injection toggle disrupts the gateway host.
+
+#### Configuration knobs (all have defaults, override via track env vars)
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `SECRET_BROKER_BASE_URL` | S3 bucket URL | Where the `secret-broker` installer is fetched from |
+| `SECRET_BROKER_VERSION` | `main` | Installer version/channel |
+| `LITELLM_KEY_DURATION` | `1d` | TTL of each minted key |
+| `LITELLM_MAX_BUDGET` | `5` | Per-key spend cap in USD |
+| `INSTRUQT_LITELLM_TRACK_ID` | the track slug (`INSTRUQT_TRACK_SLUG`) | Track id sent to the broker |
+| `OPENAI_MODEL` | `gpt-4o` | Model the demos request through the gateway |
+| `LITELLM_PROXY_HOST` | `litellm-instruqt.tmprl-demo.cloud` | Gateway host the proxy panel toggles |
+
+#### Why per-attendee keys (not one shared OpenAI key)
+
+For a small, trusted run (~10 people) a single shared `OPENAI_API_KEY` secret works. At scale (say 250 people) it does not: one shared key hits OpenAI's per-org rate limits under synchronized load, and the key is readable in every attendee's sandbox, so it is a leak and abuse liability. Per-attendee keys fix both: each key has its own budget and rate scope, one attendee cannot starve or bill the others, and a leaked key is capped at $5 and expires in a day. That is why this track uses the broker rather than a shared key, and it matches the sibling `temporal-python-ai-agents-v3` track.
+
+#### Troubleshooting (lessons learned the hard way)
+
+- **"Failed to start track" / "Could not start track: expected status 'started', but got 'stopped'."** The mint runs under `set -e`, so *any* failure in `setup-workshop` aborts the entire lab start. To see the real cause, run `instruqt track test` from the `instruqt/` directory: on failure it prints the setup log, including the exact `curl`/broker error. (On success it prints nothing, which is why you only see detail when it breaks.)
+- **`instruqt track test` runs your LOCAL track files, not the deployed track.** You can validate a `setup-workshop` change before pushing. Handy, but also means a green local test does not prove the *deployed* track is fixed until you push.
+- **No allowlist registration is required.** The current `secret-broker` CLI mints against the track's own slug (`INSTRUQT_LITELLM_TRACK_ID` defaults to `INSTRUQT_TRACK_SLUG`). Earlier broker versions required each track id to be pre-registered on the broker; symptoms of that era were **HTTP 404** (track id not on the allowlist) and **HTTP 422** (request rejected, e.g. a stale/borrowed track id or an exhausted per-track key quota). If you see those, you are likely on an old setup script or pointing at a track id the broker does not accept. Do **not** work around it by borrowing another track's id (we tried; it 422'd once quota was hit). Fix the setup script instead.
+- **The image is not involved.** The `secret-broker` installer is fetched from S3 at runtime, and `setup-workshop` is part of the track definition. Changing any of this needs only `instruqt track push`, never a sandbox image rebuild.
+- **Do not silently fall back to a shared `OPENAI_API_KEY`** for anything beyond a tiny internal test. If the broker is down, prefer fixing the broker path over shipping a shared key to a large audience (see the scaling note above).
 
 ### Network control panel
 
