@@ -192,6 +192,20 @@ cd - && just pull
 git add instruqt/ && git commit -m "Pin Instruqt track and tab ids"
 ```
 
+### Publishing (manual, no CI)
+
+There is no GitHub Actions pipeline; publishing is manual, and what you run depends on what changed:
+
+- **Changed an `assignment.md`, lifecycle script, `track.yml`, or `config.yml`** (anything under `instruqt/`): run `instruqt track push`. No image rebuild.
+- **Changed exercise/solution code, the `Dockerfile`, or anything else baked into the sandbox** (`demo*/`, `instruqt/docker/`): rebuild and push the image, then launch a fresh sandbox to pick it up:
+  ```bash
+  docker buildx build --platform linux/amd64 \
+    -f instruqt/docker/Dockerfile \
+    -t docker.io/nadvolod/ai-agents-workshop-v4-sandbox:latest --push .
+  ```
+
+`instruqt track test` runs the track's *local* files against the deployed image, so it's the way to verify a change before pushing.
+
 ### Known issues
 
 - **F1 MCP server commit pin.** `docker/Dockerfile` clones `rakeshgangwar/f1-mcp-server` at a pinned commit (`F1_MCP_COMMIT` build arg). Refresh it periodically with `git ls-remote https://github.com/rakeshgangwar/f1-mcp-server HEAD`.
