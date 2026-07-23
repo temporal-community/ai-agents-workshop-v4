@@ -71,7 +71,7 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Write the Agent
 
-Open `exercise/tools_workflow.py`. Two TODO stubs are waiting: construct the `Agent` with its four tools wrapped via `activity_as_tool`, then replace the whole hand-written loop with the one-line `Runner.run(agent, input=question)` call.
+In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/tools_workflow.py` and follow the `TODO` in the `run` method.
 
 Stuck? Compare against `solution/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab.
 

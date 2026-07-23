@@ -83,9 +83,9 @@ Click the [button label="Editor" background="#444CE7"](tab-5) tab. Key files in 
 
 ## Wire Up the Orchestrator
 
-Open `exercise/personal_assistant.py`. One TODO stub: build `weather_tool` with `child_workflow_as_tool` and `f1_tool` with `nexus_operation_as_tool`, then wire both into the orchestrator Agent's tools list.
+In the [button label="Editor" background="#444CE7"](tab-5) tab, open `exercise/personal_assistant.py` and follow the `TODO`s to uncomment the two specialist tools and wire them into the orchestrator.
 
-Stuck? Compare against `solution/personal_assistant.py` in the [button label="Editor" background="#444CE7"](tab-5) tab.
+Stuck? Compare against `solution/personal_assistant.py`.
 
 ## Start the Workers
 

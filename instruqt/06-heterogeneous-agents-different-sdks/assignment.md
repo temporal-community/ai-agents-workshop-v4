@@ -80,9 +80,9 @@ Click the [button label="Editor" background="#444CE7"](tab-5) tab. Key files in 
 
 ## Write the Wrapper
 
-Open `exercise/travel_planner_activity.py` and `exercise/personal_assistant.py`. Two TODO stubs: the `@activity.defn` wrapper that lazy-imports `travel_planner` and calls `run()`, then the `activity_as_tool(...)` wiring that adds it as the orchestrator's third tool.
+In the [button label="Editor" background="#444CE7"](tab-5) tab, open `exercise/travel_planner_activity.py` and `exercise/personal_assistant.py`. Follow the `TODO` comments in each file to uncomment the code.
 
-Stuck? Compare against `solution/travel_planner_activity.py` and `solution/personal_assistant.py` in the [button label="Editor" background="#444CE7"](tab-5) tab.
+Stuck? Compare against `solution/travel_planner_activity.py` and `solution/personal_assistant.py`.
 
 ## Start the Workers
 

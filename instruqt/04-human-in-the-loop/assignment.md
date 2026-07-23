@@ -75,9 +75,9 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Write the Suspension
 
-Open `exercise/tools_workflow.py`. Two TODO stubs: the `ask_user` function_tool body (set state, `await workflow.wait_condition(...)`, read back the answer) and the `provide_user_input` signal handler that unblocks it.
+In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/tools_workflow.py` and follow the `TODO`s to uncomment the two blocks.
 
-Stuck? Compare against `solution/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab.
+Stuck? Compare against `solution/tools_workflow.py`.
 
 ## Start the Worker
 

@@ -85,9 +85,9 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Write the Loop
 
-Open `exercise/workflows/agent.py`. The loop body is a `TODO` stub - your job is to write the four steps described above: call the LLM activity, check whether the result is a tool call, dispatch the tool, feed the output back into `input_list`, and repeat until the model returns a final message.
+In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/workflows/agent.py` and follow the `TODO`.
 
-Stuck? Compare your work against `solution/workflows/agent.py` in the [button label="Editor" background="#444CE7"](tab-4) tab - same file, fully implemented.
+Stuck? Compare your work against `solution/workflows/agent.py` in the same tab, fully implemented.
 
 ## Start the Worker
 

@@ -87,9 +87,9 @@ enhanced_loading: null
 
 ## Wire Up the Nexus Call
 
-Open `exercise/personal_assistant.py`. One TODO stub: wire the travel planner in as a third tool via `nexus_operation_as_tool(...)` pointed at the Java service, over the same Nexus boundary the F1 expert already uses.
+In the [button label="Editor" background="#444CE7"](tab-6) tab, open `exercise/personal_assistant.py` and follow the `TODO`.
 
-Stuck? Compare against `solution/personal_assistant.py` in the [button label="Editor" background="#444CE7"](tab-6) tab.
+Stuck? Compare against `solution/personal_assistant.py`.
 
 ## Start the Java Worker
 

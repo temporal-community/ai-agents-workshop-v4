@@ -46,27 +46,47 @@ class PersonalAssistantWorkflow:
     async def run(self, question: str) -> str:
         today = workflow.now().strftime("%Y-%m-%d")
 
-        # TODO: Build the weather tool with `child_workflow_as_tool` for
-        # WeatherAgentWorkflow.run, named "ask_weather_agent", running on
-        # task_queue="weather-agent-tq" with a reasonable execution_timeout.
-        # See personal_assistant.py — "the orchestrator. Uses
-        # `child_workflow_as_tool` for weather and `nexus_operation_as_tool`
-        # for F1."
-        weather_tool = None
+        # TODO: Uncomment the weather_tool block below. Wraps a child workflow as an
+        # agent-SDK tool call: the specialist runs as its own independently durable
+        # workflow execution, not an inline function.
+        # weather_tool = child_workflow_as_tool(
+        #     WeatherAgentWorkflow.run,
+        #     name="ask_weather_agent",
+        #     description=(
+        #         "Delegate a weather-related question to the weather forecasting "
+        #         "specialist. Pass the full question as plain English."
+        #     ),
+        #     task_queue="weather-agent-tq",  # Task queue: the named queue a worker polls and a client targets to run this workflow/activity.
+        #     execution_timeout=timedelta(minutes=5),
+        # )
 
-        # TODO: Build the F1 tool with `nexus_operation_as_tool` for
-        # F1ExpertService.ask_f1_expert, service=F1ExpertService,
-        # endpoint="f1-expert", with a reasonable schedule_to_close_timeout.
-        # Don't forget to set f1_tool.description — the contrib helper has
-        # no description hook, so the LLM needs it set directly on the
-        # FunctionTool to know when to choose this tool.
-        f1_tool = None
+        # TODO: Uncomment the f1_tool block below. Wraps a Nexus operation as an
+        # agent-SDK tool call: the specialist is reached over a Nexus boundary,
+        # Temporal's mechanism for cross-namespace/cross-service calls with a typed
+        # contract. The contrib helper has no description hook, so set the
+        # description directly on the FunctionTool for the LLM.
+        # f1_tool = nexus_operation_as_tool(
+        #     F1ExpertService.ask_f1_expert,
+        #     service=F1ExpertService,
+        #     endpoint="f1-expert",
+        #     schedule_to_close_timeout=timedelta(minutes=5),
+        # )
+        # f1_tool.description = (
+        #     "Delegate Formula 1 questions to the F1 expert specialist. "
+        #     "It can look up race schedules, results, driver and constructor "
+        #     "standings, and circuit telemetry. Pass the full question as plain English."
+        # )
 
         agent = Agent(
             name="PersonalAssistant",
             instructions=SYSTEM_PROMPT.format(date=today),
             model="gpt-4o",
-            tools=[weather_tool, f1_tool],
+            # TODO: Uncomment the two entries below to wire both specialist tools
+            # into the orchestrator once you have built them above.
+            tools=[
+                # weather_tool,
+                # f1_tool,
+            ],
         )
         result = await Runner.run(agent, input=question)
         return result.final_output

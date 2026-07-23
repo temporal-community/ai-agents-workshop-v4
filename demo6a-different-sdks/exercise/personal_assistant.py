@@ -85,19 +85,28 @@ class PersonalAssistantWorkflow:
             "standings, and circuit telemetry. Pass the full question as plain English."
         )
 
-        # TODO: Wire the travel planner in as a third tool. It's an external
-        # Strands agent; wrap it directly as an activity tool (no per-step
-        # Temporal visibility — see the README's "Two integration depths"
-        # section) using `activity_as_tool(ask_travel_planner, ...)` with a
-        # `start_to_close_timeout`, and add it to the orchestrator Agent's
-        # tools list below.
-        travel_tool = None
+        # TODO: Uncomment the block below (and the `travel_tool` entry in the
+        # Agent's tools list) to wire in the travel planner as a third tool.
+        # It's an external Strands agent wrapped directly as an activity, so
+        # the whole Strands loop becomes one opaque, retryable Temporal
+        # activity with no per-step visibility (see the README's "Two
+        # integration depths" section).
+        #
+        # travel_tool = activity_as_tool(
+        #     ask_travel_planner,
+        #     # Start-to-close timeout: max time Temporal allows one activity attempt to run.
+        #     start_to_close_timeout=timedelta(minutes=5),
+        # )
 
         agent = Agent(
             name="PersonalAssistant",
             instructions=SYSTEM_PROMPT.format(date=today),
             model="gpt-4o",
-            tools=[weather_tool, f1_tool, travel_tool],
+            tools=[
+                weather_tool,
+                f1_tool,
+                # travel_tool,
+            ],
         )
         result = await Runner.run(agent, input=question)
         return result.final_output

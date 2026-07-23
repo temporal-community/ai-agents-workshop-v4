@@ -16,8 +16,13 @@ async def ask_travel_planner(question: str) -> str:
     Args:
         question: The travel-planning question to answer.
     """
-    # TODO: Write a single `@activity.defn` wrapper. It should lazy-import
-    # `travel_planner` (keeps the heavy Strands+boto3 dependency tree out of
-    # any workflow's imports_passed_through resolution) and call `run()` on
-    # it, returning the result. About 10 lines.
-    raise NotImplementedError("TODO: lazy-import travel_planner and call run()")
+    # TODO: Uncomment the body below to lazy-import the Strands travel planner
+    # and delegate the question to it. The lazy import keeps the heavy
+    # Strands+boto3 dependency tree out of any workflow's
+    # imports_passed_through resolution; it runs once in the activity thread
+    # when the first activity of this type fires on a worker.
+    #
+    # import travel_planner
+    #
+    # activity.logger.info("Travel planner question: %s", question)
+    # return await travel_planner.run(question)

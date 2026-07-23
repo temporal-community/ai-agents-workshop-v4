@@ -82,22 +82,34 @@ class PersonalAssistantWorkflow:
             "standings, and circuit telemetry. Pass the full question as plain English."
         )
 
-        # TODO: Wire the travel planner in as a third tool. The orchestrator
-        # reaches it over Nexus - the same boundary it already uses for the
-        # F1 expert - even though the handler is a Java + Spring AI agent on
-        # a completely different worker. Build it with
-        # `nexus_operation_as_tool(TravelPlannerService.ask_travel_planner,
-        # service=TravelPlannerService, endpoint="travel-planner",
-        # schedule_to_close_timeout=...)`, set a `.description` on the
-        # resulting tool (the contrib helper has no description hook), and
-        # add it to the orchestrator Agent's tools list below.
-        travel_tool = None
+        # TODO: Uncomment the block below to wire the Java travel planner in as
+        # a third tool. It reaches a Java + Spring AI agent over the same Nexus
+        # mechanism the F1 expert uses, then registers it in the Agent's tools
+        # list. Uncommenting is the whole task.
+        # travel_tool = nexus_operation_as_tool(
+        #     TravelPlannerService.ask_travel_planner,
+        #     service=TravelPlannerService,
+        #     endpoint="travel-planner",
+        #     schedule_to_close_timeout=timedelta(minutes=5),
+        # )
+        # # Same description-hook gap as the F1 tool above — set it explicitly.
+        # travel_tool.description = (
+        #     "Delegate travel-planning questions to the travel planner specialist. "
+        #     "It can summarize destinations and look up country background "
+        #     "(currency, languages, region, capital). Pass the full question as plain English."
+        # )
 
         agent = Agent(
             name="PersonalAssistant",
             instructions=SYSTEM_PROMPT.format(date=today),
             model="gpt-4o",
-            tools=[weather_tool, f1_tool, travel_tool],
+            # TODO: Uncomment the travel_tool entry below once you uncomment its
+            # definition above.
+            tools=[
+                weather_tool,
+                f1_tool,
+                # travel_tool,
+            ],
         )
         result = await Runner.run(agent, input=question)
         return result.final_output

@@ -41,13 +41,32 @@ class ToolsWorkflow:
     # Entry point Temporal calls to start the workflow.
     @workflow.run
     async def run(self, question: str) -> str:
-        # TODO: Construct an `Agent` (from the `agents` package) named "Agent",
-        # with `instructions=SYSTEM_PROMPT` and `model="gpt-4o"`. Give it a
-        # `tools=[...]` list built by wrapping each of the four tool activities
-        # (get_ip_address, get_location_info, get_coordinates, get_weather)
-        # with `activity_as_tool(fn, start_to_close_timeout=timedelta(seconds=30))`.
-        raise NotImplementedError("TODO: construct the Agent with its tools")
+        # TODO: Uncomment the block below to build the Agent and run it.
+        # It constructs an Agent whose four tools are Temporal activities wrapped
+        # by activity_as_tool, then hands control to the SDK: Runner.run drives
+        # the entire agentic loop in one line and returns the final answer.
+        # Delete the `pass` placeholder once you uncomment.
+        pass
 
-        # TODO: With the Agent SDK, the entire agentic loop collapses into one
-        # line: `result = await Runner.run(agent, input=question)`. Call it,
-        # then return `result.final_output`.
+        # agent = Agent(
+        #     name="Agent",
+        #     instructions=SYSTEM_PROMPT,
+        #     model="gpt-4o",
+        #     tools=[
+        #         activity_as_tool(
+        #             get_ip_address, start_to_close_timeout=timedelta(seconds=30)
+        #         ),
+        #         activity_as_tool(
+        #             get_location_info, start_to_close_timeout=timedelta(seconds=30)
+        #         ),
+        #         activity_as_tool(
+        #             get_coordinates, start_to_close_timeout=timedelta(seconds=30)
+        #         ),
+        #         activity_as_tool(
+        #             get_weather, start_to_close_timeout=timedelta(seconds=30)
+        #         ),
+        #     ],
+        # )
+        #
+        # result = await Runner.run(agent, input=question)
+        # return result.final_output

@@ -64,17 +64,22 @@ class AgentWorkflow:
             Args:
                 question_text: The question to ask the user.
             """
-            # TODO: ask_user sets workflow state and awaits wait_condition.
-            # The workflow is suspended - durably - holding no threads, no
-            # memory.
+            # TODO: Uncomment the block below to set workflow state and
+            # suspend the workflow durably until the user answers, then read
+            # the answer back and return it.
             #
-            # 1. Set self._question = question_text
-            # 2. Set self._input_needed = True
-            # 3. await workflow.wait_condition(lambda: not self._input_needed)
-            # 4. Read the answer back from self._user_input
-            # 5. Reset self._question and self._user_input so subsequent
-            #    ask_user calls start clean, then return the answer.
-            raise NotImplementedError("TODO: implement ask_user's wait/signal choreography")
+            # self._question = question_text
+            # self._input_needed = True
+            # workflow.logger.info("Waiting for user input: %s", question_text)
+            #
+            # # Suspends the workflow durably until the condition is true — no polling loop, no cost while it waits, survives worker restarts.
+            # await workflow.wait_condition(lambda: not self._input_needed)
+            #
+            # answer = self._user_input
+            # # Reset so subsequent ask_user calls start clean.
+            # self._question = ""
+            # self._user_input = ""
+            # return answer
 
         f1 = stateless_mcp_server(name="f1-data", cache_tools_list=True)
 
@@ -109,12 +114,11 @@ class AgentWorkflow:
     @workflow.signal
     def provide_user_input(self, user_input: str) -> None:
         """Deliver the user's response to a pending ask_user call."""
-        # TODO: provide_user_input is a signal. It delivers your answer and
-        # unblocks the wait_condition.
+        # TODO: Uncomment the block below to deliver the answer and unblock
+        # the wait_condition.
         #
-        # 1. Set self._user_input = user_input
-        # 2. Set self._input_needed = False
-        raise NotImplementedError("TODO: implement provide_user_input signal handler")
+        # self._user_input = user_input
+        # self._input_needed = False
 
     # Query: a read-only, side-effect-free snapshot of workflow state; doesn't append to history.
     @workflow.query
