@@ -69,12 +69,9 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Wire Up the MCP Server
 
-Two one-line edits, one per file. Each has a `TODO` comment right above a commented-out line. Uncomment it.
+Open `exercise/worker.py` and `exercise/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab and follow the `TODO` in each. Both are one-line uncomments.
 
-1. In `exercise/worker.py`, uncomment the `mcp_server_providers=[...]` block. That registers the F1 MCP server with Temporal, so its operations run as durable activities.
-2. In `exercise/tools_workflow.py`, uncomment the `mcp_servers=[...]` line. That hands the registered server to the agent, so it can call the F1 tools.
-
-Stuck? Compare against `solution/worker.py` and `solution/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab.
+Stuck? Compare against `solution/worker.py` and `solution/tools_workflow.py`.
 
 ## Start the Worker
 
