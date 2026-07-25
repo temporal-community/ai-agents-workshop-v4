@@ -61,11 +61,12 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/demo5-multi-agent
   port: 8080
-- title: Architecture
+- id: 4wgvbgjiwkrc
+  title: Architecture
   type: service
   hostname: workshop
-  port: 8090
   path: /
+  port: 8090
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null
