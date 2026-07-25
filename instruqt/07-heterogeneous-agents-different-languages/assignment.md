@@ -99,7 +99,23 @@ Click the [button label="Java Worker" background="#444CE7"](tab-0) terminal. Dep
 ./mvnw spring-boot:run
 ```
 
-First you'll see Maven build output (`[INFO] Scanning for projects...`, then a `test-compile` phase). The banner is turned off (`banner-mode: "off"` in `application.yaml`), so watch for the `Started WorkerApplication in N seconds` line near the end of the log - that's the worker up and polling the `travel-planner-agent-tq` task queue.
+You should see Maven build output, then Spring Boot startup logs ending in `Started WorkerApplication`:
+
+```text
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------------< io.temporal.ai.workshop:travel-planner-java >-------------
+[INFO] Building travel-planner-java 0.1.0
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] >>> spring-boot:3.5.12:run (default-cli) > test-compile @ travel-planner-java >>>
+...
+INFO  io.temporal.ai.workshop.travel.WorkerApplication : Starting WorkerApplication
+INFO  i.t.s.WorkerFactory                              : Started Worker Factory
+INFO  io.temporal.ai.workshop.travel.WorkerApplication : Started WorkerApplication in 4.2 seconds
+```
+
+(No Spring banner - it's turned off in `application.yaml`.) The worker is now up and polling the `travel-planner-agent-tq` task queue.
 
 > **If it fails:** a port-already-in-use error means a previous run's process is still bound - stop it with **Ctrl+C** in this tab and retry. Dependencies were pre-fetched in the image, so a slow first build usually means the image cache was skipped; retry once.
 
