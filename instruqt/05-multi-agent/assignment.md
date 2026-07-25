@@ -156,24 +156,21 @@ Click the [button label="Temporal UI" background="#444CE7"](tab-3) tab. Look for
 Each specialist is independently observable, independently retryable, and could run on a different team's infrastructure.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:680px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME: click a specialist to see its shape in the orchestrator's history</div>
-<div style="display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;">
-  <div style="text-align:center;padding:14px;border-radius:8px;background:#242832;min-width:140px;">🧭 Orchestrator<br><small>orchestrator-tq</small></div>
-  <div style="font-size:20px;color:#8b8fa3;">→</div>
-  <div class="ma-specialist" data-shape="StartChildWorkflowExecution" data-note="Weather runs as a real child workflow. Parent-child semantics apply: trace context propagates automatically, and it shows as StartChildWorkflowExecution / ChildWorkflowExecutionStarted / ...Completed in the parent's history. Built for same-namespace parent-child relationships." style="text-align:center;padding:14px;border-radius:8px;background:#1e3a5f;cursor:pointer;min-width:140px;">🌤 Weather Agent<br><small>weather-agent-tq</small></div>
-  <div class="ma-specialist" data-shape="NexusOperationScheduled" data-note="F1 expert is called as a Nexus operation. Designed for cross-namespace (or cross-cluster) boundaries with a clean typed interface, it shows as NexusOperationScheduled / NexusOperationStarted / ...Completed in the parent's history - a different shape for a different kind of boundary." style="text-align:center;padding:14px;border-radius:8px;background:#5f1e3a;cursor:pointer;min-width:140px;">🏎 F1 Expert<br><small>f1-expert-agent-tq</small></div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:12px;">🖱️ TRY ME: expand a specialist to see its shape in the orchestrator's history</div>
+<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+  <div style="text-align:center;padding:14px;border-radius:8px;background:#242832;min-width:130px;align-self:center;">🧭 Orchestrator<br><small>orchestrator-tq</small></div>
+  <div style="font-size:20px;color:#8b8fa3;align-self:center;">→</div>
+  <details style="flex:1;min-width:220px;background:#1e3a5f;border-radius:8px;">
+    <summary style="padding:14px;cursor:pointer;text-align:center;">🌤 Weather Agent<br><small>weather-agent-tq</small></summary>
+    <div style="padding:0 14px 14px;font-size:13px;color:#c8ccd8;"><strong>StartChildWorkflowExecution</strong> — Weather runs as a real child workflow. Parent-child semantics apply: trace context propagates automatically, and it shows as StartChildWorkflowExecution / ChildWorkflowExecutionStarted / ...Completed in the parent's history. Built for same-namespace parent-child relationships.</div>
+  </details>
+  <details style="flex:1;min-width:220px;background:#5f1e3a;border-radius:8px;">
+    <summary style="padding:14px;cursor:pointer;text-align:center;">🏎 F1 Expert<br><small>f1-expert-agent-tq</small></summary>
+    <div style="padding:0 14px 14px;font-size:13px;color:#c8ccd8;"><strong>NexusOperationScheduled</strong> — F1 expert is called as a Nexus operation. Designed for cross-namespace (or cross-cluster) boundaries with a clean typed interface, it shows as NexusOperationScheduled / NexusOperationStarted / ...Completed in the parent's history. A different shape for a different kind of boundary.</div>
+  </details>
 </div>
-<div id="ma-note" style="margin-top:14px;min-height:56px;font-size:14px;color:#c8ccd8;">Click either specialist above. Same result from the orchestrator's point of view - different event-history shape underneath.</div>
+<div style="margin-top:12px;font-size:13px;color:#c8ccd8;">Same result from the orchestrator's point of view. Different event-history shape underneath.</div>
 </div>
-<script>
-document.querySelectorAll('.ma-specialist').forEach(function(el){
-  el.addEventListener('click', function(){
-    document.getElementById('ma-note').innerHTML = '<strong>' + el.getAttribute('data-shape') + '</strong>: ' + el.getAttribute('data-note');
-    document.querySelectorAll('.ma-specialist').forEach(function(s){ s.style.outline = ''; });
-    el.style.outline = '2px solid #fff';
-  });
-});
-</script>
 
 ## Try More Prompts
 
