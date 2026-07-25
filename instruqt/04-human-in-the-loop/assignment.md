@@ -112,24 +112,26 @@ Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab while the
 When you respond, a new event appears in the history: the signal arrives, `wait_condition` unblocks, and the agent continues.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:640px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME: click each stage</div>
-<div id="hitl-stages" style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;">
-  <div class="hitl-stage" data-note="The ask_user tool sets self._input_needed = True and calls workflow.wait_condition(...). The workflow task completes here - no thread is held." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#1e3a5f;cursor:pointer;transition:all .2s;">▶ Running<br><small>agent reasoning</small></div>
-  <div class="hitl-stage" data-note="Status still shows Running in the Web UI, but there are zero pending activity tasks. No worker CPU, no memory held for this wait - just a durable marker in the event history." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#4a3b1e;cursor:pointer;transition:all .2s;">⏸ Suspended<br><small>wait_condition</small></div>
-  <div class="hitl-stage" data-note="provide_user_input signal arrives, sets self._user_input and flips self._input_needed to False. That's the only thing that can unblock wait_condition - not a timer, not a poll." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#5f1e3a;cursor:pointer;transition:all .2s;">📨 Signal<br><small>provide_user_input</small></div>
-  <div class="hitl-stage" data-note="wait_condition returns, ask_user returns the answer to the agent loop, and the LLM resumes reasoning with the new information - same workflow, same history, picked up exactly where it left off." style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:6px;background:#1e5f3a;cursor:pointer;transition:all .2s;">▶ Resumed<br><small>agent continues</small></div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:12px;">🖱️ TRY ME: expand each stage to see what's happening underneath it</div>
+<div style="display:flex;flex-direction:column;gap:8px;">
+  <details style="background:#1e3a5f;border-radius:6px;">
+    <summary style="padding:10px;cursor:pointer;">▶ Running <small>— agent reasoning</small></summary>
+    <div style="padding:0 12px 12px;font-size:13px;color:#c8ccd8;">The ask_user tool sets self._input_needed = True and calls workflow.wait_condition(...). The workflow task completes here — no thread is held.</div>
+  </details>
+  <details style="background:#4a3b1e;border-radius:6px;">
+    <summary style="padding:10px;cursor:pointer;">⏸ Suspended <small>— wait_condition</small></summary>
+    <div style="padding:0 12px 12px;font-size:13px;color:#c8ccd8;">Status still shows Running in the Web UI, but there are zero pending activity tasks. No worker CPU, no memory held for this wait — just a durable marker in the event history.</div>
+  </details>
+  <details style="background:#5f1e3a;border-radius:6px;">
+    <summary style="padding:10px;cursor:pointer;">📨 Signal <small>— provide_user_input</small></summary>
+    <div style="padding:0 12px 12px;font-size:13px;color:#c8ccd8;">provide_user_input signal arrives, sets self._user_input and flips self._input_needed to False. That's the only thing that can unblock wait_condition — not a timer, not a poll.</div>
+  </details>
+  <details style="background:#1e5f3a;border-radius:6px;">
+    <summary style="padding:10px;cursor:pointer;">▶ Resumed <small>— agent continues</small></summary>
+    <div style="padding:0 12px 12px;font-size:13px;color:#c8ccd8;">wait_condition returns, ask_user returns the answer to the agent loop, and the LLM resumes reasoning with the new information — same workflow, same history, picked up exactly where it left off.</div>
+  </details>
 </div>
-<div id="hitl-note" style="margin-top:12px;min-height:40px;font-size:14px;color:#c8ccd8;">Click a stage above to see what's actually happening underneath it.</div>
 </div>
-<script>
-document.querySelectorAll('.hitl-stage').forEach(function(el){
-  el.addEventListener('click', function(){
-    document.getElementById('hitl-note').textContent = el.getAttribute('data-note');
-    document.querySelectorAll('.hitl-stage').forEach(function(s){ s.style.outline = ''; });
-    el.style.outline = '2px solid #fff';
-  });
-});
-</script>
 
 ## Reconnect to a Waiting Workflow
 

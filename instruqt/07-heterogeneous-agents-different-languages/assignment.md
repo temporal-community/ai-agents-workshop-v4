@@ -140,23 +140,20 @@ In the **orchestrator** history, the travel planner path now shows `NexusOperati
 Then find the **`TravelPlannerAgentWorkflow`** on `travel-planner-agent-tq`. Its history shows per-step activities: a `ChatModelActivity` for each LLM call, individual activities for each tool call. That's Spring AI giving the Java agent the same per-step durability the OpenAI Agents SDK gives the Python agents.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:680px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:8px;">🖱️ TRY ME: click each demo to see how the travel planner's durability changed</div>
-<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-  <div class="lang-demo" data-detail="Python + Strands, called as a direct activity. Whole loop = one ScheduleActivityTask: ask_travel_planner. A worker crash mid-loop restarts the entire travel-planning conversation from scratch." style="text-align:center;padding:12px;border-radius:8px;background:#5f1e3a;cursor:pointer;min-width:150px;">demo 6a<br><small>Python · Strands · direct activity</small></div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:12px;">🖱️ TRY ME: expand each demo to see how the travel planner's durability changed</div>
+<div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;">
+  <details style="flex:1;min-width:240px;background:#5f1e3a;border-radius:8px;">
+    <summary style="padding:12px;cursor:pointer;text-align:center;">demo 6a<br><small>Python · Strands · direct activity</small></summary>
+    <div style="padding:0 12px 12px;font-size:13px;color:#c8ccd8;">Python + Strands, called as a direct activity. Whole loop = one ScheduleActivityTask: ask_travel_planner. A worker crash mid-loop restarts the entire travel-planning conversation from scratch.</div>
+  </details>
   <div style="font-size:20px;color:#8b8fa3;align-self:center;">→</div>
-  <div class="lang-demo" data-detail="Java + Spring AI, called over Nexus - the same boundary the F1 expert already uses. The orchestrator sees NexusOperationScheduled/Completed, and the TravelPlannerAgentWorkflow's own history shows a ChatModelActivity per LLM call and a separate activity per tool call. A worker crash mid-loop only retries the step that was running." style="text-align:center;padding:12px;border-radius:8px;background:#1e5f3a;cursor:pointer;min-width:150px;">demo 6b<br><small>Java · Spring AI · Nexus</small></div>
+  <details style="flex:1;min-width:240px;background:#1e5f3a;border-radius:8px;">
+    <summary style="padding:12px;cursor:pointer;text-align:center;">demo 6b<br><small>Java · Spring AI · Nexus</small></summary>
+    <div style="padding:0 12px 12px;font-size:13px;color:#c8ccd8;">Java + Spring AI, called over Nexus — the same boundary the F1 expert already uses. The orchestrator sees NexusOperationScheduled/Completed, and the TravelPlannerAgentWorkflow's own history shows a ChatModelActivity per LLM call and a separate activity per tool call. A worker crash mid-loop only retries the step that was running.</div>
+  </details>
 </div>
-<div id="lang-note" style="margin-top:14px;min-height:56px;font-size:14px;color:#c8ccd8;">Same specialist, same job - travel advice. Click either box to see what changed in its event-history shape and crash-recovery story.</div>
+<div style="margin-top:12px;font-size:13px;color:#c8ccd8;">Same specialist, same job — travel advice. Different event-history shape and crash-recovery story underneath.</div>
 </div>
-<script>
-document.querySelectorAll('.lang-demo').forEach(function(el){
-  el.addEventListener('click', function(){
-    document.getElementById('lang-note').textContent = el.getAttribute('data-detail');
-    document.querySelectorAll('.lang-demo').forEach(function(s){ s.style.outline = ''; });
-    el.style.outline = '2px solid #fff';
-  });
-});
-</script>
 
 ## Try More Prompts
 
