@@ -99,7 +99,7 @@ Click the [button label="Java Worker" background="#444CE7"](tab-0) terminal. Dep
 ./mvnw spring-boot:run
 ```
 
-You should see Spring Boot's banner and `Started ... in N seconds` near the end of the log.
+First you'll see Maven build output (`[INFO] Scanning for projects...`, then a `test-compile` phase). The banner is turned off (`banner-mode: "off"` in `application.yaml`), so watch for the `Started WorkerApplication in N seconds` line near the end of the log - that's the worker up and polling the `travel-planner-agent-tq` task queue.
 
 > **If it fails:** a port-already-in-use error means a previous run's process is still bound - stop it with **Ctrl+C** in this tab and retry. Dependencies were pre-fetched in the image, so a slow first build usually means the image cache was skipped; retry once.
 
