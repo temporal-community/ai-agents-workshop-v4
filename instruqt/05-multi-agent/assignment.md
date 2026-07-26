@@ -74,9 +74,6 @@ enhanced_loading: null
 
 # Demo 5: Multi-Agent Orchestration
 
-> [!NOTE]
-> **Tabs:** [button label="Worker PA" background="#444CE7"](tab-0) [button label="Worker F1" background="#444CE7"](tab-1) [button label="Starter" background="#444CE7"](tab-2) [button label="Temporal UI" background="#444CE7"](tab-3) [button label="Network Control Panel" background="#444CE7"](tab-4) [button label="Editor" background="#444CE7"](tab-5) [button label="Architecture" background="#444CE7"](tab-6)
-
 ## See the Big Picture First
 
 Before you touch code, open the [button label="Architecture" background="#444CE7"](tab-6) tab to inspect how this demo fits together: every file, class, and method, grouped by the three task queues and two worker processes.

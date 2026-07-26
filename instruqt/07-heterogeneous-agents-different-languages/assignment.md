@@ -79,9 +79,6 @@ enhanced_loading: null
 
 # Demo 6b: Heterogeneous Agents - Different Languages
 
-> [!NOTE]
-> **Tabs:** [button label="Java Worker" background="#444CE7"](tab-0) [button label="Worker PA" background="#444CE7"](tab-1) [button label="Worker F1" background="#444CE7"](tab-2) [button label="Starter" background="#444CE7"](tab-3) [button label="Temporal UI" background="#444CE7"](tab-4) [button label="Network Control Panel" background="#444CE7"](tab-5) [button label="Editor" background="#444CE7"](tab-6) [button label="Architecture" background="#444CE7"](tab-7)
-
 ## See the Big Picture First
 
 Before you touch code, open the [button label="Architecture" background="#444CE7"](tab-7) tab to see how this demo fits together: three specialists behind one Python orchestrator, grouped by their four task queues and three worker processes (two Python, one Java).
