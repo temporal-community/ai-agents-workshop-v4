@@ -124,8 +124,6 @@ INFO  i.t.s.WorkerFactory                              : Started Worker Factory
 INFO  io.temporal.ai.workshop.travel.WorkerApplication : Started WorkerApplication in 4.2 seconds
 ```
 
-(No Spring banner - it's turned off in `application.yaml`.) The worker is now up and polling the `travel-planner-agent-tq` task queue.
-
 > **If it fails:** a port-already-in-use error means a previous run's process is still bound - stop it with **Ctrl+C** in this tab and retry. Dependencies were pre-fetched in the image, so a slow first build usually means the image cache was skipped; retry once.
 
 ## Start the Python Workers
