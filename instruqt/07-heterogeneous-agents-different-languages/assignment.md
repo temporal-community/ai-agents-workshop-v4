@@ -66,7 +66,8 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/demo6b-different-languages
   port: 8080
-- title: Architecture
+- id: wev5ikwtlr76
+  title: Architecture
   type: service
   hostname: workshop
   path: /
