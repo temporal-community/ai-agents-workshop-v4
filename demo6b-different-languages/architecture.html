@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo 6b · Cross-Language Multi-Agent Orchestration</title>
+<style>
+  :root {
+    --bg: #eef1f5; --bg-grid: #e2e7ee; --panel: #ffffff; --panel-2: #f7f9fc;
+    --ink: #18202e; --muted: #5b6676; --faint: #8b95a4; --line: #d3dae3; --line-strong: #b9c2ce;
+    --accent: #5457d6;   /* orchestrator / agent tool calls */
+    --child: #c9791b;    /* child-workflow path (weather) */
+    --nexus: #0f9d94;    /* python nexus path (f1) */
+    --java:  #b0308a;    /* cross-language nexus path (java travel planner) */
+    --on-accent: #ffffff;
+    --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
+    --radius: 13px;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
+      --ink: #e6ebf2; --muted: #93a0b1; --faint: #64707f; --line: #29323f; --line-strong: #38434f;
+      --accent: #8b8ff5; --child: #f0a848; --nexus: #3ad6ce; --java: #e879c7; --on-accent: #141922;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #eef1f5; --bg-grid: #e2e7ee; --panel: #ffffff; --panel-2: #f7f9fc;
+    --ink: #18202e; --muted: #5b6676; --faint: #8b95a4; --line: #d3dae3; --line-strong: #b9c2ce;
+    --accent: #5457d6; --child: #c9791b; --nexus: #0f9d94; --java: #b0308a; --on-accent: #ffffff;
+    --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
+    --ink: #e6ebf2; --muted: #93a0b1; --faint: #64707f; --line: #29323f; --line-strong: #38434f;
+    --accent: #8b8ff5; --child: #f0a848; --nexus: #3ad6ce; --java: #e879c7; --on-accent: #141922;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at 1px 1px, var(--bg-grid) 1px, transparent 0) 0 0 / 26px 26px, var(--bg);
+    color: var(--ink); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1780px; margin: 0 auto; padding: 24px 20px 48px; }
+
+  header.masthead { margin-bottom: 18px; }
+  .eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--java); font-weight: 600; margin: 0 0 8px; }
+  h1 { font-size: clamp(24px, 3.4vw, 38px); line-height: 1.08; margin: 0 0 10px; letter-spacing: -.02em; text-wrap: balance; font-weight: 700; }
+  h1 .thin { color: var(--muted); font-weight: 400; }
+  .lede { margin: 0; max-width: 78ch; color: var(--muted); font-size: 15.5px; }
+  .lede code { font-family: var(--mono); font-size: .9em; color: var(--ink); background: color-mix(in srgb, var(--java) 12%, var(--panel)); padding: 1px 5px; border-radius: 5px; }
+  .lede b { color: var(--ink); }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 18px 0 12px; padding: 11px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .controls .clabel { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+  .legItem { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: var(--ink); padding: 5px 11px 5px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); user-select: none; transition: opacity .15s, border-color .15s; }
+  .legItem:hover { border-color: var(--line-strong); }
+  .legItem.off { opacity: .38; }
+  .legItem .swatch { width: 22px; height: 0; border-top-width: 3px; border-top-style: solid; border-radius: 3px; }
+  .legItem.dashed .swatch { border-top-style: dashed; }
+  .legItem[data-cat="child"] .swatch { border-color: var(--child); }
+  .legItem[data-cat="nexus"] .swatch { border-color: var(--nexus); }
+  .legItem[data-cat="xlang"] .swatch { border-color: var(--java); border-top-width: 4px; }
+  .legItem[data-cat="agent"] .swatch { border-color: var(--accent); }
+  .legItem[data-cat="setup"] .swatch { border-color: var(--faint); }
+  .legItem[data-cat="external"] .swatch { border-color: var(--faint); }
+  .spacer { flex: 1 1 auto; }
+  .btn { font-family: var(--sans); font-size: 12.5px; font-weight: 500; cursor: pointer; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); padding: 6px 13px; border-radius: 8px; transition: border-color .15s; }
+  .btn:hover { border-color: var(--line-strong); }
+  .btn.primary { background: var(--java); color: var(--on-accent); border-color: var(--java); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.06); border-color: var(--java); }
+  .btn:focus-visible, .legItem:focus-visible, .node:focus-visible, .worker:focus-visible, .lane:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* flow player */
+  .flowbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 12px; padding: 11px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .flowbtn { min-width: 38px; text-align: center; font-size: 14px; padding: 6px 10px; }
+  .flowbtn:disabled { opacity: .4; cursor: default; }
+  .flowstep { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .flownarr { flex: 1 1 340px; min-width: 240px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .flowphase { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--java); background: color-mix(in srgb, var(--java) 14%, var(--panel)); padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .flowcap { font-size: 13px; color: var(--ink); }
+  .flowpayload { font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; }
+  .flowbar.idle .flowphase, .flowbar.idle .flowpayload { display: none; }
+  .flowbar.idle .flowcap { color: var(--muted); }
+
+  /* stage: full-width canvas + collapsible detail panel */
+  .stage { display: flex; align-items: stretch; }
+  .canvasScroll { flex: 1 1 auto; min-width: 0; height: 82vh; min-height: 520px; overflow: auto; position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .canvasFit { position: relative; width: 100%; }
+  .canvas { position: absolute; top: 0; left: 0; transform-origin: top left; }
+  svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
+  svg.edges path { fill: none; transition: opacity .18s, stroke-width .18s; }
+  svg.edges .elabel { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; transition: opacity .18s; }
+  .edge-child { stroke: var(--child); }
+  .edge-nexus { stroke: var(--nexus); }
+  .edge-xlang { stroke: var(--java); }
+  .edge-agent { stroke: var(--accent); }
+  .edge-setup { stroke: var(--faint); }
+  .edge-external { stroke: var(--faint); stroke-dasharray: 5 5; }
+  path.dim, text.dim { opacity: .09 !important; }
+  path.hot { stroke-width: 3.2px !important; }
+
+  .detail { width: 0; flex: 0 0 auto; overflow: hidden; transition: width .2s ease; background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .stage.detail-open .detail { width: 350px; margin-left: 16px; border: 1px solid var(--line); }
+  .detail-inner { width: 350px; height: 82vh; min-height: 520px; overflow: auto; padding: 18px 18px 26px; }
+  .detail-close { float: right; cursor: pointer; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); width: 26px; height: 26px; border-radius: 7px; font-size: 15px; line-height: 1; }
+  .detail-close:hover { border-color: var(--line-strong); color: var(--ink); }
+
+  /* worker process outlines */
+  .worker { position: absolute; z-index: 0; border: 1.5px dashed var(--line-strong); border-radius: 18px; cursor: pointer; background: transparent; transition: border-color .15s; }
+  .worker:hover { border-color: var(--accent); }
+  .worker.lit { border-style: solid; }
+  .worker.w-java { border-color: color-mix(in srgb, var(--java) 45%, var(--line-strong)); }
+  .worker.w-java.lit { border-color: var(--java); }
+  .worker .wlabel { position: absolute; top: -13px; left: 22px; padding: 3px 13px; background: var(--panel); border: 1px solid var(--line-strong); border-radius: 999px; font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .worker .wlabel .wp { color: var(--faint); font-weight: 500; }
+
+  /* task-queue swim lanes */
+  .lane { position: absolute; z-index: 1; border-radius: 14px; cursor: pointer; overflow: hidden; border: 1px solid color-mix(in srgb, var(--lane-color) 32%, var(--line)); background: color-mix(in srgb, var(--lane-color) 6%, var(--panel)); transition: box-shadow .15s; }
+  .lane:hover { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lane-color) 45%, transparent); }
+  .lane.lit { box-shadow: inset 0 0 0 2.5px var(--lane-color); }
+  .lane-head { display: flex; align-items: center; gap: 9px; padding: 8px 14px; background: color-mix(in srgb, var(--lane-color) 16%, var(--panel)); border-bottom: 1px solid color-mix(in srgb, var(--lane-color) 30%, transparent); pointer-events: none; }
+  .lane-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--lane-color); flex: none; }
+  .lane-kicker { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in srgb, var(--lane-color) 50%, var(--muted)); font-weight: 700; }
+  .lane-name { font-family: var(--mono); font-size: 14.5px; font-weight: 700; color: color-mix(in srgb, var(--lane-color) 62%, var(--ink)); }
+  .lane-tag { font-size: 11px; color: var(--muted); margin-left: auto; font-family: var(--mono); text-align: right; }
+
+  /* nodes */
+  .node { position: absolute; z-index: 3; cursor: pointer; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-left-width: 4px; border-radius: 10px; padding: 9px 12px; box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s, opacity .18s, border-color .15s; }
+  .node:hover { transform: translateY(-2px); }
+  .node .ntype { font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .node .nname { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); margin-top: 2px; word-break: break-word; }
+  .node .nsub { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+  .node[data-hue="accent"] { border-left-color: var(--accent); }
+  .node[data-hue="child"] { border-left-color: var(--child); }
+  .node[data-hue="nexus"] { border-left-color: var(--nexus); }
+  .node[data-hue="java"] { border-left-color: var(--java); }
+  .node[data-hue="muted"] { border-left-color: var(--line-strong); }
+  .node.dim { opacity: .2; }
+  .node.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+  .node.neighbor { box-shadow: 0 0 0 1.5px var(--line-strong), var(--shadow); }
+  .node.flow-on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); z-index: 4; }
+  .node .langtag { position: absolute; top: -9px; right: -7px; font-size: 12px; }
+
+  .start-badge { position: absolute; top: -11px; right: -9px; z-index: 5; background: var(--accent); color: var(--on-accent); font-size: 9px; font-weight: 700; letter-spacing: .12em; padding: 3px 8px; border-radius: 999px; box-shadow: var(--shadow); }
+  .start-badge::before { content: "▶ "; }
+
+  .ext-cap { position: absolute; z-index: 1; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+
+  @keyframes flowdash { to { stroke-dashoffset: -26; } }
+  @keyframes flowdashrev { to { stroke-dashoffset: 26; } }
+  svg.edges path.flowing { opacity: 1 !important; stroke-width: 3.4px !important; stroke-dasharray: 7 6; animation: flowdash .8s linear infinite; }
+  svg.edges path.flowing.rev { animation: flowdashrev .8s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { svg.edges path.flowing { animation: none; } }
+
+  /* detail panel content */
+  .badge { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: .04em; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; }
+  .badge.accent { background: color-mix(in srgb, var(--accent) 16%, var(--panel)); color: var(--accent); }
+  .badge.child { background: color-mix(in srgb, var(--child) 18%, var(--panel)); color: var(--child); }
+  .badge.nexus { background: color-mix(in srgb, var(--nexus) 18%, var(--panel)); color: var(--nexus); }
+  .badge.java { background: color-mix(in srgb, var(--java) 18%, var(--panel)); color: var(--java); }
+  .badge.muted { background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); }
+  .detail h2 { font-family: var(--mono); font-size: 16px; margin: 12px 0 3px; letter-spacing: -.01em; word-break: break-word; }
+  .detail .file { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-bottom: 14px; }
+  .detail .file b { color: var(--muted); }
+  .detail p.desc { font-size: 13.5px; color: var(--ink); margin: 0 0 15px; }
+  .detail .sec { font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin: 16px 0 7px; }
+  .members, .rellist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  .members li { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 5px 9px; }
+  .rellist button { all: unset; cursor: pointer; display: flex; align-items: center; gap: 7px; width: 100%; font-family: var(--mono); font-size: 12px; color: var(--ink); padding: 5px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel-2); box-sizing: border-box; }
+  .rellist button:hover { border-color: var(--line-strong); }
+  .rellist .rel-arrow { font-size: 13px; opacity: .7; }
+  .rellist .rel-kind { margin-left: auto; font-family: var(--sans); font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); white-space: nowrap; }
+  .snippet { font-family: var(--mono); font-size: 11.5px; line-height: 1.55; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 11px 12px; overflow-x: auto; white-space: pre; margin-top: 4px; }
+  .snippet .k { color: var(--accent); }
+  .snippet .s { color: var(--child); }
+  .snippet .c { color: var(--faint); font-style: italic; }
+  .detail .placeholder { color: var(--muted); font-size: 14px; }
+  .detail .placeholder strong { color: var(--ink); }
+
+  footer { margin-top: 22px; font-size: 12px; color: var(--faint); text-align: center; }
+  footer code { font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">Demo 6b · Temporal · Python + Java</p>
+    <h1>Cross-Language Multi-Agent Orchestration <span class="thin">— one orchestrator, three specialists, two languages</span></h1>
+    <p class="lede">A Python <code>PersonalAssistant</code> orchestrator drives three specialists: a weather forecaster (<b>child workflow</b>), a Python F1 expert (<b>Nexus</b>), and a <b>Java + Spring AI travel planner reached over a cross-language Nexus boundary</b>. Same orchestration mechanism, different language — the rose path crosses 🐍 → ☕. Click any box, lane, or worker; press <b>Play data flow</b> to trace a request through all three.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Diagram controls">
+    <span class="clabel">Filter edges</span>
+    <div class="legend" id="legend">
+      <button class="legItem" data-cat="child" aria-pressed="true"><span class="swatch"></span>Child workflow</button>
+      <button class="legItem" data-cat="nexus" aria-pressed="true"><span class="swatch"></span>Nexus (Python)</button>
+      <button class="legItem" data-cat="xlang" aria-pressed="true"><span class="swatch"></span>Cross-language Nexus</button>
+      <button class="legItem" data-cat="agent" aria-pressed="true"><span class="swatch"></span>Agent tool call</button>
+      <button class="legItem" data-cat="setup" aria-pressed="true"><span class="swatch"></span>Start &amp; setup</button>
+      <button class="legItem dashed" data-cat="external" aria-pressed="true"><span class="swatch"></span>External I/O</button>
+    </div>
+    <span class="spacer"></span>
+    <button class="btn" id="resetBtn" type="button">Reset view</button>
+  </div>
+
+  <div class="flowbar idle" id="flowbar" role="group" aria-label="Data flow player">
+    <button class="btn primary flowbtn" id="flowPlay" type="button">▶ Play data flow</button>
+    <button class="btn flowbtn" id="flowPrev" type="button" aria-label="Previous step" disabled>◀</button>
+    <span class="flowstep" id="flowStep">step — / —</span>
+    <button class="btn flowbtn" id="flowNext" type="button" aria-label="Next step">▶</button>
+    <div class="flownarr">
+      <span class="flowphase" id="flowPhase"></span>
+      <span class="flowcap" id="flowCap">Trace <b>“What’s the weather at the next F1 race and what should I know about visiting the destination?”</b> through all three specialists.</span>
+      <code class="flowpayload" id="flowPayload"></code>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="canvasScroll" id="canvasScroll">
+      <div class="canvasFit" id="canvasFit">
+        <div class="canvas" id="canvas">
+          <svg class="edges" id="edges" viewBox="0 0 1560 1030" preserveAspectRatio="none" aria-hidden="true"></svg>
+        </div>
+      </div>
+    </div>
+    <aside class="detail" id="detail" aria-live="polite">
+      <div class="detail-inner" id="detailInner">
+        <div class="placeholder">
+          <p><strong>Select a component.</strong></p>
+          <p>Every box is a real class, method, or file in <code>demo6b-different-languages/solution/</code>. The three colored lanes are the task queues; the dashed outlines are the three worker processes (two 🐍 Python, one ☕ Java). Click a lane header to see which components run on it.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>Reflects <code>demo6b-different-languages/solution/</code> · four task queues · three worker processes (2× Python, 1× Java) · one asyncio starter.</footer>
+</div>
+
+<script>
+"use strict";
+const CANVAS_W = 1560, CANVAS_H = 1030;
+
+const canvas = document.getElementById("canvas");
+const canvasFit = document.getElementById("canvasFit");
+const canvasScroll = document.getElementById("canvasScroll");
+const svg = document.getElementById("edges");
+const SVGNS = "http://www.w3.org/2000/svg";
+canvas.style.width = CANVAS_W + "px";
+canvas.style.height = CANVAS_H + "px";
+
+/* ---------------- worker process outlines ---------------- */
+const WORKERS = [
+  { id:"w-pa", cls:"", x:8, y:110, w:560, h:790, label:"worker_pa.py", proc:"🐍 Python · process A",
+    detail:{ badge:"accent", type:"Worker process A · Python", name:"worker_pa.py",
+      file:"solution/worker_pa.py:30", tq:"polls orchestrator-tq + weather-agent-tq",
+      desc:"One Python process running two Workers via asyncio.gather — the orchestrator (orchestrator-tq) and the weather specialist (weather-agent-tq). No travel-planner activity is registered here: that specialist is a separate Java worker reached over Nexus. Plugin keeps add_temporal_spans=True.",
+      members:["OpenAIAgentsPlugin(add_temporal_spans=True)","Worker(orchestrator-tq, [PersonalAssistantWorkflow])","Worker(weather-agent-tq, [WeatherAgentWorkflow] + 4 activities)","asyncio.gather(weather_worker.run(), orchestrator_worker.run())"] } },
+  { id:"w-f1", cls:"", x:602, y:250, w:430, h:650, label:"worker_f1.py", proc:"🐍 Python · process B",
+    detail:{ badge:"nexus", type:"Worker process B · Python", name:"worker_f1.py",
+      file:"solution/worker_f1.py", tq:"polls f1-expert-agent-tq",
+      desc:"A separate Python process for the F1 team. Runs F1ExpertAgentWorkflow plus the Python Nexus service handler, and registers the F1 stateless-MCP provider. Plugin sets add_temporal_spans=False (Nexus doesn't propagate trace context).",
+      members:["OpenAIAgentsPlugin(add_temporal_spans=False)","StatelessMCPServerProvider(name=\"f1-data\")","Worker(f1-expert-agent-tq, [F1ExpertAgentWorkflow], nexus_service_handlers=[F1ExpertServiceHandler()])"] } },
+  { id:"w-java", cls:"w-java", x:1066, y:250, w:486, h:650, label:"WorkerApplication", proc:"☕ Java / Spring Boot · process C",
+    detail:{ badge:"java", type:"Worker process C · Java / Spring Boot", name:"WorkerApplication.java",
+      file:"travel-planner-java/.../WorkerApplication.java", tq:"polls travel-planner-agent-tq",
+      desc:"A separate JVM process. temporal-spring-boot-starter reads application.yaml to build a Worker on travel-planner-agent-tq hosting the travel-planner workflow, its tool activities, and the cross-language Nexus handler bean. temporal-spring-ai auto-registers the ChatModelActivity (the durable LLM call).",
+      members:["@SpringBootApplication","application.yaml → workers: task-queue: travel-planner-agent-tq","workflow-classes: [TravelPlannerAgentWorkflowImpl]","activity-beans: [travelToolsImpl]","nexus-service-beans: [travelPlannerServiceImpl]","temporal-spring-ai → ChatModelActivity (auto)"] } },
+];
+
+/* ---------------- task-queue lanes ---------------- */
+const LANES = [
+  { id:"tq-orch", x:24, y:152, w:528, h:248, color:"var(--accent)",
+    name:"orchestrator-tq", tag:"PersonalAssistantWorkflow",
+    detail:{ badge:"accent", type:"Task queue", name:"orchestrator-tq",
+      file:"worker_pa.py:27 (ORCHESTRATOR_TASK_QUEUE)", tq:"polled by worker_pa.py (Python)",
+      desc:"The orchestrator's queue. worker_pa runs PersonalAssistantWorkflow here. The starter targets it in execute_workflow. Its three tools dispatch across boundaries: weather (child workflow), F1 (Python Nexus), travel (cross-language Nexus to Java).",
+      members:["Polled by: worker_pa.py","Runs: PersonalAssistantWorkflow","Entered by: start_workflow.py → execute_workflow(task_queue=\"orchestrator-tq\")"] } },
+  { id:"tq-weather", x:24, y:420, w:528, h:470, color:"var(--child)",
+    name:"weather-agent-tq", tag:"WeatherAgentWorkflow + 4 activities",
+    detail:{ badge:"child", type:"Task queue", name:"weather-agent-tq",
+      file:"worker_pa.py:26 (WEATHER_TASK_QUEUE)", tq:"polled by worker_pa.py (Python)",
+      desc:"The weather specialist's queue — polled by the SAME process, worker_pa. The child-workflow tool starts WeatherAgentWorkflow here; its four weather activities run here too. Same-cluster child workflow, so trace context propagates.",
+      members:["Polled by: worker_pa.py","Runs: WeatherAgentWorkflow","Activities: get_ip_address, get_location_info, get_coordinates, get_weather","Entered by: ask_weather_agent → execute_child_workflow(task_queue=\"weather-agent-tq\")"] } },
+  { id:"tq-f1", x:618, y:292, w:398, h:596, color:"var(--nexus)",
+    name:"f1-expert-agent-tq", tag:"F1ExpertAgentWorkflow + Nexus handler",
+    detail:{ badge:"nexus", type:"Task queue", name:"f1-expert-agent-tq",
+      file:"worker_f1.py", tq:"polled by worker_f1.py (Python)",
+      desc:"The F1 expert's queue — polled by worker_f1. The Nexus endpoint \"f1-expert-d6\" targets it; the Python service handler starts F1ExpertAgentWorkflow here. A same-language (Python→Python) Nexus boundary.",
+      members:["Polled by: worker_f1.py","Runs: F1ExpertAgentWorkflow","Hosts: F1ExpertServiceHandler (Python Nexus handler)","Endpoint: f1-expert-d6"] } },
+  { id:"tq-travel", x:1082, y:292, w:454, h:596, color:"var(--java)",
+    name:"travel-planner-agent-tq", tag:"TravelPlannerAgentWorkflow + Nexus handler (Java)",
+    detail:{ badge:"java", type:"Task queue", name:"travel-planner-agent-tq",
+      file:"application.yaml:24", tq:"polled by the Java worker (WorkerApplication)",
+      desc:"The travel planner's queue — polled by the JAVA worker. The Nexus endpoint \"travel-planner\" targets it; the Java handler (TravelPlannerServiceImpl) starts TravelPlannerAgentWorkflow here. This is the cross-language boundary: a Python orchestrator's Nexus call is served by a JVM worker.",
+      members:["Polled by: WorkerApplication (Java / Spring Boot)","Runs: TravelPlannerAgentWorkflowImpl","Hosts: TravelPlannerServiceImpl (Java Nexus handler)","Registers: ChatModelActivity + travel tool activities","Endpoint: travel-planner"] } },
+];
+
+/* ---------------- nodes ---------------- */
+const NODES = [
+  { id:"starter", x:250, y:24, w:250, h:64, hue:"muted", type:"Client · asyncio · Python",
+    name:"start_workflow.py", sub:"execute_workflow()",
+    file:"solution/start_workflow.py:50", tq:"— (separate client process)",
+    desc:"CLI entry point. Opens a trace span, then starts one PersonalAssistantWorkflow on orchestrator-tq and awaits the combined answer.",
+    members:["main()", "with trace(\"PersonalAssistant\")", "client.execute_workflow(task_queue=\"orchestrator-tq\")"],
+    snippet:[['c','# start_workflow.py'],['nl'],['k','with '],['fn','trace'],['p','('],['s','"PersonalAssistant"'],['p','):'],['nl'],['p','    result = await client.'],['fn','execute_workflow'],['p','('],['nl'],['p','        PersonalAssistantWorkflow.run, query,'],['nl'],['p','        task_queue='],['s','"orchestrator-tq"'],['p',')']] },
+
+  { id:"pa_wf", x:176, y:206, w:224, h:70, hue:"accent", type:"@workflow.defn · Python",
+    name:"PersonalAssistantWorkflow", sub:".run(question) → str",
+    file:"solution/personal_assistant.py:49", tq:"orchestrator-tq",
+    desc:"The orchestrator. Builds three tools — a child-workflow tool and two Nexus tools (one Python, one Java) — hands them to an Agent(\"PersonalAssistant\", gpt-4o), and runs it. The LLM decides which specialists to call.",
+    members:["run(question) → str","child_workflow_as_tool(...) → weather_tool","nexus_operation_as_tool(...) → f1_tool (endpoint f1-expert-d6)","nexus_operation_as_tool(...) → travel_tool (endpoint travel-planner)","Agent(name=\"PersonalAssistant\", tools=[3])"],
+    snippet:[['c','# personal_assistant.py'],['nl'],['p','agent = '],['fn','Agent'],['p','(name='],['s','"PersonalAssistant"'],['p',', model='],['s','"gpt-4o"'],['p',','],['nl'],['p','    tools=[weather_tool, f1_tool, travel_tool])']] },
+
+  { id:"tool_weather", x:38, y:306, w:150, h:72, hue:"child", type:"FunctionTool",
+    name:"ask_weather_agent", sub:"child_workflow_as_tool",
+    file:"solution/personal_assistant.py:56", tq:"orchestrator-tq",
+    desc:"The weather tool. Built by child_workflow_as_tool(WeatherAgentWorkflow.run, ...). Invoking it starts a WeatherAgentWorkflow child on weather-agent-tq.",
+    members:["task_queue=\"weather-agent-tq\"","execution_timeout=5min"] },
+  { id:"tool_f1", x:200, y:306, w:148, h:72, hue:"nexus", type:"FunctionTool",
+    name:"ask_f1_expert", sub:"nexus_operation_as_tool",
+    file:"solution/personal_assistant.py:69", tq:"orchestrator-tq",
+    desc:"The F1 tool. Built from F1ExpertService.ask_f1_expert, endpoint \"f1-expert-d6\". A Python→Python Nexus operation.",
+    members:["service=F1ExpertService","endpoint=\"f1-expert-d6\"","schedule_to_close_timeout=5min"] },
+  { id:"tool_travel", x:360, y:306, w:176, h:72, hue:"java", type:"FunctionTool",
+    name:"ask_travel_planner", sub:"nexus_operation_as_tool",
+    file:"solution/personal_assistant.py:88", tq:"orchestrator-tq",
+    desc:"The travel tool. Built from TravelPlannerService.ask_travel_planner (the Python CALLER stub in travel_planner_service.py — there is no Python handler), endpoint \"travel-planner\". The endpoint routes the call to whatever worker polls travel-planner-agent-tq — here, the Java worker. Python and Java share no code, only the string names and JSON shapes.",
+    members:["service=TravelPlannerService (Python caller stub)","endpoint=\"travel-planner\"","schedule_to_close_timeout=5min","contract: ask_travel_planner / {question} → {answer}"],
+    snippet:[['p','travel_tool = '],['fn','nexus_operation_as_tool'],['p','('],['nl'],['p','    TravelPlannerService.ask_travel_planner,'],['nl'],['p','    service=TravelPlannerService,'],['nl'],['p','    endpoint='],['s','"travel-planner"'],['p',')']] },
+
+  { id:"weather_wf", x:176, y:480, w:200, h:66, hue:"child", type:"@workflow.defn",
+    name:"WeatherAgentWorkflow", sub:".run(question) → str",
+    file:"solution/weather_agent.py", tq:"weather-agent-tq",
+    desc:"Weather specialist, running as its own child-workflow execution. Builds an Agent(\"WeatherAgent\", gpt-4o) whose four tools are Temporal activities via activity_as_tool.",
+    members:["run(question) → str","Agent(name=\"WeatherAgent\")","tools=[4× activity_as_tool(...)]"] },
+  { id:"weather_agent", x:176, y:575, w:200, h:58, hue:"child", type:"Agent (gpt-4o)",
+    name:"WeatherAgent", sub:"Runner.run(...)",
+    file:"solution/weather_agent.py", tq:"weather-agent-tq",
+    desc:"OpenAI Agents SDK agent inside the weather workflow. Its LLM and tool calls run as Temporal activities via the plugin.",
+    members:["model=\"gpt-4o\"","4 activity tools"] },
+  { id:"act_ip", x:38, y:662, w:170, h:56, hue:"child", type:"@activity.defn",
+    name:"get_ip_address", sub:"→ str", file:"solution/tool_activities.py:13", tq:"weather-agent-tq",
+    desc:"Public IP of the machine via httpx GET icanhazip.com.", members:["get_ip_address() → str"] },
+  { id:"act_loc", x:230, y:662, w:186, h:56, hue:"child", type:"@activity.defn",
+    name:"get_location_info", sub:"(ipaddress) → str", file:"solution/tool_activities.py:22", tq:"weather-agent-tq",
+    desc:"IP-based geolocation via httpx GET ip-api.com.", members:["get_location_info(ipaddress) → str"] },
+  { id:"act_coord", x:38, y:750, w:170, h:56, hue:"child", type:"@activity.defn",
+    name:"get_coordinates", sub:"(city) → str", file:"solution/tool_activities.py:37", tq:"weather-agent-tq",
+    desc:"City → lat/lon via Open-Meteo geocoder. Returns an explicit no_match payload when nothing matches.", members:["get_coordinates(city) → str"] },
+  { id:"act_weather", x:230, y:750, w:186, h:56, hue:"child", type:"@activity.defn",
+    name:"get_weather", sub:"(lat, lon) → str", file:"solution/tool_activities.py:72", tq:"weather-agent-tq",
+    desc:"Current weather via Open-Meteo forecast API.", members:["get_weather(latitude, longitude) → str"] },
+
+  { id:"f1_service", x:688, y:350, w:210, h:64, hue:"nexus", type:"@nexusrpc.service",
+    name:"F1ExpertService", sub:"ask_f1_expert: Operation",
+    file:"solution/f1_expert_agent.py", tq:"f1-expert-agent-tq",
+    desc:"The typed Python Nexus contract for the F1 expert. Pydantic AskRequest → AskResponse.",
+    members:["ask_f1_expert: Operation[AskRequest, AskResponse]"] },
+  { id:"f1_handler", x:688, y:444, w:210, h:64, hue:"nexus", type:"@service_handler",
+    name:"F1ExpertServiceHandler", sub:"ask_f1_expert(ctx, req)",
+    file:"solution/f1_expert_agent.py", tq:"f1-expert-agent-tq",
+    desc:"Python Nexus handler. @nexus.workflow_run_operation starts an F1ExpertAgentWorkflow and returns a handle.",
+    members:["@nexus.workflow_run_operation","ctx.start_workflow(F1ExpertAgentWorkflow.run, ...)"] },
+  { id:"f1_wf", x:688, y:538, w:210, h:68, hue:"nexus", type:"@workflow.defn",
+    name:"F1ExpertAgentWorkflow", sub:".run(AskRequest) → AskResponse",
+    file:"solution/f1_expert_agent.py", tq:"f1-expert-agent-tq",
+    desc:"F1 specialist workflow, started by the Nexus handler. Builds an Agent(\"F1Expert\", gpt-4o) whose toolkit is the F1 MCP server.",
+    members:["run(request) → AskResponse","Agent(name=\"F1Expert\", mcp_servers=[f1])"] },
+  { id:"f1_agent", x:688, y:632, w:210, h:58, hue:"nexus", type:"Agent (gpt-4o)",
+    name:"F1Expert", sub:"Runner.run(...)",
+    file:"solution/f1_expert_agent.py", tq:"f1-expert-agent-tq",
+    desc:"Agents SDK agent given MCP servers instead of activity tools; the F1 toolkit is discovered from the MCP server.",
+    members:["model=\"gpt-4o\"","mcp_servers=[f1-data]"] },
+  { id:"f1_mcp", x:688, y:720, w:210, h:58, hue:"nexus", type:"MCP handle",
+    name:"stateless_mcp_server", sub:"name=\"f1-data\"",
+    file:"solution/f1_expert_agent.py", tq:"f1-expert-agent-tq",
+    desc:"In-workflow MCP handle, resolved to worker_f1's StatelessMCPServerProvider, which launches the F1 MCP server on demand.",
+    members:["stateless_mcp_server(name=\"f1-data\", cache_tools_list=True)"] },
+
+  { id:"java_service", x:1158, y:350, w:300, h:66, hue:"java", type:"@Service · Java interface",
+    name:"TravelPlannerService", sub:"askTravelPlanner(req)",
+    file:"travel-planner-java/.../TravelPlannerService.java:13", tq:"travel-planner-agent-tq",
+    desc:"The JAVA side of the cross-language Nexus contract. @Service(name=\"TravelPlannerService\") and @Operation(name=\"ask_travel_planner\") must match the Python names byte-for-byte; the AskRequest/AskResponse POJOs carry @JsonProperty(\"question\"/\"answer\") to match the Python Pydantic shapes. No shared code — only strings and JSON.",
+    members:["@Service(name = \"TravelPlannerService\")","@Operation(name = \"ask_travel_planner\")","class AskRequest { @JsonProperty(\"question\") ... }","class AskResponse { @JsonProperty(\"answer\") ... }"],
+    snippet:[['c','// TravelPlannerService.java'],['nl'],['p','@'],['fn','Service'],['p','(name = '],['s','"TravelPlannerService"'],['p',')'],['nl'],['k','interface '],['fn','TravelPlannerService'],['p',' {'],['nl'],['p','  @'],['fn','Operation'],['p','(name = '],['s','"ask_travel_planner"'],['p',')'],['nl'],['p','  AskResponse askTravelPlanner(AskRequest r);'],['nl'],['p','}']] },
+  { id:"java_handler", x:1158, y:446, w:300, h:66, hue:"java", type:"@ServiceImpl · Java",
+    name:"TravelPlannerServiceImpl", sub:"askTravelPlanner()",
+    file:"travel-planner-java/.../TravelPlannerServiceImpl.java:17", tq:"travel-planner-agent-tq",
+    desc:"The Java Nexus handler bean (travelPlannerServiceImpl). Its @OperationImpl returns a WorkflowRunOperation that starts a TravelPlannerAgentWorkflow on this task queue and hands back its result.",
+    members:["@ServiceImpl(service = TravelPlannerService.class)","@OperationImpl askTravelPlanner()","WorkflowRunOperation.fromWorkflowMethod(...)","registered via application.yaml nexus-service-beans"],
+    snippet:[['c','// TravelPlannerServiceImpl.java'],['nl'],['p','@'],['fn','OperationImpl'],['nl'],['p','OperationHandler<...> '],['fn','askTravelPlanner'],['p','() {'],['nl'],['p','  return WorkflowRunOperation.'],['fn','fromWorkflowMethod'],['p','('],['nl'],['p','    (ctx, d, req) -> ...newWorkflowStub(...)::run);'],['nl'],['p','}']] },
+  { id:"java_wf", x:1158, y:542, w:300, h:70, hue:"java", type:"Workflow · Java",
+    name:"TravelPlannerAgentWorkflowImpl", sub:".run(AskRequest) → AskResponse",
+    file:"travel-planner-java/.../TravelPlannerAgentWorkflowImpl.java:14", tq:"travel-planner-agent-tq",
+    desc:"The Java travel-planner agent workflow. Builds a Spring AI ChatClient via TemporalChatClient and runs a per-step durable loop: every LLM call becomes a ChatModelActivity and every tool call becomes its own activity. This per-step durability is the payoff over demo 6a's single coarse activity.",
+    members:["@WorkflowInit(TravelPlannerService.AskRequest)","run(request) → AskResponse","TemporalChatClient.builder(activityChatModel)","defaultTools(travelTools)"],
+    snippet:[['c','// TravelPlannerAgentWorkflowImpl.java'],['nl'],['p','this.chatClient = TemporalChatClient'],['nl'],['p','  .'],['fn','builder'],['p','(activityChatModel)'],['nl'],['p','  .'],['fn','defaultSystem'],['p','(SYSTEM_PROMPT)'],['nl'],['p','  .'],['fn','defaultTools'],['p','(travelTools).build();']] },
+  { id:"chatclient", x:1158, y:640, w:300, h:60, hue:"java", type:"Spring AI · Java",
+    name:"TemporalChatClient", sub:"chatClient.prompt()...call()",
+    file:"...TravelPlannerAgentWorkflowImpl.java:46", tq:"travel-planner-agent-tq",
+    desc:"Spring AI ChatClient wrapped by temporal-spring-ai. Driving one prompt runs the agent loop: it dispatches the LLM call as a ChatModelActivity and each tool call as its own activity — all durable.",
+    members:["ActivityChatModel.forDefault()","chatClient.prompt().user(q).call().content()"] },
+  { id:"chat_activity", x:1090, y:734, w:210, h:64, hue:"java", type:"activity (auto)",
+    name:"ChatModelActivity", sub:"one per LLM call",
+    file:"temporal-spring-ai (SpringAiPlugin)", tq:"travel-planner-agent-tq",
+    desc:"The durable LLM-call activity that temporal-spring-ai auto-registers on the worker. ActivityChatModel routes each model call here, so every LLM turn is a retryable Temporal activity (per-step durability). Calls OpenAI (gpt-4o) under the hood.",
+    members:["auto-registered by temporal-spring-ai","one Temporal activity per LLM call","→ OpenAI gpt-4o"] },
+  { id:"travel_tools", x:1316, y:734, w:220, h:64, hue:"java", type:"@ActivityInterface + @Tool",
+    name:"TravelTools", sub:"getWikipediaSummary / getCountryInfo",
+    file:"travel-planner-java/.../tools/TravelTools.java:12", tq:"travel-planner-agent-tq",
+    desc:"Dual-annotated interface: @ActivityInterface makes each call a durable Temporal activity; @Tool/@ToolParam is the metadata the model sees. Two tools — a Wikipedia summary and country background — implemented in TravelToolsImpl over public REST APIs.",
+    members:["@Tool getWikipediaSummary(topic) → String","@Tool getCountryInfo(country) → String","impl bean: travelToolsImpl","one Temporal activity per tool call"] },
+
+  { id:"weather_api", x:110, y:944, w:300, h:56, hue:"muted", type:"external",
+    name:"Public HTTP APIs", sub:"httpx → icanhazip · ip-api · open-meteo",
+    file:"(external services)", tq:"—",
+    desc:"Free public endpoints the weather activities call over httpx.",
+    members:["icanhazip.com","ip-api.com","geocoding-api.open-meteo.com","api.open-meteo.com/forecast"] },
+  { id:"f1_mcp_server", x:650, y:944, w:240, h:60, hue:"muted", type:"external · stdio",
+    name:"F1 MCP server", sub:"node build/index.js → 8 tools",
+    file:"worker_f1.py", tq:"—",
+    desc:"External Node.js MCP server launched over stdio by worker_f1. Exposes 8 F1 data tools.",
+    members:["MCPServerStdio(...)","8 F1 data tools"] },
+  { id:"travel_api", x:1150, y:944, w:320, h:60, hue:"muted", type:"external",
+    name:"Wikipedia + REST Countries", sub:"HttpHelper.get(...)",
+    file:"travel-planner-java/.../tools/TravelToolsImpl.java", tq:"—",
+    desc:"Free public REST APIs the Java travel tools call: Wikipedia REST summary and REST Countries. Same endpoints the demo 6a Python travel agent used.",
+    members:["en.wikipedia.org/api/rest_v1/page/summary/{title}","restcountries.com/v3.1/name/{name}"] },
+];
+
+const EDGES = [
+  { from:"starter", to:"pa_wf", cat:"setup", label:"execute_workflow" },
+  { from:"pa_wf", to:"tool_weather", cat:"setup", label:"tools=[…]" },
+  { from:"pa_wf", to:"tool_f1", cat:"setup", label:"tools=[…]" },
+  { from:"pa_wf", to:"tool_travel", cat:"setup", label:"tools=[…]" },
+
+  { from:"tool_weather", to:"weather_wf", cat:"child", label:"execute_child_workflow" },
+  { from:"weather_wf", to:"weather_agent", cat:"agent", label:"Runner.run" },
+  { from:"weather_agent", to:"act_ip", cat:"agent", label:"activity_as_tool" },
+  { from:"weather_agent", to:"act_loc", cat:"agent", label:"activity_as_tool" },
+  { from:"weather_agent", to:"act_coord", cat:"agent", label:"activity_as_tool" },
+  { from:"weather_agent", to:"act_weather", cat:"agent", label:"activity_as_tool" },
+  { from:"act_ip", to:"weather_api", cat:"external", label:"httpx" },
+  { from:"act_loc", to:"weather_api", cat:"external", label:"httpx" },
+  { from:"act_coord", to:"weather_api", cat:"external", label:"httpx" },
+  { from:"act_weather", to:"weather_api", cat:"external", label:"httpx" },
+
+  { from:"tool_f1", to:"f1_service", cat:"nexus", label:"Nexus (f1-expert-d6)" },
+  { from:"f1_service", to:"f1_handler", cat:"nexus", label:"service_handler" },
+  { from:"f1_handler", to:"f1_wf", cat:"nexus", label:"ctx.start_workflow" },
+  { from:"f1_wf", to:"f1_agent", cat:"agent", label:"Runner.run" },
+  { from:"f1_agent", to:"f1_mcp", cat:"agent", label:"mcp_servers=[…]" },
+  { from:"f1_mcp", to:"f1_mcp_server", cat:"external", label:"stdio" },
+
+  { from:"tool_travel", to:"java_service", cat:"xlang", label:"Nexus ⟷ Python→Java" },
+  { from:"java_service", to:"java_handler", cat:"nexus", label:"@ServiceImpl" },
+  { from:"java_handler", to:"java_wf", cat:"nexus", label:"WorkflowRunOperation" },
+  { from:"java_wf", to:"chatclient", cat:"agent", label:"TemporalChatClient" },
+  { from:"chatclient", to:"chat_activity", cat:"agent", label:"LLM call (per step)" },
+  { from:"chatclient", to:"travel_tools", cat:"agent", label:"@Tool (per step)" },
+  { from:"travel_tools", to:"travel_api", cat:"external", label:"HttpHelper.get" },
+];
+
+const CAT_LABEL = { child:"child wf", nexus:"nexus", xlang:"x-lang nexus", agent:"agent tool", setup:"setup", external:"external" };
+const LANG_TAG = { starter:"🐍", pa_wf:"🐍", java_service:"☕", java_handler:"☕", java_wf:"☕", chatclient:"☕", chat_activity:"☕", travel_tools:"☕" };
+
+/* ---------------- render ---------------- */
+const nodeMap = Object.fromEntries(NODES.map(n => [n.id, n]));
+
+const defs = document.createElementNS(SVGNS, "defs");
+[["child","var(--child)"],["nexus","var(--nexus)"],["xlang","var(--java)"],["agent","var(--accent)"],["setup","var(--faint)"],["external","var(--faint)"]].forEach(([cat,color])=>{
+  const m = document.createElementNS(SVGNS,"marker");
+  m.setAttribute("id","arrow-"+cat); m.setAttribute("viewBox","0 0 10 10");
+  m.setAttribute("refX","8"); m.setAttribute("refY","5");
+  m.setAttribute("markerWidth","7"); m.setAttribute("markerHeight","7"); m.setAttribute("orient","auto-start-reverse");
+  const p = document.createElementNS(SVGNS,"path");
+  p.setAttribute("d","M0,0 L10,5 L0,10 z"); p.setAttribute("fill",color);
+  m.appendChild(p); defs.appendChild(m);
+});
+svg.appendChild(defs);
+
+WORKERS.forEach(wk=>{
+  const el = document.createElement("div");
+  el.className = "worker " + wk.cls; el.dataset.worker = wk.id; el.tabIndex = 0;
+  el.style.left=wk.x+"px"; el.style.top=wk.y+"px"; el.style.width=wk.w+"px"; el.style.height=wk.h+"px";
+  el.innerHTML = `<span class="wlabel">${wk.label} <span class="wp">· ${wk.proc}</span></span>`;
+  const act = ()=> selectContainer(wk);
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); act(); });
+  el.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); act(); } });
+  canvas.appendChild(el); wk._el = el;
+});
+
+LANES.forEach(ln=>{
+  const el = document.createElement("div");
+  el.className = "lane"; el.dataset.lane = ln.id; el.tabIndex = 0;
+  el.style.left=ln.x+"px"; el.style.top=ln.y+"px"; el.style.width=ln.w+"px"; el.style.height=ln.h+"px";
+  el.style.setProperty("--lane-color", ln.color);
+  el.innerHTML = `<div class="lane-head"><span class="lane-dot"></span><div><div class="lane-kicker">Task queue</div><div class="lane-name">${ln.name}</div></div><span class="lane-tag">${ln.tag}</span></div>`;
+  const act = ()=> selectContainer(ln);
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); act(); });
+  el.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); act(); } });
+  canvas.appendChild(el); ln._el = el;
+});
+
+[["weather-agent-tq (Python)",110,918],["f1 (Python)",650,918],["travel tools (Java)",1150,918]].forEach(([t,x,y])=>{
+  const cap = document.createElement("div");
+  cap.className = "ext-cap"; cap.style.left=x+"px"; cap.style.top=y+"px";
+  cap.textContent = "External · " + t; canvas.appendChild(cap);
+});
+
+NODES.forEach(n=>{
+  const el = document.createElement("button");
+  el.type="button"; el.className="node"; el.dataset.id=n.id; el.dataset.hue=n.hue;
+  el.style.left=n.x+"px"; el.style.top=n.y+"px"; el.style.width=n.w+"px";
+  el.innerHTML = `<div class="ntype">${n.type}</div><div class="nname">${n.name}</div>${n.sub?`<div class="nsub">${n.sub}</div>`:""}`
+    + (n.id==="starter"?`<span class="start-badge">START</span>`:"")
+    + (LANG_TAG[n.id]?`<span class="langtag">${LANG_TAG[n.id]}</span>`:"");
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); selectNode(n.id); });
+  canvas.appendChild(el); n._el = el;
+});
+
+const edgeEls = EDGES.map(e=>{
+  const path = document.createElementNS(SVGNS,"path");
+  path.setAttribute("class","edge-"+e.cat);
+  path.setAttribute("marker-end","url(#arrow-"+e.cat+")");
+  path.setAttribute("stroke-width", e.cat==="setup" ? "1.5" : (e.cat==="external" ? "1.6" : (e.cat==="xlang" ? "2.6" : "2")));
+  svg.appendChild(path);
+  const txt = document.createElementNS(SVGNS,"text");
+  txt.setAttribute("class","elabel"); txt.setAttribute("text-anchor","middle");
+  txt.textContent = e.label; svg.appendChild(txt);
+  return { data:e, path, txt };
+});
+const edgeIndex = {};
+edgeEls.forEach(o => { edgeIndex[o.data.from+">"+o.data.to] = o; });
+
+function rectOf(n){ const h = n._el ? n._el.offsetHeight : n.h; return { x:n.x, y:n.y, w:n.w, h:h, cx:n.x+n.w/2, cy:n.y+h/2 }; }
+function borderPoint(r, tx, ty){
+  const dx=tx-r.cx, dy=ty-r.cy; if(dx===0&&dy===0) return {x:r.cx,y:r.cy};
+  const hw=r.w/2, hh=r.h/2; const scale = 1/Math.max(Math.abs(dx)/hw, Math.abs(dy)/hh);
+  return { x:r.cx+dx*scale, y:r.cy+dy*scale };
+}
+function layout(){
+  edgeEls.forEach(({data,path,txt})=>{
+    const a=rectOf(nodeMap[data.from]), b=rectOf(nodeMap[data.to]);
+    const p1=borderPoint(a,b.cx,b.cy), p2=borderPoint(b,a.cx,a.cy);
+    const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+    const dx=p2.x-p1.x, dy=p2.y-p1.y, len=Math.hypot(dx,dy)||1;
+    const bow=Math.min(26, len*0.10);
+    const cx=mx+(-dy/len)*bow, cy=my+(dx/len)*bow;
+    path.setAttribute("d",`M ${p1.x} ${p1.y} Q ${cx} ${cy} ${p2.x} ${p2.y}`);
+    txt.setAttribute("x",cx); txt.setAttribute("y",cy-3);
+  });
+}
+
+/* ---------------- scale-to-fit ---------------- */
+let currentScale = 1;
+function fit(){
+  const avail = canvasScroll.clientWidth - 4;
+  let s = avail / CANVAS_W;
+  s = Math.min(s, 1.25);
+  currentScale = s;
+  canvas.style.transform = `scale(${s})`;
+  canvasFit.style.height = (CANVAS_H * s) + "px";
+}
+
+/* ---------------- interaction ---------------- */
+const activeCats = new Set(["child","nexus","xlang","agent","setup","external"]);
+const stage = document.getElementById("stage");
+const detailInner = document.getElementById("detailInner");
+
+function neighborsOf(id){
+  const nodes=new Set(), edges=new Set();
+  EDGES.forEach((e,i)=>{ if(e.from===id){nodes.add(e.to);edges.add(i);} if(e.to===id){nodes.add(e.from);edges.add(i);} });
+  return { nodes, edges };
+}
+function clearState(){
+  NODES.forEach(n=> n._el.classList.remove("dim","active","neighbor"));
+  WORKERS.forEach(w=> w._el.classList.remove("lit"));
+  LANES.forEach(l=> l._el.classList.remove("lit"));
+  edgeEls.forEach(({path,txt})=>{ path.classList.remove("dim","hot"); txt.classList.remove("dim"); });
+}
+function applyFilter(){
+  edgeEls.forEach(({data,path,txt})=>{ const show=activeCats.has(data.cat); path.style.display=show?"":"none"; txt.style.display=show?"":"none"; });
+}
+function openPanel(){ if(!stage.classList.contains("detail-open")){ stage.classList.add("detail-open"); requestAnimationFrame(()=>{ fit(); layout(); }); setTimeout(()=>{ fit(); layout(); }, 220); } }
+function closePanel(){ if(stage.classList.contains("detail-open")){ stage.classList.remove("detail-open"); requestAnimationFrame(()=>{ fit(); layout(); }); setTimeout(()=>{ fit(); layout(); }, 220); } }
+
+function selectNode(id){
+  exitFlow(); clearState();
+  const { nodes, edges } = neighborsOf(id);
+  NODES.forEach(n=>{ if(n.id===id) n._el.classList.add("active"); else if(nodes.has(n.id)) n._el.classList.add("neighbor"); else n._el.classList.add("dim"); });
+  edgeEls.forEach(({path,txt},i)=>{ if(edges.has(i)) path.classList.add("hot"); else { path.classList.add("dim"); txt.classList.add("dim"); } });
+  renderNodeDetail(nodeMap[id]); openPanel();
+}
+function selectContainer(c){
+  exitFlow(); clearState(); c._el.classList.add("lit"); renderContainerDetail(c.detail); openPanel();
+}
+function resetView(){ exitFlow(); clearState(); renderPlaceholder(); closePanel(); }
+
+/* ---------------- detail panel ---------------- */
+const PLACEHOLDER = detailInner.innerHTML;
+function relList(id){
+  return { calls: EDGES.filter(e=>e.from===id).map(e=>({id:e.to, cat:e.cat, dir:"→"})),
+           callers: EDGES.filter(e=>e.to===id).map(e=>({id:e.from, cat:e.cat, dir:"←"})) };
+}
+function relItemHTML(r){ const n=nodeMap[r.id]; return `<li><button data-goto="${r.id}"><span class="rel-arrow">${r.dir}</span>${n.name}<span class="rel-kind">${CAT_LABEL[r.cat]}</span></button></li>`; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function snippetHTML(parts){
+  if(!parts) return "";
+  let out=""; parts.forEach(([t,v])=>{
+    if(t==="nl") out+="\n"; else if(t==="k"||t==="fn") out+=`<span class="k">${esc(v)}</span>`;
+    else if(t==="s") out+=`<span class="s">${esc(v)}</span>`; else if(t==="c") out+=`<span class="c">${esc(v)}</span>`; else out+=esc(v);
+  });
+  return `<div class="sec">Source</div><pre class="snippet">${out}</pre>`;
+}
+function closeBtnHTML(){ return `<button class="detail-close" id="detailClose" aria-label="Close">×</button>`; }
+function renderPlaceholder(){ detailInner.innerHTML = PLACEHOLDER; }
+function renderNodeDetail(n){
+  const { calls, callers } = relList(n.id);
+  detailInner.innerHTML = closeBtnHTML() + `
+    <span class="badge ${n.hue}">${n.type}</span>
+    <h2>${n.name}</h2>
+    <div class="file">${esc(n.file)} · <b>tq:</b> ${esc(n.tq)}</div>
+    <p class="desc">${esc(n.desc)}</p>
+    ${n.members&&n.members.length?`<div class="sec">Members</div><ul class="members">${n.members.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`:""}
+    ${calls.length?`<div class="sec">Calls / uses</div><ul class="rellist">${calls.map(relItemHTML).join("")}</ul>`:""}
+    ${callers.length?`<div class="sec">Called / built by</div><ul class="rellist">${callers.map(relItemHTML).join("")}</ul>`:""}
+    ${snippetHTML(n.snippet)}`;
+  wireDetail();
+}
+function renderContainerDetail(d){
+  detailInner.innerHTML = closeBtnHTML() + `
+    <span class="badge ${d.badge}">${d.type}</span>
+    <h2>${d.name}</h2>
+    <div class="file">${esc(d.file)} · <b>${esc(d.tq)}</b></div>
+    <p class="desc">${esc(d.desc)}</p>
+    <div class="sec">${d.type==="Task queue"?"Runs on this queue":"Registers / hosts"}</div>
+    <ul class="members">${d.members.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`;
+  wireDetail();
+}
+function wireDetail(){
+  const c = document.getElementById("detailClose"); if(c) c.addEventListener("click", resetView);
+  detailInner.querySelectorAll("button[data-goto]").forEach(b=> b.addEventListener("click",()=> selectNode(b.dataset.goto)));
+}
+
+/* ---------------- data-flow player ---------------- */
+const STEPS = [
+  { phase:"Start", nodes:["starter","pa_wf"], e:[["starter","pa_wf",false]],
+    cap:"start_workflow.py submits the question to the orchestrator queue.",
+    payload:'"...weather at the next F1 race and visiting the destination?"' },
+  { phase:"Orchestrate", nodes:["pa_wf"], e:[],
+    cap:"PersonalAssistantWorkflow builds three tools and runs the agent (gpt-4o). It plans to consult all three specialists.",
+    payload:"plan: F1 → weather → travel" },
+  { phase:"F1 · call", nodes:["pa_wf","tool_f1"], e:[["pa_wf","tool_f1",false]],
+    cap:"First, the agent calls ask_f1_expert — it needs the race location.",
+    payload:'ask_f1_expert("next F1 race?")' },
+  { phase:"F1 · Nexus (Python)", nodes:["tool_f1","f1_service","f1_handler","f1_wf"],
+    e:[["tool_f1","f1_service",false],["f1_service","f1_handler",false],["f1_handler","f1_wf",false]],
+    cap:"A Python→Python Nexus operation (endpoint f1-expert-d6); the handler on worker_f1 starts F1ExpertAgentWorkflow.",
+    payload:"AskRequest(question=…)" },
+  { phase:"F1 · MCP", nodes:["f1_wf","f1_agent","f1_mcp","f1_mcp_server"],
+    e:[["f1_wf","f1_agent",false],["f1_agent","f1_mcp",false],["f1_mcp","f1_mcp_server",false]],
+    cap:"The F1Expert agent queries the F1 MCP server over stdio.",
+    payload:"race schedule" },
+  { phase:"F1 · return", nodes:["f1_mcp_server","f1_mcp","f1_agent","f1_wf","f1_handler","f1_service","tool_f1","pa_wf"],
+    e:[["f1_mcp","f1_mcp_server",true],["f1_agent","f1_mcp",true],["f1_wf","f1_agent",true],["f1_handler","f1_wf",true],["f1_service","f1_handler",true],["tool_f1","f1_service",true]],
+    cap:"The next race bubbles back up to the orchestrator.",
+    payload:'"Singapore GP, …"' },
+  { phase:"Weather · call", nodes:["pa_wf","tool_weather"], e:[["pa_wf","tool_weather",false]],
+    cap:"Now ask_weather_agent, passing the race location.",
+    payload:'ask_weather_agent("weather in Singapore?")' },
+  { phase:"Weather · child + APIs", nodes:["tool_weather","weather_wf","weather_agent","act_coord","act_weather","weather_api"],
+    e:[["tool_weather","weather_wf",false],["weather_wf","weather_agent",false],["weather_agent","act_coord",false],["act_coord","weather_api",false],["weather_agent","act_weather",false],["act_weather","weather_api",false]],
+    cap:"A child workflow starts on weather-agent-tq (same process); its activities hit the public geocoding + forecast APIs.",
+    payload:"get_coordinates → get_weather" },
+  { phase:"Weather · return", nodes:["weather_api","act_weather","weather_agent","weather_wf","tool_weather","pa_wf"],
+    e:[["act_weather","weather_api",true],["weather_agent","act_weather",true],["weather_wf","weather_agent",true],["tool_weather","weather_wf",true]],
+    cap:"The forecast bubbles back to the orchestrator.",
+    payload:'"~30°C, humid"' },
+  { phase:"Travel · call", nodes:["pa_wf","tool_travel"], e:[["pa_wf","tool_travel",false]],
+    cap:"Finally ask_travel_planner — about the destination.",
+    payload:'ask_travel_planner("visiting Singapore?")' },
+  { phase:"⟷ Cross-language", nodes:["tool_travel","java_service","java_handler","java_wf"],
+    e:[["tool_travel","java_service",false]],
+    cap:"The Nexus call crosses the language boundary: Python caller → Java handler. They share no code — only the endpoint name and JSON contract (question/answer).",
+    payload:"Python 🐍 → Java ☕  {question}" },
+  { phase:"Travel · start (Java)", nodes:["java_service","java_handler","java_wf"],
+    e:[["java_service","java_handler",false],["java_handler","java_wf",false]],
+    cap:"On the JVM worker, TravelPlannerServiceImpl's WorkflowRunOperation starts TravelPlannerAgentWorkflow.",
+    payload:"newWorkflowStub(...)::run" },
+  { phase:"Travel · per-step loop", nodes:["java_wf","chatclient","chat_activity","travel_tools","travel_api"],
+    e:[["java_wf","chatclient",false],["chatclient","chat_activity",false],["chatclient","travel_tools",false],["travel_tools","travel_api",false]],
+    cap:"TemporalChatClient runs the Spring AI loop: each LLM call is a ChatModelActivity, each tool call its own activity — per-step durability. Tools hit Wikipedia + REST Countries.",
+    payload:"ChatModelActivity + getWikipediaSummary/getCountryInfo" },
+  { phase:"Travel · return", nodes:["travel_api","travel_tools","chatclient","java_wf","java_handler","java_service","tool_travel","pa_wf"],
+    e:[["travel_tools","travel_api",true],["chatclient","travel_tools",true],["java_wf","chatclient",true],["java_handler","java_wf",true],["java_service","java_handler",true],["tool_travel","java_service",true]],
+    cap:"AskResponse(answer) crosses back Java → Python to the orchestrator.",
+    payload:'☕ → 🐍  "Monaco/Singapore: currency, language, …"' },
+  { phase:"Combine", nodes:["pa_wf"], e:[],
+    cap:"PersonalAssistantWorkflow combines all three specialists' answers into one reply.",
+    payload:"result.final_output" },
+  { phase:"Answer", nodes:["pa_wf","starter"], e:[["starter","pa_wf",true]],
+    cap:"The final answer returns to start_workflow.py, which prints it. Done.",
+    payload:'Result: "…race, weather, and destination…"' },
+];
+
+const flowbar = document.getElementById("flowbar");
+const elStep = document.getElementById("flowStep"), elPhase = document.getElementById("flowPhase");
+const elCap = document.getElementById("flowCap"), elPayload = document.getElementById("flowPayload");
+const elPlay = document.getElementById("flowPlay"), elPrev = document.getElementById("flowPrev"), elNext = document.getElementById("flowNext");
+const IDLE_CAP = elCap.innerHTML;
+let flowIdx = -1, playing = false, flowTimer = null;
+
+function showAllEdges(){ edgeEls.forEach(({path,txt})=>{ path.style.display=""; txt.style.display=""; }); }
+function clearFlowClasses(){ edgeEls.forEach(({path})=> path.classList.remove("flowing","rev")); NODES.forEach(n=> n._el.classList.remove("flow-on")); }
+function stopPlay(){ playing=false; if(flowTimer){ clearInterval(flowTimer); flowTimer=null; } updateFlowUI(); }
+function exitFlow(){
+  stopPlay(); flowIdx=-1; clearFlowClasses(); applyFilter();
+  flowbar.classList.add("idle"); elStep.textContent="step — / —"; elPhase.textContent=""; elCap.innerHTML=IDLE_CAP; elPayload.textContent="";
+  elPlay.textContent="▶ Play data flow"; elPrev.disabled=true; elNext.disabled=false;
+}
+function scrollToNodes(ids){
+  if(!ids || !ids.length) return;
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  ids.forEach(id=>{ const n=nodeMap[id]; if(!n) return; minX=Math.min(minX,n.x); minY=Math.min(minY,n.y); maxX=Math.max(maxX,n.x+n.w); maxY=Math.max(maxY,n.y+(n._el?n._el.offsetHeight:n.h)); });
+  if(minX===Infinity) return;
+  const cx=(minX+maxX)/2*currentScale, cy=(minY+maxY)/2*currentScale;
+  canvasScroll.scrollTo({ left: cx - canvasScroll.clientWidth/2, top: cy - canvasScroll.clientHeight/2, behavior:"smooth" });
+}
+function enterStep(i){
+  flowIdx=i; const step=STEPS[i];
+  clearState(); clearFlowClasses(); showAllEdges(); flowbar.classList.remove("idle");
+  const active=new Set(step.nodes||[]); step.e.forEach(([f,t])=>{ active.add(f); active.add(t); });
+  NODES.forEach(n=>{ if(active.has(n.id)) n._el.classList.add("flow-on"); else n._el.classList.add("dim"); });
+  const activeEdges=new Set();
+  step.e.forEach(([f,t,rev])=>{ const o=edgeIndex[f+">"+t]; if(o){ o.path.classList.add("flowing"); if(rev) o.path.classList.add("rev"); activeEdges.add(o); } });
+  edgeEls.forEach(o=>{ if(!activeEdges.has(o)){ o.path.classList.add("dim"); o.txt.classList.add("dim"); } });
+  elStep.textContent=`step ${i+1} / ${STEPS.length}`; elPhase.textContent=step.phase; elCap.textContent=step.cap; elPayload.textContent=step.payload||"";
+  elPrev.disabled=(i===0); elNext.disabled=(i===STEPS.length-1);
+  scrollToNodes(step.nodes); updateFlowUI();
+}
+function updateFlowUI(){
+  if(playing) elPlay.textContent="⏸ Pause";
+  else if(flowIdx>=STEPS.length-1 && flowIdx>=0) elPlay.textContent="↻ Replay";
+  else if(flowIdx<0) elPlay.textContent="▶ Play data flow";
+  else elPlay.textContent="▶ Resume";
+}
+function togglePlay(){
+  if(playing){ stopPlay(); return; }
+  if(flowIdx>=STEPS.length-1) flowIdx=-1;
+  playing=true; updateFlowUI(); enterStep(flowIdx+1);
+  flowTimer=setInterval(()=>{ if(flowIdx>=STEPS.length-1){ stopPlay(); return; } enterStep(flowIdx+1); }, 2300);
+}
+elPlay.addEventListener("click", togglePlay);
+elNext.addEventListener("click", ()=>{ stopPlay(); if(flowIdx<0) enterStep(0); else if(flowIdx<STEPS.length-1) enterStep(flowIdx+1); });
+elPrev.addEventListener("click", ()=>{ stopPlay(); if(flowIdx>0) enterStep(flowIdx-1); });
+
+/* ---------------- controls ---------------- */
+document.getElementById("legend").addEventListener("click",(e)=>{
+  const item=e.target.closest(".legItem"); if(!item) return; const cat=item.dataset.cat;
+  if(activeCats.has(cat)){ activeCats.delete(cat); item.classList.add("off"); item.setAttribute("aria-pressed","false"); }
+  else { activeCats.add(cat); item.classList.remove("off"); item.setAttribute("aria-pressed","true"); }
+  applyFilter();
+});
+document.getElementById("resetBtn").addEventListener("click", resetView);
+canvasScroll.addEventListener("click",(e)=>{ if(e.target===canvasScroll || e.target===canvasFit || e.target===canvas || e.target===svg) resetView(); });
+
+/* ---------------- boot ---------------- */
+function boot(){ fit(); layout(); applyFilter(); }
+window.addEventListener("resize", ()=>{ fit(); layout(); });
+if(document.readyState==="complete") boot(); else window.addEventListener("load", boot);
+requestAnimationFrame(()=> requestAnimationFrame(boot));
+</script>
+</body>
+</html>
