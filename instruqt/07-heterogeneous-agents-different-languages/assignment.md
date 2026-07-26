@@ -79,9 +79,6 @@ enhanced_loading: null
 
 # Demo 6b: Heterogeneous Agents - Different Languages
 
-> [!NOTE]
-> **Tabs:** [button label="Java Worker" background="#444CE7"](tab-0) [button label="Worker PA" background="#444CE7"](tab-1) [button label="Worker F1" background="#444CE7"](tab-2) [button label="Starter" background="#444CE7"](tab-3) [button label="Temporal UI" background="#444CE7"](tab-4) [button label="Network Control Panel" background="#444CE7"](tab-5) [button label="Editor" background="#444CE7"](tab-6) [button label="Architecture" background="#444CE7"](tab-7)
-
 ## See the Big Picture First
 
 Before you touch code, open the [button label="Architecture" background="#444CE7"](tab-7) tab to see how this demo fits together: three specialists behind one Python orchestrator, grouped by their four task queues and three worker processes (two Python, one Java).
@@ -126,8 +123,6 @@ INFO  io.temporal.ai.workshop.travel.WorkerApplication : Starting WorkerApplicat
 INFO  i.t.s.WorkerFactory                              : Started Worker Factory
 INFO  io.temporal.ai.workshop.travel.WorkerApplication : Started WorkerApplication in 4.2 seconds
 ```
-
-(No Spring banner - it's turned off in `application.yaml`.) The worker is now up and polling the `travel-planner-agent-tq` task queue.
 
 > **If it fails:** a port-already-in-use error means a previous run's process is still bound - stop it with **Ctrl+C** in this tab and retry. Dependencies were pre-fetched in the image, so a slow first build usually means the image cache was skipped; retry once.
 

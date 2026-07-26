@@ -63,9 +63,6 @@ enhanced_loading: null
 
 # Demo 4: Human-in-the-Loop
 
-> [!NOTE]
-> **Tabs:** [button label="Worker" background="#444CE7"](tab-0) [button label="Starter" background="#444CE7"](tab-1) [button label="Temporal UI" background="#444CE7"](tab-2) [button label="Network Control Panel" background="#444CE7"](tab-3) [button label="Editor" background="#444CE7"](tab-4)
-
 ## What Changed
 
 Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in `demo4-hitl`:

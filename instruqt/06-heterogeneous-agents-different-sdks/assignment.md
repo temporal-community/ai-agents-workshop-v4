@@ -67,9 +67,6 @@ enhanced_loading: null
 
 # Demo 6a: Heterogeneous Agents - Different SDKs
 
-> [!NOTE]
-> **Tabs:** [button label="Worker PA" background="#444CE7"](tab-0) [button label="Worker F1" background="#444CE7"](tab-1) [button label="Starter" background="#444CE7"](tab-2) [button label="Temporal UI" background="#444CE7"](tab-3) [button label="Network Control Panel" background="#444CE7"](tab-4) [button label="Editor" background="#444CE7"](tab-5)
-
 ## What Changed
 
 Click the [button label="Editor" background="#444CE7"](tab-5) tab. Key files in `demo6a-different-sdks`:
