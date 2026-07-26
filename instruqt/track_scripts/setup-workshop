@@ -119,6 +119,13 @@ nohup code-server \
     /root/workshop \
     > /tmp/code-server.log 2>&1 &
 
+# Static server for the Demo 5 architecture diagram (Architecture tab, port 8090).
+# Served from its own web root so "/" serves the diagram directly.
+mkdir -p /root/arch
+cp /root/workshop/demo5-multi-agent/architecture.html /root/arch/index.html 2>/dev/null || true
+nohup python3 -m http.server 8090 --directory /root/arch \
+    > /tmp/arch-server.log 2>&1 &
+
 # 5. Wait for Temporal health.
 for i in $(seq 1 60); do
     if temporal operator cluster health --address 127.0.0.1:7233 >/dev/null 2>&1; then
