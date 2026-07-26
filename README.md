@@ -2,9 +2,21 @@
 
 A series of progressive demos that build an AI agent in Python using the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) and [Temporal](https://temporal.io/) for durable execution. Each demo builds on the previous one, adding a single new capability so you can see what each Temporal primitive buys you.
 
-Every demo is self-contained: its own `pyproject.toml`, its own task queue, its own worker. You can work through them in order, or jump into one that matches what you want to learn.
+## Author 
 
-Each demo has two subfolders: `exercise/` (a few TODOs stubbed out for you to fill in — the one new capability that demo adds) and `solution/` (the finished, working version). Write your own code in `exercise/`; if you get stuck, diff it against `solution/` to see exactly what's different. This repo also doubles as the source for a hands-on Instruqt lab — see [`instruqt/`](instruqt/) for the track definition.
+## 🚀 Nikolay Advolodkin
+
+🤖 **AI Agents & Distributed Systems** specializing in durable execution, Temporal workflows, and AI-powered applications
+
+🎓 **Educator** | Trained **150,000+ engineers** across **190 countries**
+
+🎤 **International Speaker** | Presented at Agentic AI Summit, SauceCon, Productivity Conf, DeveloperWeek, Selenium Conference & more.
+
+📚 **Content Creator** | [LinkedIn](https://www.linkedin.com/in/nikolayadvolodkin/) | [YouTube](https://www.youtube.com/ultimateqa?sub_confirmation=1) | [Blog](https://ultimateqa.com/blog) 
+
+## Inspiration
+
+This workshop was inspired by [Cornelia Davis'](https://www.linkedin.com/in/corneliadavis/) original [AI Agents Workshop](https://github.com/temporal-community/ai-agents-workshop-python).
 
 ## Demos
 
