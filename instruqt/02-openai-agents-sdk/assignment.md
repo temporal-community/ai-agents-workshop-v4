@@ -66,6 +66,9 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 - `tool_activities.py` - tools are `@activity.defn` functions. `activity_as_tool(...)` wraps each one for the SDK.
 - `worker.py` - the `OpenAIAgentsPlugin` is registered on both client and worker. It installs the model-execution activity and interceptors automatically.
 
+> [!NOTE]
+> **Hands-on:** Do your coding in the `exercise/` directory. Want to see the working code? Peek at `solution/`.
+
 ## Write the Agent
 
 In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/tools_workflow.py` and follow the `TODO` in the `run` method.

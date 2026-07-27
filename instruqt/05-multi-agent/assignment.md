@@ -90,6 +90,9 @@ Click the [button label="Editor" background="#444CE7"](tab-5) tab. Key files in 
 - `worker_pa.py` - orchestrator + weather agent (two task queues, one process).
 - `worker_f1.py` - F1 expert + Nexus handler (separate process, separate plugin config).
 
+> [!NOTE]
+> **Hands-on:** Do your coding in the `exercise/` directory. Want to see the working code? Peek at `solution/`.
+
 ## Wire Up the Orchestrator
 
 In the [button label="Editor" background="#444CE7"](tab-5) tab, open `exercise/personal_assistant.py` and follow the `TODO`s to uncomment the two specialist tools and wire them into the orchestrator.

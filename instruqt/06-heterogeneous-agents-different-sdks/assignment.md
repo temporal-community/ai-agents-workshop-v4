@@ -75,6 +75,9 @@ Click the [button label="Editor" background="#444CE7"](tab-5) tab. Key files in 
 - `travel_planner_activity.py` - a single `@activity.defn` wrapper. It lazy-imports `travel_planner` and calls `run()`. About 10 lines.
 - `personal_assistant.py` - now wires three tools: weather (child workflow), F1 (Nexus), and travel planner (direct activity).
 
+> [!NOTE]
+> **Hands-on:** Do your coding in the `exercise/` directory. Want to see the working code? Peek at `solution/`.
+
 ## Write the Wrapper
 
 In the [button label="Editor" background="#444CE7"](tab-5) tab, open `exercise/travel_planner_activity.py` and `exercise/personal_assistant.py`. Follow the `TODO` comments in each file to uncomment the code.

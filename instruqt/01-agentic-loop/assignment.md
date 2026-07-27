@@ -71,6 +71,9 @@ An agentic loop is the engine behind every AI agent. Most frameworks hide it fro
 - Run the tool, feed the result back into the conversation
 - Repeat until the model returns a plain text answer
 
+> [!NOTE]
+> **Hands-on:** Do your coding in the `exercise/` directory. Want to see the working code? Peek at `solution/`.
+
 ## The Code
 
 Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in `demo1-agentic-loop`:
