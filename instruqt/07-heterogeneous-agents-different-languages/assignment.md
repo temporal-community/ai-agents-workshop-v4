@@ -97,6 +97,9 @@ The rose path is the one that matters here: the travel planner is reached over a
 | Invocation from orchestrator | direct activity | Nexus operation |
 | Durability of travel agent | coarse (whole loop = one activity) | per-step (each LLM/tool call = one activity) |
 
+> [!NOTE]
+> **Hands-on:** Do your coding in the `exercise/` directory. Want to see the working code? Peek at `solution/`.
+
 ## Wire Up the Nexus Call
 
 In the [button label="Editor" background="#444CE7"](tab-6) tab, open `exercise/personal_assistant.py` and follow the `TODO`.

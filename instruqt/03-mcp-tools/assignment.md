@@ -67,6 +67,9 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 - `worker.py` - a `StatelessMCPServerProvider` is registered with the plugin. It launches the F1 MCP server process and wraps its operations as Temporal activities automatically.
 - `tools_workflow.py` - `stateless_mcp_server("f1-data")` gives the agent a handle to the MCP server. Eight F1 tools appear alongside the four weather tools.
 
+> [!NOTE]
+> **Hands-on:** Do your coding in the `exercise/` directory. Want to see the working code? Peek at `solution/`.
+
 ## Wire Up the MCP Server
 
 Open `exercise/worker.py` and `exercise/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab and follow the `TODO` in each.
