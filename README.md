@@ -216,7 +216,35 @@ There is no GitHub Actions pipeline; publishing is manual, and what you run depe
     -t docker.io/nadvolod/ai-agents-workshop-v4-sandbox:latest --push .
   ```
 
+> [!IMPORTANT]
+> **The Docker Hub tag above is not what the deployed track runs.** Local
+> `instruqt/config.yml` pins `nadvolod/ai-agents-workshop-v4-sandbox:latest`,
+> but the *deployed* track's `config.yml` pins an ECR image built by
+> Temporal's internal `tmprl-dem-cld` pipeline:
+>
+> ```
+> public.ecr.aws/s1u1b8l5/tmprl-dem-cld/ai-agents-workshop-v4/workshop:git-<sha>-<hash>
+> ```
+>
+> That `<sha>` is not an object in this repo, so the pipeline builds from a
+> mirror or a different source. Consequence: **building and pushing the Docker
+> Hub tag does not get sandbox-baked changes into the live track** — you have
+> to trigger the internal pipeline. Confirm with
+> `instruqt track pull` and diff `config.yml` against `config.yml.remote`
+> before assuming a `docker buildx --push` had any effect.
+
 `instruqt track test` runs the track's *local* files against the deployed image, so it's the way to verify a change before pushing.
+
+**`instruqt track push` can report `[ERROR]` and still succeed.** If the
+deployed track's checksum has drifted from the repo, push prints
+`There are remote changes for this track` — but the content is applied
+anyway. Verify by pulling and diffing the `*.remote` files rather than
+trusting the exit message, then commit any server-assigned tab ids.
+
+**Tab ids drift.** The repo's pinned `id:` values for service tabs have gone
+stale more than once (the track appears to get re-created periodically,
+regenerating them). After any push, run `instruqt track pull`, re-pin the
+ids from the `*.remote` files, and delete the leftovers (`just clean-remote`).
 
 ### Known issues
 
