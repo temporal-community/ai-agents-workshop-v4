@@ -6,7 +6,10 @@ from __future__ import annotations
 from datetime import timedelta
 
 from temporalio import workflow
-from temporalio.contrib.openai_agents.workflow import nexus_operation_as_tool
+from temporalio.contrib.openai_agents.workflow import (
+    activity_as_tool,  # noqa: F401 - only used by one of the weather_tool variants below
+    nexus_operation_as_tool,
+)
 
 with workflow.unsafe.imports_passed_through():
     import annotated_types  # noqa: F401
@@ -46,9 +49,37 @@ class PersonalAssistantWorkflow:
     async def run(self, question: str) -> str:
         today = workflow.now().strftime("%Y-%m-%d")
 
-        # TODO: Uncomment the weather_tool block below. Wraps a child workflow as an
-        # agent-SDK tool call: the specialist runs as its own independently durable
-        # workflow execution, not an inline function.
+        # TODO: Build weather_tool so the weather specialist runs as its own
+        # independently durable workflow execution, not an inline function.
+        # Exactly one of the three blocks marked (A) / (B) / (C) is correct.
+        # Read all three and uncomment only that one.
+        #
+        # They differ in which wrapper is used and which task queue the
+        # specialist is sent to. Open worker_pa.py to see which queue each
+        # workflow is actually registered on. Pick wrong and the workflow
+        # will not complete - the Worker terminal names the mistake.
+        #
+        # --- (A) ---
+        # weather_tool = child_workflow_as_tool(
+        #     WeatherAgentWorkflow.run,
+        #     name="ask_weather_agent",
+        #     description=(
+        #         "Delegate a weather-related question to the weather forecasting "
+        #         "specialist. Pass the full question as plain English."
+        #     ),
+        #     task_queue="orchestrator-tq",
+        #     execution_timeout=timedelta(minutes=5),
+        # )
+
+        # --- (B) ---
+        # weather_tool = activity_as_tool(
+        #     WeatherAgentWorkflow.run,
+        #     start_to_close_timeout=timedelta(minutes=5),
+        # )
+
+        # --- (C) ---
+        # # Wraps a child workflow as an agent-SDK tool call: the specialist runs
+        # # as its own independently durable workflow execution.
         # weather_tool = child_workflow_as_tool(
         #     WeatherAgentWorkflow.run,
         #     name="ask_weather_agent",

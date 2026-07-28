@@ -85,13 +85,31 @@ class PersonalAssistantWorkflow:
             "standings, and circuit telemetry. Pass the full question as plain English."
         )
 
-        # TODO: Uncomment the block below (and the `travel_tool` entry in the
-        # Agent's tools list) to wire in the travel planner as a third tool.
-        # It's an external Strands agent wrapped directly as an activity, so
-        # the whole Strands loop becomes one opaque, retryable Temporal
-        # activity with no per-step visibility (see the README's "Two
-        # integration depths" section).
+        # TODO: Wire in the travel planner as a third tool (and uncomment the
+        # `travel_tool` entry in the Agent's tools list below). It's an external
+        # Strands agent wrapped directly as an activity, so the whole Strands
+        # loop - every LLM call and tool step inside it - becomes one opaque,
+        # retryable Temporal activity with no per-step visibility (see the
+        # README's "Two integration depths" section).
         #
+        # Exactly one of the three blocks marked (A) / (B) / (C) is correct.
+        # They differ only in the timeout. Ask yourself what that timeout has
+        # to cover here, then uncomment only that one. Pick wrong and the
+        # workflow will not complete - watch the Temporal UI and the Worker
+        # terminal.
+        #
+        # --- (A) ---
+        # travel_tool = activity_as_tool(
+        #     ask_travel_planner,
+        #     start_to_close_timeout=timedelta(seconds=10),
+        # )
+
+        # --- (B) ---
+        # travel_tool = activity_as_tool(
+        #     ask_travel_planner,
+        # )
+
+        # --- (C) ---
         # travel_tool = activity_as_tool(
         #     ask_travel_planner,
         #     # Start-to-close timeout: max time Temporal allows one activity attempt to run.

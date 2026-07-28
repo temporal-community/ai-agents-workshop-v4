@@ -83,7 +83,14 @@ Click the [button label="Editor" background="#444CE7"](tab-5) tab. Key files in 
 
 ## Write the Wrapper
 
-In the [button label="Editor" background="#444CE7"](tab-5) tab, open `exercise/travel_planner_activity.py` and `exercise/personal_assistant.py`. Follow the `TODO` comments in each file to uncomment the code.
+In the [button label="Editor" background="#444CE7"](tab-5) tab, open `exercise/travel_planner_activity.py` and `exercise/personal_assistant.py`. Follow the `TODO` comments in each file.
+
+The orchestrator's `TODO` offers three timeouts for the travel tool. Only one is right. The whole Strands loop runs inside that one activity, so ask yourself what the timeout has to cover.
+
+> **Picked wrong?** The starter will hang instead of failing. Check the [button label="Worker PA" background="#444CE7"](tab-0) terminal and the [button label="Temporal UI" background="#444CE7"](tab-3):
+>
+> - The `ask_travel_planner` activity times out and retries, over and over, never finishing - the timeout is shorter than one pass of the Strands agent. Wrapping an external agent as a single activity means the timeout has to cover its entire loop, not one LLM call.
+> - `Activity must have start_to_close_timeout or schedule_to_close_timeout` - Temporal will not schedule an activity with no bound on an attempt.
 
 Stuck? Compare against `solution/travel_planner_activity.py` and `solution/personal_assistant.py`.
 

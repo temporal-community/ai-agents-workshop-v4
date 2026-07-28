@@ -76,6 +76,13 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/tools_workflow.py` and follow the `TODO` in the `run` method.
 
+It offers three ways to build and run the Agent. Only one is right. Decide before you run.
+
+> **Picked wrong?** The starter will hang instead of failing, because Temporal retries a failing workflow task forever. Check the [button label="Worker" background="#444CE7"](tab-0) terminal:
+>
+> - `Provided tool is not a tool type. If using an activity, make sure to wrap it with openai_agents.workflow.activity_as_tool.` - you handed the Agent the raw activity functions. `activity_as_tool` is what turns each one into a durable, retryable Temporal activity.
+> - `Temporal workflows do not support synchronous model calls.` - `Runner.run_sync` blocks the thread. Workflow code has to yield so Temporal can suspend and replay it.
+
 Stuck? Compare against `solution/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab.
 
 ## Start the Worker

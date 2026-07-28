@@ -102,7 +102,14 @@ The rose path is the one that matters here: the travel planner is reached over a
 
 ## Wire Up the Nexus Call
 
-In the [button label="Editor" background="#444CE7"](tab-6) tab, open `exercise/personal_assistant.py` and follow the `TODO`.
+In the [button label="Editor" background="#444CE7"](tab-6) tab, open `exercise/personal_assistant.py` and follow the `TODO`s.
+
+The travel tool's `TODO` offers three ways to reach the Java agent. Only one can cross a language boundary. Decide before you run.
+
+> **Picked wrong?** The starter will hang instead of failing, because Temporal retries a failing workflow task forever. Check the [button label="Worker PA" background="#444CE7"](tab-1) terminal:
+>
+> - `Bare function without tool and activity decorators is not supported` - you reached for `activity_as_tool`. An activity runs on a Python worker in this process. The travel planner is a JVM on the other side of a Nexus endpoint, and the two share no code at all.
+> - `type object 'TravelPlannerService' has no attribute 'input_type'` - you passed the service instead of the operation. The service is the contract; the operation is the single call inside it that has an input and output type.
 
 Stuck? Compare against `solution/personal_assistant.py`.
 

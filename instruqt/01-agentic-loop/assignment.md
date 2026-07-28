@@ -88,7 +88,14 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Write the Loop
 
-In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/workflows/agent.py` and follow the `TODO`.
+In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/workflows/agent.py` and follow the `TODO`s.
+
+The second `TODO` asks you to choose between three ways of consulting the LLM. Only one is right. Decide before you run.
+
+> **Picked wrong?** The starter will hang instead of failing, because Temporal retries a failing workflow task forever. Look at the [button label="Worker" background="#444CE7"](tab-0) terminal, or open the workflow in the [button label="Temporal UI" background="#444CE7"](tab-2) and read the pending workflow task:
+>
+> - `Cannot access ... from inside a workflow` - you called the activity function directly, so its HTTP client tried to run inside the workflow sandbox. Workflow code is replayed; I/O has to live in an activity.
+> - `Activity must have start_to_close_timeout or schedule_to_close_timeout` - you scheduled the activity but gave Temporal no bound on how long one attempt may run.
 
 Stuck? Compare your work against `solution/workflows/agent.py` in the same tab, fully implemented.
 

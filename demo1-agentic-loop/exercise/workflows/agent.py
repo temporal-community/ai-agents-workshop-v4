@@ -18,14 +18,43 @@ class AgentWorkflow:
 
         input_list = [{"type": "message", "role": "user", "content": input}]
 
-        # TODO: Uncomment the agentic loop below.
-        # Each pass calls the LLM as a durable activity, then either dispatches
-        # the tool the model asked for (feeding the result back into input_list)
-        # or returns the model's final text answer, ending the loop.
+        # TODO 1: Uncomment the agentic loop below.
+        # Each pass calls the LLM, then either dispatches the tool the model
+        # asked for (feeding the result back into input_list) or returns the
+        # model's final text answer, ending the loop.
+        #
+        # TODO 2: Inside the loop, exactly one of the three ways to consult the
+        # LLM marked (A) / (B) / (C) is correct. Read all three and uncomment
+        # only that one. Pick wrong and the workflow will not complete - the
+        # Worker terminal and the Temporal UI will tell you which mistake it was.
+        #
         # while True:
         #     workflow.logger.info("=" * 80)
         #
         #     # consult the LLM
+        #
+        #     # --- (A) call the activity function straight from the workflow ---
+        #     llm_result = await openai_responses.create(
+        #         openai_responses.OpenAIResponsesRequest(
+        #             model="gpt-3.5-turbo",
+        #             instructions=tool_helpers.HELPFUL_AGENT_SYSTEM_INSTRUCTIONS,
+        #             input=input_list,
+        #             tools=get_tools(),
+        #         )
+        #     )
+        #
+        #     # --- (B) schedule it as an activity, no timeout ---
+        #     llm_result = await workflow.execute_activity(
+        #         openai_responses.create,
+        #         openai_responses.OpenAIResponsesRequest(
+        #             model="gpt-3.5-turbo",
+        #             instructions=tool_helpers.HELPFUL_AGENT_SYSTEM_INSTRUCTIONS,
+        #             input=input_list,
+        #             tools=get_tools(),
+        #         ),
+        #     )
+        #
+        #     # --- (C) schedule it as an activity with a start-to-close timeout ---
         #     # Activity: a durable, retryable unit of non-deterministic work (I/O, API calls).
         #     llm_result = await workflow.execute_activity(
         #         openai_responses.create,

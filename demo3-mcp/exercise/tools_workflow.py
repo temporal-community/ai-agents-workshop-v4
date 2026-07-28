@@ -52,11 +52,25 @@ class AgentWorkflow:
             name="Agent",
             instructions=SYSTEM_PROMPT.format(date=today),
             model="gpt-4o",
-            # TODO: Uncomment mcp_servers below to hand the agent the F1 MCP
-            # server registered on the worker. Each MCP tool call the agent makes
-            # then becomes its own durable, retryable Temporal activity.
+            # TODO: Hand the agent the F1 MCP server registered on the worker,
+            # so each MCP tool call becomes its own durable, retryable Temporal
+            # activity. Exactly one of the three lines marked (A) / (B) / (C)
+            # is correct - two are here, the third is inside the tools list
+            # below. Uncomment only the correct one.
+            #
+            # The name is how the workflow looks up a provider the worker
+            # registered; check what the worker calls it. Pick wrong and the
+            # workflow will not complete - the Worker terminal names the mistake.
+            #
+            # --- (A) ---
             # mcp_servers=[stateless_mcp_server(name="f1-data", cache_tools_list=True)],
+            #
+            # --- (B) ---
+            # mcp_servers=[stateless_mcp_server(name="f1", cache_tools_list=True)],
             tools=[
+                # --- (C) ---
+                # stateless_mcp_server(name="f1-data", cache_tools_list=True),
+
                 # Wraps a Temporal activity as an agent-SDK tool call, so every tool invocation becomes a durable, retryable Temporal activity.
                 activity_as_tool(
                     # Start-to-close timeout: max time Temporal allows one activity attempt to run.
