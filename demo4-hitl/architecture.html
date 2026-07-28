@@ -81,10 +81,20 @@
   .btn:focus-visible, .legItem:focus-visible, .node:focus-visible, .worker:focus-visible, .lane:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .stage { display: grid; grid-template-columns: minmax(0,1fr) 344px; gap: 20px; align-items: start; }
-  @media (max-width: 1080px) { .stage { grid-template-columns: 1fr; } }
+  /* Below this width the side-by-side split starves the canvas, so the detail
+     panel drops underneath and the diagram gets the full pane width. */
+  @media (max-width: 1560px) {
+    .stage { grid-template-columns: minmax(0,1fr); }
+    aside.detail { position: static; }
+  }
 
   .canvasScroll { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: auto; position: relative; }
-  .canvas { position: relative; width: 1200px; height: 1020px; margin: 0 auto; }
+  .canvasViewport { position: relative; margin: 0 auto; }
+  .canvas { position: relative; width: 1200px; height: 1020px; transform-origin: top left; }
+
+  .zoomgrp { display: inline-flex; align-items: center; gap: 6px; }
+  .zoomlabel { font-family: var(--mono); font-size: 11.5px; color: var(--muted); min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
+  .btn.zoombtn { min-width: 30px; padding: 5px 9px; font-size: 14px; line-height: 1; }
   svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
   svg.edges path { fill: none; transition: opacity .18s, stroke-width .18s; }
   svg.edges .elabel { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; transition: opacity .18s; }
@@ -204,6 +214,12 @@
       <button class="legItem dashed" data-cat="external" aria-pressed="true"><span class="swatch"></span>External I/O</button>
     </div>
     <span class="spacer"></span>
+    <span class="zoomgrp" role="group" aria-label="Zoom">
+      <button class="btn zoombtn" id="zoomOut" type="button" aria-label="Zoom out">−</button>
+      <span class="zoomlabel" id="zoomLabel">100%</span>
+      <button class="btn zoombtn" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+      <button class="btn" id="zoomFit" type="button">Fit</button>
+    </span>
     <button class="btn" id="resetBtn" type="button">Reset view</button>
   </div>
 
@@ -221,9 +237,11 @@
 
   <div class="stage">
     <div class="canvasScroll">
-      <div class="canvas" id="canvas">
-        <svg class="edges" id="edges" viewBox="0 0 1200 1020" preserveAspectRatio="none" aria-hidden="true"></svg>
-        <!-- worker, lane, nodes injected here -->
+      <div class="canvasViewport" id="viewport">
+        <div class="canvas" id="canvas">
+          <svg class="edges" id="edges" viewBox="0 0 1200 1020" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <!-- worker, lane, nodes injected here -->
+        </div>
       </div>
     </div>
 
@@ -569,6 +587,56 @@ function renderContainerDetail(d){
     <ul class="members">${d.members.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`;
 }
 
+/* ---------------- zoom / fit-to-width ----------------
+   The canvas is a fixed 1200x1020 coordinate space so the absolute node
+   positions and the SVG edge math stay simple. Instead of reflowing it for
+   narrow panes, scale the whole thing down to fit the available width —
+   which is what kills the horizontal scrollbar in Instruqt's split view. */
+const CANVAS_W = 1200, CANVAS_H = 1020;
+const viewport = document.getElementById("viewport");
+const scrollEl = document.querySelector(".canvasScroll");
+const elZoomLabel = document.getElementById("zoomLabel");
+const MIN_ZOOM = 0.3, MAX_ZOOM = 2;
+let userZoom = null;   // null = follow fit-to-width
+let curScale = 1;      // the scale actually applied
+
+function fitScale(){
+  // clientWidth already excludes the scrollbar, so this converges in one pass.
+  const avail = scrollEl.clientWidth;
+  if(!avail) return 1;
+  return Math.min(1, Math.max(MIN_ZOOM, avail / CANVAS_W));
+}
+function applyZoom(){
+  const s = userZoom === null ? fitScale() : userZoom;
+  curScale = s;
+  canvas.style.transform = "scale("+s+")";
+  // Floor the viewport box so rounding never manufactures a 1px scrollbar.
+  viewport.style.width = Math.floor(CANVAS_W*s)+"px";
+  viewport.style.height = Math.ceil(CANVAS_H*s)+"px";
+  elZoomLabel.textContent = Math.round(s*100)+"%";
+  document.getElementById("zoomFit").disabled = (userZoom === null);
+}
+function nudgeZoom(delta){
+  const base = userZoom === null ? fitScale() : userZoom;
+  userZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round((base+delta)*100)/100));
+  applyZoom();
+}
+document.getElementById("zoomIn").addEventListener("click", ()=> nudgeZoom(+0.15));
+document.getElementById("zoomOut").addEventListener("click", ()=> nudgeZoom(-0.15));
+document.getElementById("zoomFit").addEventListener("click", ()=>{ userZoom = null; applyZoom(); });
+
+// Re-fit when the pane resizes, but only while following fit — and only when
+// the target scale actually moved, so writing the viewport box can't feed back
+// into an observer loop.
+let lastFit = null;
+if(typeof ResizeObserver !== "undefined"){
+  new ResizeObserver(()=>{
+    if(userZoom !== null) return;
+    const f = fitScale();
+    if(f !== lastFit){ lastFit = f; applyZoom(); }
+  }).observe(scrollEl);
+}
+
 /* ---------------- controls ---------------- */
 document.getElementById("legend").addEventListener("click",(e)=>{
   const item=e.target.closest(".legItem"); if(!item) return;
@@ -669,7 +737,9 @@ function scrollToNodes(ids){
     minX=Math.min(minX,el.offsetLeft); minY=Math.min(minY,el.offsetTop);
     maxX=Math.max(maxX,el.offsetLeft+el.offsetWidth); maxY=Math.max(maxY,el.offsetTop+el.offsetHeight); });
   if(minX===Infinity) return;
-  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+  // offsetLeft/offsetTop are unscaled canvas coordinates; the scroll container
+  // works in scaled pixels, so convert before centering.
+  const cx=((minX+maxX)/2)*curScale, cy=((minY+maxY)/2)*curScale;
   cs.scrollTo({ left: cx - cs.clientWidth/2, top: cy - cs.clientHeight/2, behavior:"smooth" });
 }
 
@@ -723,8 +793,8 @@ elNext.addEventListener("click", ()=>{ stopPlay(); if(flowIdx<0) enterStep(0); e
 elPrev.addEventListener("click", ()=>{ stopPlay(); flowPrev(); });
 
 /* ---------------- boot ---------------- */
-function boot(){ layout(); applyFilter(); }
-window.addEventListener("resize", layout);
+function boot(){ layout(); applyFilter(); applyZoom(); lastFit = fitScale(); }
+window.addEventListener("resize", ()=>{ layout(); if(userZoom===null) applyZoom(); });
 if(document.readyState==="complete") boot(); else window.addEventListener("load", boot);
 requestAnimationFrame(()=> requestAnimationFrame(layout));
 </script>

@@ -61,7 +61,7 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/demo5-multi-agent
   port: 8080
-- id: rqplaghcpsvf
+- id: gscey9hjrzls
   title: Architecture
   type: service
   hostname: workshop

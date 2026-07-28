@@ -56,7 +56,8 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/demo4-hitl
   port: 8080
-- title: Architecture
+- id: finxqyx0ljcx
+  title: Architecture
   type: service
   hostname: workshop
   path: /
