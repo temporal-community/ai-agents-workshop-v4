@@ -119,6 +119,13 @@ nohup code-server \
     /root/workshop \
     > /tmp/code-server.log 2>&1 &
 
+# Static server for the Demo 4 architecture diagram (Architecture tab, port 8092).
+# Served from its own web root so "/" serves the diagram directly.
+mkdir -p /root/arch-4
+cp /root/workshop/demo4-hitl/architecture.html /root/arch-4/index.html 2>/dev/null || true
+nohup python3 -m http.server 8092 --directory /root/arch-4 \
+    > /tmp/arch-server-4.log 2>&1 &
+
 # Static server for the Demo 5 architecture diagram (Architecture tab, port 8090).
 # Served from its own web root so "/" serves the diagram directly.
 mkdir -p /root/arch

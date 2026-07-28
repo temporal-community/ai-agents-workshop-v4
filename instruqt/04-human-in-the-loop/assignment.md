@@ -56,12 +56,23 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/demo4-hitl
   port: 8080
+- title: Architecture
+  type: service
+  hostname: workshop
+  path: /
+  port: 8092
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null
 ---
 
 # Demo 4: Human-in-the-Loop
+
+## See the Big Picture First
+
+Before you touch code, open the [button label="Architecture" background="#444CE7"](tab-5) tab to inspect how this demo fits together: every file, class, and method on the single task queue, inside the single worker process.
+
+Click any box to trace what it calls and what calls it. Pay attention to the amber path - `ask_user`, `wait_condition`, the signal, and the two queries. Then press **Play data flow** to watch the request `"Should I bring rain gear to the F1 race?"` stop mid-run to ask you a question and resume from the signal.
 
 ## What Changed
 

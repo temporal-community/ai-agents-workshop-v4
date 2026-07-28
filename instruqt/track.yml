@@ -32,7 +32,7 @@ lab_config:
   extend_ttl: 900
   sidebar_enabled: true
   feedback_recap_enabled: true
-  feedback_tab_enabled: false
+  feedback_tab_enabled: true
   loadingMessages:
   - Ziggy is rehydrating after a 30-year nap...
   - Ziggy is curling into a tun to ride out the cold start...

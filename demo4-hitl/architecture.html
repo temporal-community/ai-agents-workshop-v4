@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 4 · Human-in-the-Loop Architecture</title>
+<style>
+  :root {
+    --bg: #eef1f5;
+    --bg-grid: #e2e7ee;
+    --panel: #ffffff;
+    --panel-2: #f7f9fc;
+    --ink: #18202e;
+    --muted: #5b6676;
+    --faint: #8b95a4;
+    --line: #d3dae3;
+    --line-strong: #b9c2ce;
+    --accent: #5457d6;   /* workflow / agent tool calls */
+    --hitl: #c9791b;     /* human-in-the-loop: signal, query, wait_condition */
+    --mcp: #0f9d94;      /* MCP tool path */
+    --on-accent: #ffffff;
+    --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
+    --radius: 13px;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
+      --ink: #e6ebf2; --muted: #93a0b1; --faint: #64707f; --line: #29323f; --line-strong: #38434f;
+      --accent: #8b8ff5; --hitl: #f0a848; --mcp: #3ad6ce; --on-accent: #141922;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #eef1f5; --bg-grid: #e2e7ee; --panel: #ffffff; --panel-2: #f7f9fc;
+    --ink: #18202e; --muted: #5b6676; --faint: #8b95a4; --line: #d3dae3; --line-strong: #b9c2ce;
+    --accent: #5457d6; --hitl: #c9791b; --mcp: #0f9d94; --on-accent: #ffffff;
+    --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
+    --ink: #e6ebf2; --muted: #93a0b1; --faint: #64707f; --line: #29323f; --line-strong: #38434f;
+    --accent: #8b8ff5; --hitl: #f0a848; --mcp: #3ad6ce;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 1px 1px, var(--bg-grid) 1px, transparent 0) 0 0 / 26px 26px,
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1560px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  header.masthead { margin-bottom: 22px; }
+  .eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 8px; }
+  h1 { font-size: clamp(26px, 4vw, 40px); line-height: 1.08; margin: 0; letter-spacing: -.02em; text-wrap: balance; font-weight: 700; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 20px 0 16px; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .controls .clabel { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+  .legItem { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: var(--ink); padding: 5px 11px 5px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); user-select: none; transition: opacity .15s, border-color .15s; }
+  .legItem:hover { border-color: var(--line-strong); }
+  .legItem.off { opacity: .38; }
+  .legItem .swatch { width: 22px; height: 0; border-top-width: 3px; border-top-style: solid; border-radius: 3px; }
+  .legItem.dashed .swatch { border-top-style: dashed; }
+  .legItem[data-cat="hitl"]  .swatch { border-color: var(--hitl); }
+  .legItem[data-cat="mcp"]   .swatch { border-color: var(--mcp); }
+  .legItem[data-cat="agent"] .swatch { border-color: var(--accent); }
+  .legItem[data-cat="setup"] .swatch { border-color: var(--faint); }
+  .legItem[data-cat="external"] .swatch { border-color: var(--faint); }
+  .spacer { flex: 1 1 auto; }
+  .btn { font-family: var(--sans); font-size: 12.5px; font-weight: 500; cursor: pointer; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); padding: 6px 13px; border-radius: 8px; transition: border-color .15s; }
+  .btn:hover { border-color: var(--line-strong); }
+  .btn:focus-visible, .legItem:focus-visible, .node:focus-visible, .worker:focus-visible, .lane:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .stage { display: grid; grid-template-columns: minmax(0,1fr) 344px; gap: 20px; align-items: start; }
+  @media (max-width: 1080px) { .stage { grid-template-columns: 1fr; } }
+
+  .canvasScroll { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: auto; position: relative; }
+  .canvas { position: relative; width: 1200px; height: 1020px; margin: 0 auto; }
+  svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
+  svg.edges path { fill: none; transition: opacity .18s, stroke-width .18s; }
+  svg.edges .elabel { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; transition: opacity .18s; }
+  .edge-hitl { stroke: var(--hitl); }
+  .edge-mcp { stroke: var(--mcp); }
+  .edge-agent { stroke: var(--accent); }
+  .edge-setup { stroke: var(--faint); }
+  .edge-external { stroke: var(--faint); stroke-dasharray: 5 5; }
+  path.dim, text.dim { opacity: .1 !important; }
+  path.hot { stroke-width: 3.2px !important; }
+
+  /* worker process outlines */
+  .worker { position: absolute; z-index: 0; border: 1.5px dashed var(--line-strong); border-radius: 18px; cursor: pointer; background: transparent; transition: border-color .15s; }
+  .worker:hover { border-color: var(--accent); }
+  .worker.lit { border-style: solid; border-color: var(--accent); }
+  .worker .wlabel { position: absolute; top: -13px; left: 22px; padding: 3px 13px; background: var(--panel); border: 1px solid var(--line-strong); border-radius: 999px; font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .worker .wlabel .wp { color: var(--faint); font-weight: 500; }
+
+  /* task-queue swim lanes */
+  .lane { position: absolute; z-index: 1; border-radius: 14px; cursor: pointer; overflow: hidden; border: 1px solid color-mix(in srgb, var(--lane-color) 32%, var(--line)); background: color-mix(in srgb, var(--lane-color) 6%, var(--panel)); transition: box-shadow .15s; }
+  .lane:hover { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lane-color) 45%, transparent); }
+  .lane.lit { box-shadow: inset 0 0 0 2.5px var(--lane-color); }
+  .lane-head { display: flex; align-items: center; gap: 9px; padding: 8px 14px; background: color-mix(in srgb, var(--lane-color) 16%, var(--panel)); border-bottom: 1px solid color-mix(in srgb, var(--lane-color) 30%, transparent); pointer-events: none; }
+  .lane-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--lane-color); flex: none; }
+  .lane-kicker { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in srgb, var(--lane-color) 50%, var(--muted)); font-weight: 700; }
+  .lane-name { font-family: var(--mono); font-size: 14.5px; font-weight: 700; color: color-mix(in srgb, var(--lane-color) 62%, var(--ink)); }
+  .lane-tag { font-size: 11px; color: var(--muted); margin-left: auto; font-family: var(--mono); text-align: right; }
+
+  /* nodes */
+  .node { position: absolute; z-index: 3; cursor: pointer; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-left-width: 4px; border-radius: 10px; padding: 9px 12px; box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s, opacity .18s, border-color .15s; font-family: var(--sans); }
+  .node:hover { transform: translateY(-2px); }
+  .node .ntype { font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .node .nname { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--ink); margin-top: 2px; word-break: break-word; }
+  .node .nsub { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+  .node[data-hue="accent"] { border-left-color: var(--accent); }
+  .node[data-hue="hitl"]   { border-left-color: var(--hitl); }
+  .node[data-hue="mcp"]    { border-left-color: var(--mcp); }
+  .node[data-hue="muted"]  { border-left-color: var(--line-strong); }
+  .node.dim { opacity: .2; }
+  .node.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+  .node.neighbor { box-shadow: 0 0 0 1.5px var(--line-strong), var(--shadow); }
+
+  /* external services caption */
+  .ext-cap { position: absolute; z-index: 1; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+
+  /* detail panel */
+  aside.detail { position: sticky; top: 20px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; min-height: 300px; }
+  .detail .placeholder { color: var(--muted); font-size: 14px; }
+  .detail .placeholder strong { color: var(--ink); }
+  .badge { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: .04em; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; }
+  .badge.accent { background: color-mix(in srgb, var(--accent) 16%, var(--panel)); color: var(--accent); }
+  .badge.hitl   { background: color-mix(in srgb, var(--hitl) 18%, var(--panel)); color: var(--hitl); }
+  .badge.mcp    { background: color-mix(in srgb, var(--mcp) 18%, var(--panel)); color: var(--mcp); }
+  .badge.muted  { background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); }
+  .detail h2 { font-family: var(--mono); font-size: 17px; margin: 12px 0 3px; letter-spacing: -.01em; word-break: break-word; }
+  .detail .file { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-bottom: 14px; }
+  .detail .file b { color: var(--muted); }
+  .detail p.desc { font-size: 13.5px; color: var(--ink); margin: 0 0 15px; }
+  .detail .sec { font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin: 16px 0 7px; }
+  .members, .rellist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  .members li { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 5px 9px; }
+  .rellist button { all: unset; cursor: pointer; display: flex; align-items: center; gap: 7px; width: 100%; font-family: var(--mono); font-size: 12px; color: var(--ink); padding: 5px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel-2); box-sizing: border-box; }
+  .rellist button:hover { border-color: var(--line-strong); }
+  .rellist button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .rellist .rel-arrow { font-size: 13px; opacity: .7; }
+  .rellist .rel-kind { margin-left: auto; font-family: var(--sans); font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); white-space: nowrap; }
+  .snippet { font-family: var(--mono); font-size: 11.5px; line-height: 1.55; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 11px 12px; overflow-x: auto; white-space: pre; margin-top: 4px; }
+  .snippet .k { color: var(--accent); }
+  .snippet .s { color: var(--hitl); }
+  .snippet .c { color: var(--faint); font-style: italic; }
+
+  /* data-flow player */
+  .flowbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 16px; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.06); border-color: var(--accent); }
+  .flowbtn { min-width: 38px; text-align: center; font-size: 14px; padding: 6px 10px; }
+  .flowbtn:disabled { opacity: .4; cursor: default; }
+  .flowstep { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .flownarr { flex: 1 1 320px; min-width: 240px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .flowphase { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--panel)); padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .flowcap { font-size: 13px; color: var(--ink); }
+  .flowpayload { font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; }
+  .flowbar.idle .flowphase, .flowbar.idle .flowpayload { display: none; }
+  .flowbar.idle .flowcap { color: var(--muted); }
+
+  /* start marker + active flow states */
+  .start-badge { position: absolute; top: -11px; right: -9px; z-index: 5; background: var(--accent); color: var(--on-accent); font-size: 9px; font-weight: 700; letter-spacing: .12em; padding: 3px 8px; border-radius: 999px; box-shadow: var(--shadow); }
+  .start-badge::before { content: "▶ "; }
+  .node.flow-on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); z-index: 4; }
+  @keyframes flowdash { to { stroke-dashoffset: -26; } }
+  @keyframes flowdashrev { to { stroke-dashoffset: 26; } }
+  svg.edges path.flowing { opacity: 1 !important; stroke-width: 3.4px !important; stroke-dasharray: 7 6; animation: flowdash .8s linear infinite; }
+  svg.edges path.flowing.rev { animation: flowdashrev .8s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { svg.edges path.flowing { animation: none; } }
+
+  footer { margin-top: 26px; font-size: 12px; color: var(--faint); text-align: center; }
+  footer code { font-family: var(--mono); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">Demo 4 · Temporal × OpenAI Agents SDK</p>
+    <h1>Human-in-the-Loop</h1>
+  </header>
+
+  <div class="controls" role="group" aria-label="Diagram controls">
+    <span class="clabel">Filter edges</span>
+    <div class="legend" id="legend">
+      <button class="legItem" data-cat="hitl"     aria-pressed="true"><span class="swatch"></span>HITL signal &amp; query</button>
+      <button class="legItem" data-cat="agent"    aria-pressed="true"><span class="swatch"></span>Agent tool call</button>
+      <button class="legItem" data-cat="mcp"      aria-pressed="true"><span class="swatch"></span>MCP tools</button>
+      <button class="legItem" data-cat="setup"    aria-pressed="true"><span class="swatch"></span>Start &amp; setup</button>
+      <button class="legItem dashed" data-cat="external" aria-pressed="true"><span class="swatch"></span>External I/O</button>
+    </div>
+    <span class="spacer"></span>
+    <button class="btn" id="resetBtn" type="button">Reset view</button>
+  </div>
+
+  <div class="flowbar idle" id="flowbar" role="group" aria-label="Data flow player">
+    <button class="btn primary flowbtn" id="flowPlay" type="button">▶ Play data flow</button>
+    <button class="btn flowbtn" id="flowPrev" type="button" aria-label="Previous step" disabled>◀</button>
+    <span class="flowstep" id="flowStep">step — / —</span>
+    <button class="btn flowbtn" id="flowNext" type="button" aria-label="Next step">▶</button>
+    <div class="flownarr">
+      <span class="flowphase" id="flowPhase"></span>
+      <span class="flowcap" id="flowCap">Trace the request <b>“Should I bring rain gear to the F1 race?”</b> as the agent pauses to ask you where you are, then resumes.</span>
+      <code class="flowpayload" id="flowPayload"></code>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="canvasScroll">
+      <div class="canvas" id="canvas">
+        <svg class="edges" id="edges" viewBox="0 0 1200 1020" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <!-- worker, lane, nodes injected here -->
+      </div>
+    </div>
+
+    <aside class="detail" id="detail" aria-live="polite">
+      <div class="placeholder">
+        <p><strong>Select a component</strong> to inspect it.</p>
+        <p>Every box is a real class, function, or file in <code>demo4-hitl/solution/</code>. Unlike demo 5, there is exactly <b>one</b> task queue — <code>hitl-agent-python-task-queue</code> — and one worker process. The interesting boundary here is not between queues, it is between the <b>workflow</b> and the <b>human</b>.</p>
+      </div>
+    </aside>
+  </div>
+
+  <footer>Reflects <code>demo4-hitl/solution/</code> · one task queue · one worker process · one interactive starter.</footer>
+</div>
+
+<script>
+"use strict";
+
+const canvas = document.getElementById("canvas");
+const svg = document.getElementById("edges");
+const SVGNS = "http://www.w3.org/2000/svg";
+
+/* ---------------- worker process outlines ---------------- */
+const WORKERS = [
+  { id:"w-worker", x:8, y:118, w:1184, h:744, label:"worker.py", proc:"single process",
+    detail:{ badge:"accent", type:"Worker process", name:"worker.py",
+      file:"solution/worker.py:50", tq:"polls hitl-agent-python-task-queue",
+      desc:"One OS process, one Worker, one task queue. It registers AgentWorkflow plus the four weather activities, and its OpenAIAgentsPlugin carries the StatelessMCPServerProvider that launches the F1 MCP server on demand. Nothing about human-in-the-loop needs worker wiring — the HITL state lives entirely inside the workflow.",
+      members:["OpenAIAgentsPlugin(model_params=ModelActivityParameters(start_to_close_timeout=60s))","StatelessMCPServerProvider(name=\"f1-data\", server_factory=_f1_server_factory)","Client.connect(..., plugins=[plugin])","Worker(task_queue=\"hitl-agent-python-task-queue\", workflows=[AgentWorkflow], activities=[4])"] } },
+];
+
+/* ---------------- task-queue lanes ---------------- */
+const LANES = [
+  { id:"tq-hitl", x:28, y:158, w:1144, h:700, color:"var(--accent)",
+    name:"hitl-agent-python-task-queue", tag:"AgentWorkflow + 4 activities",
+    detail:{ badge:"accent", type:"Task queue", name:"hitl-agent-python-task-queue",
+      file:"worker.py:26 (TASK_QUEUE)", tq:"polled by worker.py",
+      desc:"The only task queue in this demo. worker.py polls it; the starter targets it in start_workflow(...). AgentWorkflow, its LLM-call activities, its four weather activities, and the MCP tool activities all execute here. The ask_user tool is the one thing that does NOT become an activity — it runs inline in the workflow, which is exactly why it can suspend.",
+      members:["Polled by: worker.py","Runs: AgentWorkflow","Activities: get_ip_address, get_location_info, get_coordinates, get_weather","Also runs: model-invoke activities + MCP list/call activities (via plugin)","Entered by: start_workflow.py → start_workflow(task_queue=\"hitl-agent-python-task-queue\")"] } },
+];
+
+/* ---------------- nodes ---------------- */
+const NODES = [
+  { id:"starter", x:450, y:20, w:300, h:74, hue:"muted", type:"Client · asyncio",
+    name:"start_workflow.py", sub:"start_workflow() + poll loop",
+    file:"solution/start_workflow.py:72", tq:"— (separate client process)",
+    desc:"The interactive CLI. It starts the workflow, then loops every 2 seconds: query is_input_needed, and if True, query get_pending_question, print it, read your line from stdin, and send it back as the provide_user_input signal. Also supports --workflow-id to reconnect to a workflow already parked on a question.",
+    members:["main()", "_parse_args(argv) → (workflow_id, goal)", "_interact(handle) → str", "_read_line_async(prompt)", "with trace(\"AgentWorkflow\")", "client.start_workflow(task_queue=TASK_QUEUE)"],
+    snippet:[['c','# start_workflow.py — the human loop'],['nl'],['k','if await '],['p','handle.'],['fn','query'],['p','(AgentWorkflow.is_input_needed):'],['nl'],['p','    q = await handle.'],['fn','query'],['p','(AgentWorkflow.get_pending_question)'],['nl'],['p','    resp = await '],['fn','_read_line_async'],['p','('],['s','"Your response: "'],['p',')'],['nl'],['p','    await handle.'],['fn','signal'],['p','(AgentWorkflow.provide_user_input, resp)']] },
+
+  { id:"agent_wf", x:450, y:222, w:300, h:74, hue:"accent", type:"@workflow.defn",
+    name:"AgentWorkflow", sub:".run(question) → str",
+    file:"solution/tools_workflow.py:43", tq:"hitl-agent-python-task-queue",
+    desc:"The whole demo in one workflow. __init__ holds three fields of HITL state. run() defines the ask_user closure, builds an Agent(\"Agent\", gpt-4o) with four activity tools plus the F1 MCP server plus ask_user, and awaits Runner.run. Because state lives on self, the signal and query handlers can reach it.",
+    members:["__init__: _input_needed, _question, _user_input", "run(question) → str", "workflow.now() → today's date for the prompt", "@function_tool ask_user (closure)", "Agent(name=\"Agent\", model=\"gpt-4o\")", "Runner.run(agent, input=question)"],
+    snippet:[['c','# tools_workflow.py'],['nl'],['p','@'],['fn','workflow.defn'],['nl'],['k','class '],['fn','AgentWorkflow'],['p',':'],['nl'],['p','    '],['k','def '],['fn','__init__'],['p','(self) -> '],['k','None'],['p',':'],['nl'],['p','        self._input_needed = '],['k','False'],['nl'],['p','        self._question = '],['s','""'],['nl'],['p','        self._user_input = '],['s','""']] },
+
+  { id:"agent", x:450, y:352, w:300, h:64, hue:"accent", type:"Agent (gpt-4o)",
+    name:"Agent", sub:"Runner.run(...)",
+    file:"solution/tools_workflow.py:82", tq:"hitl-agent-python-task-queue",
+    desc:"The OpenAI Agents SDK agent. Every LLM call and every activity-backed tool call is a Temporal activity thanks to the plugin. Its toolkit is deliberately mixed: four activity tools, eight MCP tools, and one in-workflow tool (ask_user). The system prompt tells it to reach for ask_user whenever the request is ambiguous.",
+    members:["instructions = SYSTEM_PROMPT.format(date=today)", "model=\"gpt-4o\"", "mcp_servers=[f1]", "tools=[4× activity_as_tool(...), ask_user]"],
+    snippet:[['p','agent = '],['fn','Agent'],['p','('],['nl'],['p','    name='],['s','"Agent"'],['p',', model='],['s','"gpt-4o"'],['p',','],['nl'],['p','    mcp_servers=[f1],'],['nl'],['p','    tools=[..., ask_user])']] },
+
+  { id:"ask_user", x:60, y:340, w:230, h:76, hue:"hitl", type:"@function_tool · inline",
+    name:"ask_user", sub:"(question_text) → str",
+    file:"solution/tools_workflow.py:60", tq:"hitl-agent-python-task-queue (in workflow)",
+    desc:"The pivot of the whole demo. A closure over self, so it can mutate workflow state — which means it CANNOT be an activity. @function_tool awaits async functions in the caller's context, so Runner.run invokes it right inside the workflow loop, where workflow.wait_condition is legal. It sets _question, flips _input_needed, awaits, then returns the answer and resets state so the next ask_user call starts clean.",
+    members:["self._question = question_text", "self._input_needed = True", "workflow.logger.info(...)", "await workflow.wait_condition(lambda: not self._input_needed)", "return self._user_input (then reset)"],
+    snippet:[['p','@'],['fn','function_tool'],['nl'],['k','async def '],['fn','ask_user'],['p','(question_text: str) -> str:'],['nl'],['p','    self._question = question_text'],['nl'],['p','    self._input_needed = '],['k','True'],['nl'],['p','    '],['k','await '],['p','workflow.'],['fn','wait_condition'],['p','('],['nl'],['p','        '],['k','lambda'],['p',': '],['k','not '],['p','self._input_needed)'],['nl'],['p','    '],['k','return '],['p','self._user_input']] },
+
+  { id:"wait_cond", x:60, y:456, w:230, h:66, hue:"hitl", type:"Temporal API",
+    name:"workflow.wait_condition", sub:"lambda: not self._input_needed",
+    file:"solution/tools_workflow.py:72", tq:"hitl-agent-python-task-queue",
+    desc:"Durable suspension. The workflow task completes and the execution parks — zero worker threads, zero activity slots, zero cost while it waits. Temporal re-evaluates the predicate on every state change, so the only thing that can wake it is code that sets _input_needed to False. It survives worker restarts because the wait is a fact of the event history, not a live stack frame.",
+    members:["Evaluated after every signal / state change", "Holds no thread, no memory, no timer", "Survives worker crash and restart", "Status in the Web UI stays \"Running\" — with no pending tasks"] },
+
+  { id:"signal", x:60, y:562, w:230, h:70, hue:"hitl", type:"@workflow.signal",
+    name:"provide_user_input", sub:"(user_input) → None",
+    file:"solution/tools_workflow.py:110", tq:"hitl-agent-python-task-queue",
+    desc:"The only thing that can unblock the wait. A signal is an async message delivered to a running execution: it appends to the event history, mutates workflow state, and triggers re-evaluation of every wait_condition predicate. Sent from outside the workflow by the starter's handle.signal(...).",
+    members:["self._user_input = user_input", "self._input_needed = False", "Appends WorkflowExecutionSignaled to history", "Delivered even while the workflow is parked"],
+    snippet:[['p','@'],['fn','workflow.signal'],['nl'],['k','def '],['fn','provide_user_input'],['p','(self, user_input: str) -> '],['k','None'],['p',':'],['nl'],['p','    self._user_input = user_input'],['nl'],['p','    self._input_needed = '],['k','False']] },
+
+  { id:"queries", x:60, y:672, w:230, h:76, hue:"hitl", type:"2× @workflow.query",
+    name:"is_input_needed · get_pending_question", sub:"→ bool · → str",
+    file:"solution/tools_workflow.py:118", tq:"hitl-agent-python-task-queue",
+    desc:"Read-only, side-effect-free snapshots of workflow state. Queries append nothing to the event history, so the starter can poll them every two seconds without bloating the workflow. is_input_needed says whether the agent is parked; get_pending_question says what it wants to know.",
+    members:["is_input_needed() → bool", "get_pending_question() → str", "No history events written", "Safe to poll on a loop"],
+    snippet:[['p','@'],['fn','workflow.query'],['nl'],['k','def '],['fn','is_input_needed'],['p','(self) -> bool:'],['nl'],['p','    '],['k','return '],['p','self._input_needed']] },
+
+  { id:"act_ip", x:340, y:474, w:200, h:58, hue:"accent", type:"@activity.defn",
+    name:"get_ip_address", sub:"→ str",
+    file:"solution/tool_activities.py:13", tq:"hitl-agent-python-task-queue",
+    desc:"Returns the caller machine's public IP via httpx GET icanhazip.com. Wrapped by activity_as_tool with a 30-second start-to-close timeout.",
+    members:["get_ip_address() → str", "start_to_close_timeout=30s"] },
+  { id:"act_loc", x:560, y:474, w:205, h:58, hue:"accent", type:"@activity.defn",
+    name:"get_location_info", sub:"(ipaddress) → str",
+    file:"solution/tool_activities.py:22", tq:"hitl-agent-python-task-queue",
+    desc:"IP-based geolocation (city/state/country/lat/lon) via httpx GET ip-api.com.",
+    members:["get_location_info(ipaddress) → str", "start_to_close_timeout=30s"] },
+  { id:"act_coord", x:340, y:566, w:200, h:58, hue:"accent", type:"@activity.defn",
+    name:"get_coordinates", sub:"(city) → str",
+    file:"solution/tool_activities.py:37", tq:"hitl-agent-python-task-queue",
+    desc:"City → lat/lon via the Open-Meteo geocoder. Returns an explicit no_match payload when the geocoder finds nothing, so the LLM stops retrying — or reaches for ask_user instead.",
+    members:["get_coordinates(city) → str", "start_to_close_timeout=30s"] },
+  { id:"act_weather", x:560, y:566, w:205, h:58, hue:"accent", type:"@activity.defn",
+    name:"get_weather", sub:"(lat, lon) → str",
+    file:"solution/tool_activities.py:72", tq:"hitl-agent-python-task-queue",
+    desc:"Current weather (temp °F, weather code, wind) for coordinates via the Open-Meteo forecast API.",
+    members:["get_weather(latitude, longitude) → str", "start_to_close_timeout=30s"] },
+
+  { id:"f1_mcp", x:905, y:352, w:235, h:66, hue:"mcp", type:"MCP handle",
+    name:"stateless_mcp_server", sub:"name=\"f1-data\"",
+    file:"solution/tools_workflow.py:80", tq:"hitl-agent-python-task-queue",
+    desc:"In-workflow MCP handle. It resolves to the StatelessMCPServerProvider registered on worker.py's plugin, which launches the real F1 MCP server on demand. Each listTools and callTool becomes its own Temporal activity; the tool list is cached.",
+    members:["stateless_mcp_server(name=\"f1-data\", cache_tools_list=True)", "resolved via worker.py plugin provider", "every MCP operation → its own activity"],
+    snippet:[['p','f1 = '],['fn','stateless_mcp_server'],['p','('],['nl'],['p','    name='],['s','"f1-data"'],['p',', cache_tools_list='],['k','True'],['p',')']] },
+
+  { id:"weather_api", x:330, y:920, w:300, h:58, hue:"muted", type:"external",
+    name:"Public HTTP APIs", sub:"httpx → icanhazip · ip-api · open-meteo",
+    file:"(external services)", tq:"—",
+    desc:"Free public endpoints the weather activities call over httpx: icanhazip.com, ip-api.com, and Open-Meteo's geocoding + forecast APIs. The Network Control Panel can break these on purpose to watch Temporal retry.",
+    members:["icanhazip.com", "ip-api.com/json", "geocoding-api.open-meteo.com", "api.open-meteo.com/forecast"] },
+
+  { id:"f1_mcp_server", x:880, y:918, w:250, h:64, hue:"muted", type:"external · stdio",
+    name:"F1 MCP server", sub:"node build/index.js → 8 tools",
+    file:"worker.py:35 (_f1_server_factory)", tq:"—",
+    desc:"External Node.js MCP server launched over stdio by worker.py's StatelessMCPServerProvider. Exposes 8 F1 data tools (schedules, results, standings, telemetry). Same install reused from demo 3.",
+    members:["MCPServerStdio(command=\"bash\", ...)", "$F1_MCP_SERVER_HOME/build/index.js", "8 F1 data tools"] },
+];
+
+const EDGES = [
+  { from:"starter",   to:"agent_wf",    cat:"setup",    label:"start_workflow" },
+  { from:"agent_wf",  to:"agent",       cat:"agent",    label:"Runner.run" },
+  { from:"agent_wf",  to:"ask_user",    cat:"setup",    label:"closure over self" },
+  { from:"agent",     to:"ask_user",    cat:"hitl",     label:"tool call (inline)" },
+  { from:"ask_user",  to:"wait_cond",   cat:"hitl",     label:"await" },
+  { from:"ask_user",  to:"queries",     cat:"hitl",     label:"sets _question" },
+  { from:"starter",   to:"queries",     cat:"hitl",     label:"handle.query (poll 2s)" },
+  { from:"starter",   to:"signal",      cat:"hitl",     label:"handle.signal" },
+  { from:"signal",    to:"wait_cond",   cat:"hitl",     label:"flips _input_needed" },
+  { from:"agent",     to:"act_ip",      cat:"agent",    label:"activity_as_tool" },
+  { from:"agent",     to:"act_loc",     cat:"agent",    label:"activity_as_tool" },
+  { from:"agent",     to:"act_coord",   cat:"agent",    label:"activity_as_tool" },
+  { from:"agent",     to:"act_weather", cat:"agent",    label:"activity_as_tool" },
+  { from:"act_ip",    to:"weather_api", cat:"external", label:"httpx" },
+  { from:"act_loc",   to:"weather_api", cat:"external", label:"httpx" },
+  { from:"act_coord", to:"weather_api", cat:"external", label:"httpx" },
+  { from:"act_weather", to:"weather_api", cat:"external", label:"httpx" },
+  { from:"agent",     to:"f1_mcp",      cat:"mcp",      label:"mcp_servers=[…]" },
+  { from:"f1_mcp",    to:"f1_mcp_server", cat:"external", label:"stdio launch" },
+];
+
+const CAT_LABEL = { hitl:"hitl", mcp:"mcp", agent:"agent tool", setup:"setup", external:"external" };
+
+/* ---------------- render ---------------- */
+const nodeMap = Object.fromEntries(NODES.map(n => [n.id, n]));
+
+// arrowhead markers
+const defs = document.createElementNS(SVGNS, "defs");
+[["hitl","var(--hitl)"],["mcp","var(--mcp)"],["agent","var(--accent)"],["setup","var(--faint)"],["external","var(--faint)"]].forEach(([cat,color])=>{
+  const m = document.createElementNS(SVGNS,"marker");
+  m.setAttribute("id","arrow-"+cat); m.setAttribute("viewBox","0 0 10 10");
+  m.setAttribute("refX","8"); m.setAttribute("refY","5");
+  m.setAttribute("markerWidth","7"); m.setAttribute("markerHeight","7"); m.setAttribute("orient","auto-start-reverse");
+  const p = document.createElementNS(SVGNS,"path");
+  p.setAttribute("d","M0,0 L10,5 L0,10 z"); p.setAttribute("fill",color);
+  m.appendChild(p); defs.appendChild(m);
+});
+svg.appendChild(defs);
+
+// worker outlines (z0)
+WORKERS.forEach(wk=>{
+  const el = document.createElement("div");
+  el.className = "worker"; el.dataset.worker = wk.id;
+  el.style.left=wk.x+"px"; el.style.top=wk.y+"px"; el.style.width=wk.w+"px"; el.style.height=wk.h+"px";
+  el.tabIndex = 0;
+  el.innerHTML = `<span class="wlabel">${wk.label} <span class="wp">· ${wk.proc}</span></span>`;
+  const act = ()=> selectContainer(wk, "worker");
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); act(); });
+  el.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); act(); } });
+  canvas.appendChild(el); wk._el = el;
+});
+
+// task-queue lanes (z1)
+LANES.forEach(ln=>{
+  const el = document.createElement("div");
+  el.className = "lane"; el.dataset.lane = ln.id;
+  el.style.left=ln.x+"px"; el.style.top=ln.y+"px"; el.style.width=ln.w+"px"; el.style.height=ln.h+"px";
+  el.style.setProperty("--lane-color", ln.color);
+  el.tabIndex = 0;
+  el.innerHTML = `<div class="lane-head"><span class="lane-dot"></span><div><div class="lane-kicker">Task queue</div><div class="lane-name">${ln.name}</div></div><span class="lane-tag">${ln.tag}</span></div>`;
+  const act = ()=> selectContainer(ln, "lane");
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); act(); });
+  el.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); act(); } });
+  canvas.appendChild(el); ln._el = el;
+});
+
+// external caption
+const cap = document.createElement("div");
+cap.className = "ext-cap"; cap.style.left = "330px"; cap.style.top = "894px";
+cap.textContent = "External services · not on any task queue";
+canvas.appendChild(cap);
+
+// HITL boundary caption
+const hcap = document.createElement("div");
+hcap.className = "ext-cap"; hcap.style.left = "60px"; hcap.style.top = "782px";
+hcap.textContent = "The human loop · state on self, not in an activity";
+canvas.appendChild(hcap);
+
+// nodes (z3)
+NODES.forEach(n=>{
+  const el = document.createElement("button");
+  el.type="button"; el.className="node"; el.dataset.id=n.id; el.dataset.hue=n.hue;
+  el.style.left=n.x+"px"; el.style.top=n.y+"px"; el.style.width=n.w+"px";
+  el.innerHTML = `<div class="ntype">${n.type}</div><div class="nname">${n.name}</div>${n.sub?`<div class="nsub">${n.sub}</div>`:""}${n.id==="starter"?`<span class="start-badge">START</span>`:""}`;
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); selectNode(n.id); });
+  canvas.appendChild(el); n._el = el;
+});
+
+// edge paths (z2)
+const edgeEls = EDGES.map(e=>{
+  const path = document.createElementNS(SVGNS,"path");
+  path.setAttribute("class","edge-"+e.cat);
+  path.setAttribute("marker-end","url(#arrow-"+e.cat+")");
+  path.setAttribute("stroke-width", e.cat==="setup" ? "1.5" : (e.cat==="external" ? "1.6" : "2"));
+  svg.appendChild(path);
+  const txt = document.createElementNS(SVGNS,"text");
+  txt.setAttribute("class","elabel"); txt.setAttribute("text-anchor","middle");
+  txt.textContent = e.label;
+  svg.appendChild(txt);
+  return { data:e, path, txt };
+});
+
+const edgeIndex = {};
+edgeEls.forEach(o => { edgeIndex[o.data.from+">"+o.data.to] = o; });
+
+function rectOf(n){ const h = n._el ? n._el.offsetHeight : n.h; return { x:n.x, y:n.y, w:n.w, h:h, cx:n.x+n.w/2, cy:n.y+h/2 }; }
+function borderPoint(r, tx, ty){
+  const dx=tx-r.cx, dy=ty-r.cy; if(dx===0&&dy===0) return {x:r.cx,y:r.cy};
+  const hw=r.w/2, hh=r.h/2; const scale = 1/Math.max(Math.abs(dx)/hw, Math.abs(dy)/hh);
+  return { x:r.cx+dx*scale, y:r.cy+dy*scale };
+}
+function layout(){
+  edgeEls.forEach(({data,path,txt})=>{
+    const a=rectOf(nodeMap[data.from]), b=rectOf(nodeMap[data.to]);
+    const p1=borderPoint(a,b.cx,b.cy), p2=borderPoint(b,a.cx,a.cy);
+    const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+    const dx=p2.x-p1.x, dy=p2.y-p1.y, len=Math.hypot(dx,dy)||1;
+    const bow=Math.min(26, len*0.11);
+    const cx=mx+(-dy/len)*bow, cy=my+(dx/len)*bow;
+    path.setAttribute("d",`M ${p1.x} ${p1.y} Q ${cx} ${cy} ${p2.x} ${p2.y}`);
+    txt.setAttribute("x",cx); txt.setAttribute("y",cy-3);
+  });
+}
+
+/* ---------------- interaction ---------------- */
+const activeCats = new Set(["hitl","mcp","agent","setup","external"]);
+
+function neighborsOf(id){
+  const nodes=new Set(), edges=new Set();
+  EDGES.forEach((e,i)=>{ if(e.from===id){nodes.add(e.to);edges.add(i);} if(e.to===id){nodes.add(e.from);edges.add(i);} });
+  return { nodes, edges };
+}
+function clearState(){
+  NODES.forEach(n=> n._el.classList.remove("dim","active","neighbor"));
+  WORKERS.forEach(w=> w._el.classList.remove("lit"));
+  LANES.forEach(l=> l._el.classList.remove("lit"));
+  edgeEls.forEach(({path,txt})=>{ path.classList.remove("dim","hot"); txt.classList.remove("dim"); });
+}
+function applyFilter(){
+  edgeEls.forEach(({data,path,txt})=>{
+    const show=activeCats.has(data.cat);
+    path.style.display=show?"":"none"; txt.style.display=show?"":"none";
+  });
+}
+function selectNode(id){
+  exitFlow();
+  clearState();
+  const { nodes, edges } = neighborsOf(id);
+  NODES.forEach(n=>{
+    if(n.id===id) n._el.classList.add("active");
+    else if(nodes.has(n.id)) n._el.classList.add("neighbor");
+    else n._el.classList.add("dim");
+  });
+  edgeEls.forEach(({path,txt},i)=>{ if(edges.has(i)) path.classList.add("hot"); else { path.classList.add("dim"); txt.classList.add("dim"); } });
+  renderNodeDetail(nodeMap[id]);
+}
+function selectContainer(c, kind){
+  exitFlow();
+  clearState();
+  c._el.classList.add("lit");
+  renderContainerDetail(c.detail);
+}
+function resetView(){ exitFlow(); clearState(); document.getElementById("detail").innerHTML = PLACEHOLDER; }
+
+/* ---------------- detail panel ---------------- */
+const PLACEHOLDER = document.getElementById("detail").innerHTML;
+function relList(id){
+  const calls = EDGES.filter(e=>e.from===id).map(e=>({id:e.to, cat:e.cat, dir:"→"}));
+  const callers = EDGES.filter(e=>e.to===id).map(e=>({id:e.from, cat:e.cat, dir:"←"}));
+  return { calls, callers };
+}
+function relItemHTML(r){
+  const n=nodeMap[r.id];
+  return `<li><button data-goto="${r.id}"><span class="rel-arrow">${r.dir}</span>${n.name}<span class="rel-kind">${CAT_LABEL[r.cat]}</span></button></li>`;
+}
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function snippetHTML(parts){
+  if(!parts) return "";
+  let out="";
+  parts.forEach(([t,v])=>{
+    if(t==="nl") out+="\n";
+    else if(t==="k"||t==="fn") out+=`<span class="k">${esc(v)}</span>`;
+    else if(t==="s") out+=`<span class="s">${esc(v)}</span>`;
+    else if(t==="c") out+=`<span class="c">${esc(v)}</span>`;
+    else out+=esc(v);
+  });
+  return `<div class="sec">Source</div><pre class="snippet">${out}</pre>`;
+}
+function renderNodeDetail(n){
+  const { calls, callers } = relList(n.id);
+  const d=document.getElementById("detail");
+  d.innerHTML = `
+    <span class="badge ${n.hue}">${n.type}</span>
+    <h2>${n.name}</h2>
+    <div class="file">${esc(n.file)} · <b>tq:</b> ${esc(n.tq)}</div>
+    <p class="desc">${esc(n.desc)}</p>
+    ${n.members&&n.members.length?`<div class="sec">Members</div><ul class="members">${n.members.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`:""}
+    ${calls.length?`<div class="sec">Calls / uses</div><ul class="rellist">${calls.map(relItemHTML).join("")}</ul>`:""}
+    ${callers.length?`<div class="sec">Called / built by</div><ul class="rellist">${callers.map(relItemHTML).join("")}</ul>`:""}
+    ${snippetHTML(n.snippet)}`;
+  d.querySelectorAll("button[data-goto]").forEach(b=> b.addEventListener("click",()=> selectNode(b.dataset.goto)));
+}
+function renderContainerDetail(d){
+  const el=document.getElementById("detail");
+  el.innerHTML = `
+    <span class="badge ${d.badge}">${d.type}</span>
+    <h2>${d.name}</h2>
+    <div class="file">${esc(d.file)} · <b>${esc(d.tq)}</b></div>
+    <p class="desc">${esc(d.desc)}</p>
+    <div class="sec">${d.type==="Task queue"?"Runs on this queue":"Registers"}</div>
+    <ul class="members">${d.members.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`;
+}
+
+/* ---------------- controls ---------------- */
+document.getElementById("legend").addEventListener("click",(e)=>{
+  const item=e.target.closest(".legItem"); if(!item) return;
+  const cat=item.dataset.cat;
+  if(activeCats.has(cat)){ activeCats.delete(cat); item.classList.add("off"); item.setAttribute("aria-pressed","false"); }
+  else { activeCats.add(cat); item.classList.remove("off"); item.setAttribute("aria-pressed","true"); }
+  applyFilter();
+});
+document.getElementById("resetBtn").addEventListener("click", resetView);
+canvas.addEventListener("click",(e)=>{ if(e.target===canvas || e.target===svg) resetView(); });
+
+/* ---------------- data-flow player ---------------- */
+// scenario: "Should I bring rain gear to the F1 race?" — the agent must ask where you are.
+// each step: e = [ [fromId, toId, reverse?], ... ]  (reverse = data flows against the arrow)
+const STEPS = [
+  { phase:"Start", nodes:["starter","agent_wf"], e:[["starter","agent_wf",false]],
+    cap:"start_workflow.py opens a trace and starts AgentWorkflow on the one task queue, then begins polling.",
+    payload:'"Should I bring rain gear to the F1 race?"' },
+  { phase:"Build", nodes:["agent_wf","ask_user"], e:[["agent_wf","ask_user",false]],
+    cap:"run() defines the ask_user closure over self, then assembles the agent: four activity tools, the F1 MCP server, and ask_user.",
+    payload:"tools=[…4 activities…, ask_user]" },
+  { phase:"Reason", nodes:["agent_wf","agent"], e:[["agent_wf","agent",false]],
+    cap:"Runner.run starts the agent loop. The LLM call is a Temporal activity. The model notices it doesn't know which race, or where you are.",
+    payload:"LLM: needs clarification" },
+  { phase:"Ask", nodes:["agent","ask_user"], e:[["agent","ask_user",false]],
+    cap:"The agent calls ask_user — not as an activity, but inline in the workflow, because the tool touches workflow state.",
+    payload:'ask_user("Which race, and where are you?")' },
+  { phase:"Suspend", nodes:["ask_user","wait_cond","queries"],
+    e:[["ask_user","wait_cond",false],["ask_user","queries",false]],
+    cap:"_question is set, _input_needed flips True, and the workflow parks on wait_condition. Web UI says Running; zero pending tasks, zero threads held.",
+    payload:"_input_needed = True" },
+  { phase:"Poll", nodes:["starter","queries"], e:[["starter","queries",false]],
+    cap:"The starter's 2-second loop queries is_input_needed, then get_pending_question. Queries write nothing to history, so polling is free.",
+    payload:'is_input_needed → True' },
+  { phase:"Human", nodes:["starter"], e:[],
+    cap:"The question prints on your terminal. The workflow can sit here for minutes, hours, or a worker restart — the wait is in the event history, not in memory.",
+    payload:'you type: "Singapore, I live in Austin"' },
+  { phase:"Signal", nodes:["starter","signal","wait_cond"],
+    e:[["starter","signal",false],["signal","wait_cond",false]],
+    cap:"handle.signal delivers provide_user_input. It sets _user_input, flips _input_needed to False, and Temporal re-evaluates the predicate.",
+    payload:"WorkflowExecutionSignaled" },
+  { phase:"Resume", nodes:["wait_cond","ask_user","agent"],
+    e:[["ask_user","wait_cond",true],["agent","ask_user",true]],
+    cap:"wait_condition returns, ask_user hands the answer back to the agent loop, and the LLM keeps reasoning — same workflow, same history.",
+    payload:'"Singapore, I live in Austin"' },
+  { phase:"F1 · MCP", nodes:["agent","f1_mcp","f1_mcp_server"],
+    e:[["agent","f1_mcp",false],["f1_mcp","f1_mcp_server",false]],
+    cap:"Now the agent can act. It queries the F1 MCP toolkit for the race calendar — every MCP call its own Temporal activity.",
+    payload:"MCP tool call → Singapore GP date" },
+  { phase:"Weather", nodes:["agent","act_coord","act_weather","weather_api"],
+    e:[["agent","act_coord",false],["act_coord","weather_api",false],["agent","act_weather",false],["act_weather","weather_api",false]],
+    cap:"Two activity tools run: geocode the city, then fetch the forecast from Open-Meteo over httpx.",
+    payload:"get_coordinates → get_weather" },
+  { phase:"Answer", nodes:["agent","agent_wf","starter"],
+    e:[["agent_wf","agent",true],["starter","agent_wf",true]],
+    cap:"result.final_output returns through the workflow to the starter, which prints it. One workflow, one history, one human interruption.",
+    payload:'Result: "Yes — rain likely in Singapore…"' },
+];
+
+const flowbar = document.getElementById("flowbar");
+const elStep = document.getElementById("flowStep");
+const elPhase = document.getElementById("flowPhase");
+const elCap = document.getElementById("flowCap");
+const elPayload = document.getElementById("flowPayload");
+const elPlay = document.getElementById("flowPlay");
+const elPrev = document.getElementById("flowPrev");
+const elNext = document.getElementById("flowNext");
+const IDLE_CAP = elCap.innerHTML;
+
+let flowIdx = -1, playing = false, flowTimer = null;
+
+function showAllEdges(){ edgeEls.forEach(({path,txt})=>{ path.style.display=""; txt.style.display=""; }); }
+function clearFlowClasses(){
+  edgeEls.forEach(({path})=> path.classList.remove("flowing","rev"));
+  NODES.forEach(n=> n._el.classList.remove("flow-on"));
+}
+function stopPlay(){ playing=false; if(flowTimer){ clearInterval(flowTimer); flowTimer=null; } updateFlowUI(); }
+
+function exitFlow(){
+  stopPlay();
+  flowIdx = -1;
+  clearFlowClasses();
+  applyFilter();
+  flowbar.classList.add("idle");
+  elStep.textContent = "step — / —";
+  elPhase.textContent = "";
+  elCap.innerHTML = IDLE_CAP;
+  elPayload.textContent = "";
+  elPlay.textContent = "▶ Play data flow";
+  elPrev.disabled = true; elNext.disabled = false;
+}
+
+function scrollToNodes(ids){
+  const cs = document.querySelector(".canvasScroll");
+  if(!cs || !ids.length) return;
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  ids.forEach(id=>{ const n=nodeMap[id]; if(!n) return; const el=n._el;
+    minX=Math.min(minX,el.offsetLeft); minY=Math.min(minY,el.offsetTop);
+    maxX=Math.max(maxX,el.offsetLeft+el.offsetWidth); maxY=Math.max(maxY,el.offsetTop+el.offsetHeight); });
+  if(minX===Infinity) return;
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+  cs.scrollTo({ left: cx - cs.clientWidth/2, top: cy - cs.clientHeight/2, behavior:"smooth" });
+}
+
+function enterStep(i){
+  flowIdx = i;
+  const step = STEPS[i];
+  clearState(); clearFlowClasses(); showAllEdges();
+  flowbar.classList.remove("idle");
+
+  const active = new Set(step.nodes || []);
+  step.e.forEach(([f,t])=>{ active.add(f); active.add(t); });
+  NODES.forEach(n=>{ if(active.has(n.id)) n._el.classList.add("flow-on"); else n._el.classList.add("dim"); });
+
+  const activeEdges = new Set();
+  step.e.forEach(([f,t,rev])=>{ const o=edgeIndex[f+">"+t]; if(o){ o.path.classList.add("flowing"); if(rev) o.path.classList.add("rev"); activeEdges.add(o); } });
+  edgeEls.forEach(o=>{ if(!activeEdges.has(o)){ o.path.classList.add("dim"); o.txt.classList.add("dim"); } });
+
+  elStep.textContent = `step ${i+1} / ${STEPS.length}`;
+  elPhase.textContent = step.phase;
+  elCap.textContent = step.cap;
+  elPayload.textContent = step.payload || "";
+  elPrev.disabled = (i===0);
+  elNext.disabled = (i===STEPS.length-1);
+  scrollToNodes(step.nodes && step.nodes.length ? step.nodes : []);
+  updateFlowUI();
+}
+
+function updateFlowUI(){
+  if(playing){ elPlay.textContent = "⏸ Pause"; }
+  else if(flowIdx >= STEPS.length-1 && flowIdx >= 0){ elPlay.textContent = "↻ Replay"; }
+  else if(flowIdx < 0){ elPlay.textContent = "▶ Play data flow"; }
+  else { elPlay.textContent = "▶ Resume"; }
+}
+
+function flowNext(){ if(flowIdx < STEPS.length-1) enterStep(flowIdx+1); }
+function flowPrev(){ if(flowIdx > 0) enterStep(flowIdx-1); }
+
+function togglePlay(){
+  if(playing){ stopPlay(); return; }
+  if(flowIdx >= STEPS.length-1) flowIdx = -1; // replay from top
+  playing = true; updateFlowUI();
+  enterStep(flowIdx+1);
+  flowTimer = setInterval(()=>{
+    if(flowIdx >= STEPS.length-1){ stopPlay(); return; }
+    enterStep(flowIdx+1);
+  }, 2100);
+}
+
+elPlay.addEventListener("click", togglePlay);
+elNext.addEventListener("click", ()=>{ stopPlay(); if(flowIdx<0) enterStep(0); else flowNext(); });
+elPrev.addEventListener("click", ()=>{ stopPlay(); flowPrev(); });
+
+/* ---------------- boot ---------------- */
+function boot(){ layout(); applyFilter(); }
+window.addEventListener("resize", layout);
+if(document.readyState==="complete") boot(); else window.addEventListener("load", boot);
+requestAnimationFrame(()=> requestAnimationFrame(layout));
+</script>
+</body>
+</html>
