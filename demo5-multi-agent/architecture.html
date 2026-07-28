@@ -18,6 +18,18 @@
     --accent: #5457d6;   /* orchestrator / agent tool calls */
     --child: #c9791b;    /* child-workflow path (weather) */
     --nexus: #0f9d94;    /* nexus path (f1) */
+    /* Python/Java syntax colors for the node signature blocks - deliberately NOT
+       --accent, so code text stops adding to the purple on screen. */
+    --syn-kw: #0b4fbd;    /* class, def, async, await, public, interface... */
+    --syn-deco: #795e26;  /* @decorators / @Annotations */
+    --syn-str: #a31515;   /* string literals */
+    /* Source-file identity - a separate channel from the edge hues. Validated
+       categorical palette; at most three files carry a hue, rest are neutral. */
+    --file-1: #2a78d6;
+    --file-2: #e87ba4;
+    --file-3: #008300;
+    --file-none: #8b95a4;
+    --lane-tq: #54708c;  /* task-queue band (was --accent) */
     --on-accent: #ffffff;
     --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
     --radius: 13px;
@@ -29,6 +41,9 @@
       --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
       --ink: #e6ebf2; --muted: #93a0b1; --faint: #64707f; --line: #29323f; --line-strong: #38434f;
       --accent: #8b8ff5; --child: #f0a848; --nexus: #3ad6ce; --on-accent: #141922;
+      --syn-kw: #569cd6; --syn-deco: #dcdcaa; --syn-str: #ce9178;
+      --file-1: #3987e5; --file-2: #d55181; --file-3: #008300; --file-none: #64707f;
+      --lane-tq: #8ba3bd;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
     }
   }
@@ -36,12 +51,18 @@
     --bg: #eef1f5; --bg-grid: #e2e7ee; --panel: #ffffff; --panel-2: #f7f9fc;
     --ink: #18202e; --muted: #5b6676; --faint: #8b95a4; --line: #d3dae3; --line-strong: #b9c2ce;
     --accent: #5457d6; --child: #c9791b; --nexus: #0f9d94; --on-accent: #ffffff;
+    --syn-kw: #0b4fbd; --syn-deco: #795e26; --syn-str: #a31515;
+    --file-1: #2a78d6; --file-2: #e87ba4; --file-3: #008300; --file-none: #8b95a4;
+    --lane-tq: #54708c;
     --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
   }
   :root[data-theme="dark"] {
     --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
     --ink: #e6ebf2; --muted: #93a0b1; --faint: #64707f; --line: #29323f; --line-strong: #38434f;
     --accent: #8b8ff5; --child: #f0a848; --nexus: #3ad6ce;
+      --syn-kw: #569cd6; --syn-deco: #dcdcaa; --syn-str: #ce9178;
+      --file-1: #3987e5; --file-2: #d55181; --file-3: #008300; --file-none: #64707f;
+      --lane-tq: #8ba3bd;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
   }
 
@@ -60,7 +81,7 @@
 
   header.masthead { margin-bottom: 22px; }
   .eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 8px; }
-  h1 { font-size: clamp(26px, 4vw, 40px); line-height: 1.08; margin: 0 0 10px; letter-spacing: -.02em; text-wrap: balance; font-weight: 700; }
+  h1 { font-size: clamp(26px, 4vw, 40px); line-height: 1.08; margin: 0; letter-spacing: -.02em; text-wrap: balance; font-weight: 700; }
   h1 .thin { color: var(--muted); font-weight: 400; }
   .lede { margin: 0; max-width: 74ch; color: var(--muted); font-size: 15.5px; }
   .lede code { font-family: var(--mono); font-size: .9em; color: var(--ink); background: color-mix(in srgb, var(--accent) 12%, var(--panel)); padding: 1px 5px; border-radius: 5px; }
@@ -85,10 +106,16 @@
   .btn:focus-visible, .legItem:focus-visible, .node:focus-visible, .worker:focus-visible, .lane:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .stage { display: grid; grid-template-columns: minmax(0,1fr) 344px; gap: 20px; align-items: start; }
-  @media (max-width: 1080px) { .stage { grid-template-columns: 1fr; } }
+  /* Below this width the side-by-side split starves the canvas, so the detail
+     panel drops underneath and the diagram gets the full pane width. */
+  @media (max-width: 1560px) {
+    .stage { grid-template-columns: minmax(0,1fr); }
+    aside.detail { position: static; }
+  }
 
   .canvasScroll { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: auto; position: relative; }
-  .canvas { position: relative; width: 1200px; height: 1070px; margin: 0 auto; }
+  .canvasViewport { position: relative; margin: 0 auto; }
+  .canvas { position: relative; width: 1320px; height: 1160px; transform-origin: top left; }
   svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
   svg.edges path { fill: none; transition: opacity .18s, stroke-width .18s; }
   svg.edges .elabel { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; transition: opacity .18s; }
@@ -123,6 +150,31 @@
   .node .ntype { font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
   .node .nname { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--ink); margin-top: 2px; word-break: break-word; }
   .node .nsub { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+  /* source-declaration block: reads like the real file. Lines are authored
+     pre-wrapped in the node data, so `pre` never surprises us with a reflow. */
+  .node .ncode { font-family: var(--mono); font-size: 10.5px; line-height: 1.55; white-space: pre; color: var(--muted); }
+  .node .ncode .cd { color: var(--syn-deco); }
+  .node .ncode .ck { color: var(--syn-kw); }
+  .node .ncode .cn { color: var(--ink); font-weight: 700; }
+  .node .ncode .cs { color: var(--syn-str); }
+  /* source-file row: colored dot carries identity, filename stays in muted ink */
+  .node .nfile { display: flex; align-items: center; gap: 5px; margin-top: 6px; font-family: var(--mono); font-size: 9.5px; color: var(--faint); letter-spacing: .01em; }
+  .fdot { width: 7px; height: 7px; border-radius: 50%; background: var(--fc, var(--file-none)); flex: none; }
+  .node[data-file="f1"]   { --fc: var(--file-1); }
+  .node[data-file="f2"]   { --fc: var(--file-2); }
+  .node[data-file="f3"]   { --fc: var(--file-3); }
+  .node[data-file="none"] { --fc: var(--file-none); }
+  .node.fileLit { box-shadow: 0 0 0 2px var(--fc), var(--shadow); }
+  .legItem[data-file="f1"]   .fdot { background: var(--file-1); }
+  .legItem[data-file="f2"]   .fdot { background: var(--file-2); }
+  .legItem[data-file="f3"]   .fdot { background: var(--file-3); }
+  .legItem[data-file="none"] .fdot { background: var(--file-none); }
+  .legItem .fdot { width: 9px; height: 9px; }
+  .legItem.on { border-color: var(--line-strong); background: var(--panel); box-shadow: inset 0 0 0 1px var(--line-strong); font-weight: 600; }
+  .zoomgrp { display: inline-flex; align-items: center; gap: 6px; }
+  .zoomlabel { font-family: var(--mono); font-size: 11.5px; color: var(--muted); min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
+  .btn.zoombtn { min-width: 30px; padding: 5px 9px; font-size: 14px; line-height: 1; }
+  .badge.lane   { background: color-mix(in srgb, var(--lane-tq) 18%, var(--panel)); color: var(--lane-tq); }
   .node[data-hue="accent"] { border-left-color: var(--accent); }
   .node[data-hue="child"]  { border-left-color: var(--child); }
   .node[data-hue="nexus"]  { border-left-color: var(--nexus); }
@@ -195,7 +247,7 @@
 <div class="wrap">
   <header class="masthead">
     <p class="eyebrow">Demo 5 · Temporal × OpenAI Agents SDK</p>
-    <h1>Multi-Agent Orchestration <span class="thin">— how the files talk</span></h1>
+    <h1>Multi-Agent Orchestration</h1>
     <p class="lede">A <code>PersonalAssistant</code> orchestrator delegates to two specialists: a weather forecaster reached by a <b>child workflow</b>, and an F1 expert reached across a <b>Nexus</b> boundary. The colored bands are the three <b>task queues</b>; the dashed outlines are the two <b>worker processes</b> that poll them. Click any box — or a lane, or a worker outline — to inspect it.</p>
   </header>
 
@@ -208,7 +260,20 @@
       <button class="legItem" data-cat="setup"    aria-pressed="true"><span class="swatch"></span>Start &amp; setup</button>
       <button class="legItem dashed" data-cat="external" aria-pressed="true"><span class="swatch"></span>External I/O</button>
     </div>
+    <span class="clabel">Files</span>
+    <div class="legend" id="fileLegend">
+      <button class="legItem" data-key="pa" data-file="f1" type="button"><span class="fdot"></span>personal_assistant.py</button>
+      <button class="legItem" data-key="wx" data-file="f2" type="button"><span class="fdot"></span>weather_agent.py</button>
+      <button class="legItem" data-key="f1x" data-file="f3" type="button"><span class="fdot"></span>f1_expert_agent.py</button>
+      <button class="legItem" data-key="other" data-file="none" type="button"><span class="fdot"></span>activities / helper / client</button>
+    </div>
     <span class="spacer"></span>
+    <span class="zoomgrp" role="group" aria-label="Zoom">
+      <button class="btn zoombtn" id="zoomOut" type="button" aria-label="Zoom out">−</button>
+      <span class="zoomlabel" id="zoomLabel">100%</span>
+      <button class="btn zoombtn" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+      <button class="btn" id="zoomFit" type="button">Fit</button>
+    </span>
     <button class="btn" id="resetBtn" type="button">Reset view</button>
   </div>
 
@@ -226,8 +291,9 @@
 
   <div class="stage">
     <div class="canvasScroll">
-      <div class="canvas" id="canvas">
-        <svg class="edges" id="edges" viewBox="0 0 1200 1070" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="canvasViewport" id="viewport">
+        <div class="canvas" id="canvas">
+          <svg class="edges" id="edges" viewBox="0 0 1320 1160" preserveAspectRatio="none" aria-hidden="true"></svg>
         <!-- workers, lanes, nodes injected here -->
       </div>
     </div>
@@ -249,15 +315,64 @@
 const canvas = document.getElementById("canvas");
 const svg = document.getElementById("edges");
 const SVGNS = "http://www.w3.org/2000/svg";
+const CANVAS_W = 1320, CANVAS_H = 1160;
+
+/* ---------------- source-file grouping ----------------
+   Which file each box lives in, so you can see which file calls into which.
+   At most three files carry a hue (the palette cap for all-pairs colorblind
+   separation); every other file is neutral and identified by its label. */
+const FILES = [
+  { key:"pa", dot:"f1", label:"personal_assistant.py",
+    desc:"The orchestrator workflow and the two specialist tools it hands to the LLM." },
+  { key:"wx", dot:"f2", label:"weather_agent.py",
+    desc:"The weather specialist, running as its own child-workflow execution." },
+  { key:"f1x", dot:"f3", label:"f1_expert_agent.py",
+    desc:"The F1 specialist plus the Nexus service contract and its handler." },
+  { key:"other", dot:"none", label:"activities / helper / client",
+    desc:"tool_activities.py, child_workflow_tool.py, start_workflow.py, the workers, and the external services." },
+];
+const NODE_FILE = {
+  starter:"other",
+  pa_wf:"pa",
+  tool_weather:"pa",
+  tool_f1:"pa",
+  child_helper:"other",
+  weather_wf:"wx",
+  weather_agent:"wx",
+  act_ip:"other",
+  act_loc:"other",
+  act_coord:"other",
+  act_weather:"other",
+  f1_service:"f1x",
+  f1_handler:"f1x",
+  f1_wf:"f1x",
+  f1_agent:"f1x",
+  f1_mcp:"f1x",
+  weather_api:"other",
+  f1_mcp_server:"other",
+};
+const NODE_FILE_LABEL = {
+  starter:"start_workflow.py",
+  child_helper:"child_workflow_tool.py",
+  act_ip:"tool_activities.py",
+  act_loc:"tool_activities.py",
+  act_coord:"tool_activities.py",
+  act_weather:"tool_activities.py",
+  weather_api:"external service",
+  f1_mcp_server:"external service",
+};
+const FILE_LABEL = Object.fromEntries(FILES.map(f=>[f.key,f.label]));
+const FILE_DOT = Object.fromEntries(FILES.map(f=>[f.key,f.dot]));
+function fileOf(id){ return NODE_FILE[id] || "none"; }
 
 /* ---------------- worker process outlines ---------------- */
 const WORKERS = [
-  { id:"w-pa", x:8, y:108, w:744, h:812, label:"worker_pa.py", proc:"process A",
+  { id:"w-pa", x:8, y:108, w:800, h:900, label:"worker_pa.py", proc:"process A",
     detail:{ badge:"accent", type:"Worker process A", name:"worker_pa.py",
       file:"solution/worker_pa.py:29", tq:"polls orchestrator-tq + weather-agent-tq",
       desc:"One OS process running two Workers via asyncio.gather — the orchestrator (orchestrator-tq) and the weather specialist (weather-agent-tq). Its OpenAIAgentsPlugin keeps add_temporal_spans=True (default), so trace context flows cleanly from the starter through the child workflow.",
       members:["OpenAIAgentsPlugin(add_temporal_spans=True)","Worker(orchestrator-tq, workflows=[PersonalAssistantWorkflow])","Worker(weather-agent-tq, workflows=[WeatherAgentWorkflow], activities=[4])","asyncio.gather(weather_worker.run(), orchestrator_worker.run())"] } },
-  { id:"w-f1", x:800, y:240, w:392, h:680, label:"worker_f1.py", proc:"process B",
+  { id:"w-f1", x:850, y:250, w:460, h:680, label:"worker_f1.py", proc:"process B",
     detail:{ badge:"nexus", type:"Worker process B", name:"worker_f1.py",
       file:"solution/worker_f1.py:46", tq:"polls f1-expert-agent-tq",
       desc:"A separate process for the F1 team. Runs F1ExpertAgentWorkflow plus the Nexus service handler, and registers the F1 stateless-MCP provider. Its plugin sets add_temporal_spans=False — Nexus doesn't propagate trace context, so this silences no-op span leaks (HTTP 400 spam).",
@@ -266,19 +381,19 @@ const WORKERS = [
 
 /* ---------------- task-queue lanes ---------------- */
 const LANES = [
-  { id:"tq-orch", x:26, y:150, w:708, h:248, color:"var(--accent)",
+  { id:"tq-orch", x:26, y:150, w:764, h:340, color:"var(--lane-tq)",
     name:"orchestrator-tq", tag:"PersonalAssistantWorkflow",
-    detail:{ badge:"accent", type:"Task queue", name:"orchestrator-tq",
+    detail:{ badge:"lane", type:"Task queue", name:"orchestrator-tq",
       file:"worker_pa.py:26 (ORCHESTRATOR_TASK_QUEUE)", tq:"polled by worker_pa.py",
       desc:"The orchestrator's queue. worker_pa polls it and runs PersonalAssistantWorkflow here. The starter targets this queue in execute_workflow(...). The tools the orchestrator builds live on this workflow but dispatch across queue boundaries (weather child workflow / F1 Nexus).",
       members:["Polled by: worker_pa.py","Runs: PersonalAssistantWorkflow","Entered by: start_workflow.py → execute_workflow(task_queue=\"orchestrator-tq\")"] } },
-  { id:"tq-weather", x:26, y:420, w:708, h:470, color:"var(--child)",
+  { id:"tq-weather", x:26, y:510, w:764, h:470, color:"var(--child)",
     name:"weather-agent-tq", tag:"WeatherAgentWorkflow + 4 activities",
     detail:{ badge:"child", type:"Task queue", name:"weather-agent-tq",
       file:"worker_pa.py:25 (WEATHER_TASK_QUEUE)", tq:"polled by worker_pa.py",
       desc:"The weather specialist's queue — polled by the SAME process, worker_pa. The child-workflow tool starts WeatherAgentWorkflow here, and its four weather activities run here too. Because it's a child workflow in the same cluster, trace context propagates from the orchestrator.",
       members:["Polled by: worker_pa.py","Runs: WeatherAgentWorkflow","Activities: get_ip_address, get_location_info, get_coordinates, get_weather","Entered by: ask_weather_agent tool → execute_child_workflow(task_queue=\"weather-agent-tq\")"] } },
-  { id:"tq-f1", x:818, y:282, w:358, h:600, color:"var(--nexus)",
+  { id:"tq-f1", x:868, y:290, w:424, h:600, color:"var(--nexus)",
     name:"f1-expert-agent-tq", tag:"F1ExpertAgentWorkflow + Nexus handler",
     detail:{ badge:"nexus", type:"Task queue", name:"f1-expert-agent-tq",
       file:"worker_f1.py:22 (F1_EXPERT_TASK_QUEUE)", tq:"polled by worker_f1.py",
@@ -288,115 +403,131 @@ const LANES = [
 
 /* ---------------- nodes ---------------- */
 const NODES = [
-  { id:"starter", x:250, y:24, w:250, h:64, hue:"muted", type:"Client · asyncio",
+  { id:"starter", x:250, y:20, w:380, h:64, hue:"muted", type:"Client · asyncio",
+    code:"async def main() -> None:\n    with trace(\"PersonalAssistant\"):\n        await client.execute_workflow(...)",
     name:"start_workflow.py", sub:"execute_workflow()",
     file:"solution/start_workflow.py:49", tq:"— (separate client process)",
     desc:"CLI entry point. Opens a `with trace(\"PersonalAssistant\")` span, then starts one PersonalAssistantWorkflow on orchestrator-tq and awaits its result. Runs as its own process, outside both workers.",
     members:["main()", "with trace(\"PersonalAssistant\")", "client.execute_workflow(task_queue=\"orchestrator-tq\")"],
     snippet:[['c','# start_workflow.py'],['nl'],['k','with '],['fn','trace'],['p','('],['s','"PersonalAssistant"'],['p','):'],['nl'],['p','    result = await client.'],['fn','execute_workflow'],['p','('],['nl'],['p','        PersonalAssistantWorkflow.run, query,'],['nl'],['p','        task_queue='],['s','"orchestrator-tq"'],['p',')']] },
 
-  { id:"pa_wf", x:430, y:206, w:250, h:70, hue:"accent", type:"@workflow.defn",
+  { id:"pa_wf", x:200, y:190, w:420, h:70, hue:"accent", type:"@workflow.defn",
+    code:"@workflow.defn\nclass PersonalAssistantWorkflow:\n    @workflow.run\n    async def run(self, question: str) -> str:",
     name:"PersonalAssistantWorkflow", sub:".run(question) → str",
     file:"solution/personal_assistant.py:43", tq:"orchestrator-tq",
     desc:"The orchestrator. Builds two tools — a child-workflow tool and a Nexus tool — hands both to an Agent(\"PersonalAssistant\", gpt-4o), and runs it. The LLM decides which specialist(s) to call.",
     members:["run(question) → str", "child_workflow_as_tool(...) → weather_tool", "nexus_operation_as_tool(...) → f1_tool", "Agent(name=\"PersonalAssistant\")", "Runner.run(agent, question)"],
     snippet:[['c','# personal_assistant.py'],['nl'],['p','agent = '],['fn','Agent'],['p','(name='],['s','"PersonalAssistant"'],['p',', model='],['s','"gpt-4o"'],['p',','],['nl'],['p','    tools=[weather_tool, f1_tool])'],['nl'],['p','result = await Runner.'],['fn','run'],['p','(agent, input=question)']] },
 
-  { id:"child_helper", x:40, y:304, w:180, h:72, hue:"child", type:"helper fn",
+  { id:"child_helper", x:40, y:400, w:420, h:72, hue:"child", type:"helper fn",
+    code:"def child_workflow_as_tool(\n        workflow_run_method, *, name,\n        task_queue) -> FunctionTool:",
     name:"child_workflow_as_tool", sub:"→ FunctionTool",
     file:"solution/child_workflow_tool.py:12", tq:"—",
     desc:"Reusable helper mirroring activity_as_tool / nexus_operation_as_tool. Wraps a child workflow's run method as an Agents-SDK tool: each call becomes workflow.execute_child_workflow(...).",
     members:["child_workflow_as_tool(run_method, *, name, description, task_queue, execution_timeout)", "@function_tool _tool(question)", "workflow.execute_child_workflow(...)"],
     snippet:[['c','# child_workflow_tool.py'],['nl'],['p','@'],['fn','function_tool'],['p','(name_override=name, ...)'],['nl'],['k','async def '],['fn','_tool'],['p','(question: str) -> str:'],['nl'],['p','    return await workflow.'],['fn','execute_child_workflow'],['p','('],['nl'],['p','        workflow_run_method, question, task_queue=task_queue)']] },
 
-  { id:"tool_weather", x:250, y:304, w:190, h:72, hue:"child", type:"FunctionTool",
+  { id:"tool_weather", x:40, y:300, w:360, h:72, hue:"child", type:"FunctionTool",
+    code:"weather_tool = child_workflow_as_tool(\n    WeatherAgentWorkflow.run,\n    task_queue=\"weather-agent-tq\")",
     name:"ask_weather_agent", sub:"child_workflow_as_tool",
     file:"solution/personal_assistant.py:50", tq:"orchestrator-tq",
     desc:"The weather tool the LLM sees. Built by child_workflow_as_tool(WeatherAgentWorkflow.run, ...). Invoking it starts a WeatherAgentWorkflow child on weather-agent-tq.",
     members:["name=\"ask_weather_agent\"", "task_queue=\"weather-agent-tq\"", "execution_timeout=5min"],
     snippet:[['p','weather_tool = '],['fn','child_workflow_as_tool'],['p','('],['nl'],['p','    WeatherAgentWorkflow.run,'],['nl'],['p','    name='],['s','"ask_weather_agent"'],['p',','],['nl'],['p','    task_queue='],['s','"weather-agent-tq"'],['p',')']] },
 
-  { id:"tool_f1", x:520, y:304, w:190, h:72, hue:"nexus", type:"FunctionTool",
+  { id:"tool_f1", x:420, y:300, w:360, h:72, hue:"nexus", type:"FunctionTool",
+    code:"f1_tool = nexus_operation_as_tool(\n    F1ExpertService.ask_f1_expert,\n    endpoint=\"f1-expert\")",
     name:"ask_f1_expert", sub:"nexus_operation_as_tool",
     file:"solution/personal_assistant.py:62", tq:"orchestrator-tq",
     desc:"The F1 tool the LLM sees. Built from the F1ExpertService.ask_f1_expert Nexus operation, pointed at the \"f1-expert\" endpoint. Its description is set by hand (the contrib helper has no description hook).",
     members:["service=F1ExpertService", "endpoint=\"f1-expert\"", "schedule_to_close_timeout=5min", "f1_tool.description = \"...\""],
     snippet:[['p','f1_tool = '],['fn','nexus_operation_as_tool'],['p','('],['nl'],['p','    F1ExpertService.ask_f1_expert,'],['nl'],['p','    service=F1ExpertService,'],['nl'],['p','    endpoint='],['s','"f1-expert"'],['p',')']] },
 
-  { id:"weather_wf", x:250, y:470, w:200, h:70, hue:"child", type:"@workflow.defn",
+  { id:"weather_wf", x:200, y:550, w:420, h:70, hue:"child", type:"@workflow.defn",
+    code:"@workflow.defn\nclass WeatherAgentWorkflow:\n    @workflow.run\n    async def run(self, question: str) -> str:",
     name:"WeatherAgentWorkflow", sub:".run(question) → str",
     file:"solution/weather_agent.py:37", tq:"weather-agent-tq",
     desc:"Weather specialist, running as its own durable child-workflow execution. Builds an Agent(\"WeatherAgent\", gpt-4o) whose four tools are Temporal activities wrapped by activity_as_tool.",
     members:["run(question) → str", "Agent(name=\"WeatherAgent\")", "tools=[4× activity_as_tool(...)]", "Runner.run(agent, question)"],
     snippet:[['c','# weather_agent.py'],['nl'],['p','agent = '],['fn','Agent'],['p','(name='],['s','"WeatherAgent"'],['p',', model='],['s','"gpt-4o"'],['p',','],['nl'],['p','    tools=[activity_as_tool(get_ip_address, ...), ...])']] },
 
-  { id:"weather_agent", x:250, y:566, w:200, h:60, hue:"child", type:"Agent (gpt-4o)",
+  { id:"weather_agent", x:200, y:672, w:420, h:60, hue:"child", type:"Agent (gpt-4o)",
+    code:"agent = Agent(name=\"WeatherAgent\", model=\"gpt-4o\",\n    tools=[activity_as_tool(get_ip_address), ...])",
     name:"WeatherAgent", sub:"Runner.run(...)",
     file:"solution/weather_agent.py:42", tq:"weather-agent-tq",
     desc:"The OpenAI Agents SDK agent inside the weather workflow. Its LLM calls and tool calls run as Temporal activities via the plugin. It calls the four weather activities as tools.",
     members:["instructions = weather system prompt", "model=\"gpt-4o\"", "4 activity tools"] },
 
-  { id:"act_ip", x:44, y:668, w:186, h:58, hue:"child", type:"@activity.defn",
+  { id:"act_ip", x:40, y:770, w:360, h:58, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_ip_address() -> str:",
     name:"get_ip_address", sub:"→ str",
     file:"solution/tool_activities.py:13", tq:"weather-agent-tq",
     desc:"Returns the caller machine's public IP via httpx GET icanhazip.com.",
     members:["get_ip_address() → str"] },
-  { id:"act_loc", x:262, y:668, w:196, h:58, hue:"child", type:"@activity.defn",
+  { id:"act_loc", x:420, y:770, w:360, h:58, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_location_info(ipaddress: str) -> str:",
     name:"get_location_info", sub:"(ipaddress) → str",
     file:"solution/tool_activities.py:22", tq:"weather-agent-tq",
     desc:"IP-based geolocation (city/state/country/lat/lon) via httpx GET ip-api.com.",
     members:["get_location_info(ipaddress) → str"] },
-  { id:"act_coord", x:44, y:760, w:186, h:58, hue:"child", type:"@activity.defn",
+  { id:"act_coord", x:40, y:860, w:360, h:58, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_coordinates(city: str) -> str:",
     name:"get_coordinates", sub:"(city) → str",
     file:"solution/tool_activities.py:37", tq:"weather-agent-tq",
     desc:"City → lat/lon via Open-Meteo geocoder. Returns an explicit no_match payload when the geocoder finds nothing, so the LLM stops retrying.",
     members:["get_coordinates(city) → str"] },
-  { id:"act_weather", x:262, y:760, w:196, h:58, hue:"child", type:"@activity.defn",
+  { id:"act_weather", x:420, y:860, w:360, h:58, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_weather(\n        latitude: float, longitude: float) -> str:",
     name:"get_weather", sub:"(lat, lon) → str",
     file:"solution/tool_activities.py:72", tq:"weather-agent-tq",
     desc:"Current weather (temp °F, weather code, wind) for coordinates via Open-Meteo forecast API.",
     members:["get_weather(latitude, longitude) → str"] },
 
-  { id:"f1_service", x:888, y:340, w:210, h:66, hue:"nexus", type:"@nexusrpc.service",
+  { id:"f1_service", x:886, y:340, w:388, h:66, hue:"nexus", type:"@nexusrpc.service",
+    code:"@nexusrpc.service\nclass F1ExpertService:\n    ask_f1_expert: Operation[AskRequest, AskResponse]",
     name:"F1ExpertService", sub:"ask_f1_expert: Operation",
     file:"solution/f1_expert_agent.py:28", tq:"f1-expert-agent-tq",
     desc:"The typed Nexus contract — the boundary the orchestrator calls across. One operation, ask_f1_expert, with Pydantic AskRequest → AskResponse so the tool schema can be derived.",
     members:["ask_f1_expert: Operation[AskRequest, AskResponse]", "class AskRequest(question: str)", "class AskResponse(answer: str)"],
     snippet:[['p','@'],['fn','nexusrpc.service'],['nl'],['k','class '],['fn','F1ExpertService'],['p',':'],['nl'],['p','    ask_f1_expert: nexusrpc.Operation['],['nl'],['p','        AskRequest, AskResponse]']] },
 
-  { id:"f1_handler", x:888, y:436, w:210, h:66, hue:"nexus", type:"@service_handler",
+  { id:"f1_handler", x:886, y:446, w:388, h:66, hue:"nexus", type:"@service_handler",
+    code:"@service_handler(service=F1ExpertService)\nclass F1ExpertServiceHandler:\n    @nexus.workflow_run_operation\n    async def ask_f1_expert(self, ctx, request):",
     name:"F1ExpertServiceHandler", sub:"ask_f1_expert(ctx, req)",
     file:"solution/f1_expert_agent.py:71", tq:"f1-expert-agent-tq",
     desc:"Implements the Nexus operation. Its @nexus.workflow_run_operation method starts an F1ExpertAgentWorkflow and returns a handle — bridging the Nexus call to a real workflow execution.",
     members:["@nexus.workflow_run_operation", "ask_f1_expert(ctx, request) → WorkflowHandle", "ctx.start_workflow(F1ExpertAgentWorkflow.run, ...)"],
     snippet:[['p','@'],['fn','nexus.workflow_run_operation'],['nl'],['k','async def '],['fn','ask_f1_expert'],['p','(self, ctx, request):'],['nl'],['p','    return await ctx.'],['fn','start_workflow'],['p','('],['nl'],['p','        F1ExpertAgentWorkflow.run, request)']] },
 
-  { id:"f1_wf", x:888, y:532, w:210, h:70, hue:"nexus", type:"@workflow.defn",
+  { id:"f1_wf", x:886, y:568, w:388, h:70, hue:"nexus", type:"@workflow.defn",
+    code:"@workflow.defn\nclass F1ExpertAgentWorkflow:\n    @workflow.run\n    async def run(self, request) -> AskResponse:",
     name:"F1ExpertAgentWorkflow", sub:".run(AskRequest) → AskResponse",
     file:"solution/f1_expert_agent.py:54", tq:"f1-expert-agent-tq",
     desc:"F1 specialist, running as its own workflow execution started by the Nexus handler. Builds an Agent(\"F1Expert\", gpt-4o) whose toolkit is the F1 MCP server (not activities).",
     members:["run(request) → AskResponse", "stateless_mcp_server(name=\"f1-data\")", "Agent(name=\"F1Expert\", mcp_servers=[f1])", "Runner.run(agent, request.question)"],
     snippet:[['c','# f1_expert_agent.py'],['nl'],['p','f1 = '],['fn','stateless_mcp_server'],['p','(name='],['s','"f1-data"'],['p',')'],['nl'],['p','agent = '],['fn','Agent'],['p','(name='],['s','"F1Expert"'],['p',', mcp_servers=[f1])']] },
 
-  { id:"f1_agent", x:888, y:632, w:210, h:60, hue:"nexus", type:"Agent (gpt-4o)",
+  { id:"f1_agent", x:886, y:690, w:388, h:60, hue:"nexus", type:"Agent (gpt-4o)",
+    code:"agent = Agent(name=\"F1Expert\", model=\"gpt-4o\",\n    mcp_servers=[f1])",
     name:"F1Expert", sub:"Runner.run(...)",
     file:"solution/f1_expert_agent.py:60", tq:"f1-expert-agent-tq",
     desc:"The Agents SDK agent inside the F1 workflow. Instead of activity tools, it is given MCP servers — the F1 data toolkit is discovered dynamically from the MCP server.",
     members:["instructions = F1 system prompt", "model=\"gpt-4o\"", "mcp_servers=[f1-data]"] },
 
-  { id:"f1_mcp", x:888, y:724, w:210, h:60, hue:"nexus", type:"MCP handle",
+  { id:"f1_mcp", x:886, y:780, w:388, h:60, hue:"nexus", type:"MCP handle",
+    code:"f1 = stateless_mcp_server(name=\"f1-data\",\n    cache_tools_list=True)",
     name:"stateless_mcp_server", sub:"name=\"f1-data\"",
     file:"solution/f1_expert_agent.py:59", tq:"f1-expert-agent-tq",
     desc:"In-workflow MCP handle. It resolves to the StatelessMCPServerProvider registered on worker_f1's plugin, which launches the real F1 MCP server on demand. Tool list is cached.",
     members:["stateless_mcp_server(name=\"f1-data\", cache_tools_list=True)", "resolved via worker_f1 plugin provider"] },
 
-  { id:"weather_api", x:150, y:976, w:300, h:58, hue:"muted", type:"external",
+  { id:"weather_api", x:150, y:1040, w:380, h:58, hue:"muted", type:"external",
     name:"Public HTTP APIs", sub:"httpx → icanhazip · ip-api · open-meteo",
     file:"(external services)", tq:"—",
     desc:"Free public endpoints the weather activities call over httpx: icanhazip.com, ip-api.com, and Open-Meteo's geocoding + forecast APIs.",
     members:["icanhazip.com", "ip-api.com/json", "geocoding-api.open-meteo.com", "api.open-meteo.com/forecast"] },
 
-  { id:"f1_mcp_server", x:850, y:976, w:240, h:64, hue:"muted", type:"external · stdio",
+  { id:"f1_mcp_server", x:886, y:1040, w:388, h:64, hue:"muted", type:"external · stdio",
     name:"F1 MCP server", sub:"node build/index.js → 8 tools",
     file:"worker_f1.py:31 (_f1_server_factory)", tq:"—",
     desc:"External Node.js MCP server launched over stdio by worker_f1's StatelessMCPServerProvider. Exposes 8 F1 data tools (schedules, results, standings, telemetry). Same install reused from demo3.",
@@ -473,7 +604,7 @@ LANES.forEach(ln=>{
 
 // external caption
 const cap = document.createElement("div");
-cap.className = "ext-cap"; cap.style.left = "150px"; cap.style.top = "950px";
+cap.className = "ext-cap"; cap.style.left = "150px"; cap.style.top = "1012px";
 cap.textContent = "External services · not on any task queue";
 canvas.appendChild(cap);
 
@@ -482,7 +613,16 @@ NODES.forEach(n=>{
   const el = document.createElement("button");
   el.type="button"; el.className="node"; el.dataset.id=n.id; el.dataset.hue=n.hue;
   el.style.left=n.x+"px"; el.style.top=n.y+"px"; el.style.width=n.w+"px";
-  el.innerHTML = `<div class="ntype">${n.type}</div><div class="nname">${n.name}</div>${n.sub?`<div class="nsub">${n.sub}</div>`:""}${n.id==="starter"?`<span class="start-badge">START</span>`:""}`;
+  const fkey = fileOf(n.id);
+  el.dataset.file = FILE_DOT[fkey];
+  // Declaration boxes render the real signature; the few that are not
+  // declarations (external services) keep the kicker/name/sub form.
+  const body = n.code
+    ? `<div class="ncode">${hl(n.code)}</div>`
+    : `<div class="ntype">${n.type}</div><div class="nname">${n.name}</div>${n.sub?`<div class="nsub">${n.sub}</div>`:""}`;
+  el.innerHTML = body
+    + `<div class="nfile"><span class="fdot"></span>${NODE_FILE_LABEL[n.id] || FILE_LABEL[fkey]}</div>`
+    + `${n.id==="starter"?`<span class="start-badge">START</span>`:""}`;
   el.addEventListener("click",(e)=>{ e.stopPropagation(); selectNode(n.id); });
   canvas.appendChild(el); n._el = el;
 });
@@ -532,7 +672,9 @@ function neighborsOf(id){
   return { nodes, edges };
 }
 function clearState(){
-  NODES.forEach(n=> n._el.classList.remove("dim","active","neighbor"));
+  NODES.forEach(n=> n._el.classList.remove("dim","active","neighbor","fileLit"));
+  activeFile = null;
+  document.querySelectorAll("#fileLegend .legItem").forEach(b=> b.classList.remove("on"));
   WORKERS.forEach(w=> w._el.classList.remove("lit"));
   LANES.forEach(l=> l._el.classList.remove("lit"));
   edgeEls.forEach(({path,txt})=>{ path.classList.remove("dim","hot"); txt.classList.remove("dim"); });
@@ -575,6 +717,21 @@ function relItemHTML(r){
   return `<li><button data-goto="${r.id}"><span class="rel-arrow">${r.dir}</span>${n.name}<span class="rel-kind">${CAT_LABEL[r.cat]}</span></button></li>`;
 }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+/* Minimal Python/Java highlighter for the node signature blocks. Single pass with
+   one regex and a callback - a chain of .replace() calls would re-scan the markup
+   it just inserted and match the word "class" inside class="...".
+   The regex is a literal rather than a shared const: hl() is called from the
+   node-render pass that runs earlier in this script, so a const declared here
+   would be in its temporal dead zone. */
+function hl(src){
+  return esc(src).replace(/(@[\w.]+)|("(?:[^"\\]|\\.)*")|\b(class|def|interface)(\s+)(\w+)|\b(async|await|lambda|not|return|None|True|False|self|public|private|final|new|void|implements|extends)\b/g, (m, deco, str_, kw1, sp, name, kw2) => {
+    if(deco) return `<span class="cd">${deco}</span>`;
+    if(str_) return `<span class="cs">${str_}</span>`;
+    if(kw1)  return `<span class="ck">${kw1}</span>${sp}<span class="cn">${name}</span>`;
+    return `<span class="ck">${kw2}</span>`;
+  });
+}
+
 function snippetHTML(parts){
   if(!parts) return "";
   let out="";
@@ -620,6 +777,98 @@ document.getElementById("legend").addEventListener("click",(e)=>{
   else { activeCats.add(cat); item.classList.remove("off"); item.setAttribute("aria-pressed","true"); }
   applyFilter();
 });
+
+/* ---------------- zoom / fit-to-width ----------------
+   The canvas is a fixed coordinate space so the absolute node positions and the
+   SVG edge math stay simple. Instead of reflowing it for narrow panes, scale the
+   whole thing to fit the available width - which is what kills the horizontal
+   scrollbar in Instruqt's split view. */
+const viewport = document.getElementById("viewport");
+const scrollEl = document.querySelector(".canvasScroll");
+const elZoomLabel = document.getElementById("zoomLabel");
+const MIN_ZOOM = 0.3, MAX_ZOOM = 2;
+let userZoom = null;   // null = follow fit-to-width
+let curScale = 1;
+
+function fitScale(){
+  const avail = scrollEl.clientWidth;
+  if(!avail) return 1;
+  return Math.min(1, Math.max(MIN_ZOOM, avail / CANVAS_W));
+}
+function applyZoom(){
+  const s = userZoom === null ? fitScale() : userZoom;
+  curScale = s;
+  canvas.style.transform = "scale("+s+")";
+  viewport.style.width = Math.floor(CANVAS_W*s)+"px";
+  viewport.style.height = Math.ceil(CANVAS_H*s)+"px";
+  elZoomLabel.textContent = Math.round(s*100)+"%";
+  document.getElementById("zoomFit").disabled = (userZoom === null);
+}
+function nudgeZoom(delta){
+  const base = userZoom === null ? fitScale() : userZoom;
+  userZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round((base+delta)*100)/100));
+  applyZoom();
+}
+document.getElementById("zoomIn").addEventListener("click", ()=> nudgeZoom(+0.15));
+document.getElementById("zoomOut").addEventListener("click", ()=> nudgeZoom(-0.15));
+document.getElementById("zoomFit").addEventListener("click", ()=>{ userZoom = null; applyZoom(); });
+let lastFit = null;
+if(typeof ResizeObserver !== "undefined"){
+  new ResizeObserver(()=>{
+    if(userZoom !== null) return;
+    const f = fitScale();
+    if(f !== lastFit){ lastFit = f; applyZoom(); }
+  }).observe(scrollEl);
+}
+
+/* ---------------- file filter ----------------
+   Pick a file: ring its nodes, dim the rest, keep only edges that touch it - so a
+   cross-file call reads as an edge leaving the lit set. */
+let activeFile = null;
+function selectFile(key){
+  exitFlow();
+  clearState();
+  document.querySelectorAll("#fileLegend .legItem").forEach(b=>
+    b.classList.toggle("on", b.dataset.key===key));
+  activeFile = key;
+  NODES.forEach(n=>{
+    if(fileOf(n.id)===key) n._el.classList.add("fileLit");
+    else n._el.classList.add("dim");
+  });
+  edgeEls.forEach(({data,path,txt})=>{
+    if(fileOf(data.from)===key || fileOf(data.to)===key) path.classList.add("hot");
+    else { path.classList.add("dim"); txt.classList.add("dim"); }
+  });
+  renderFileDetail(key);
+}
+function renderFileDetail(key){
+  const f = FILES.find(x=>x.key===key);
+  const mine = NODES.filter(n=>fileOf(n.id)===key);
+  const ids = new Set(mine.map(n=>n.id));
+  const out = EDGES.filter(e=>ids.has(e.from) && !ids.has(e.to));
+  const inc = EDGES.filter(e=>!ids.has(e.from) && ids.has(e.to));
+  const row = (e,dir)=>{
+    const other = dir==="\u2192" ? e.to : e.from;
+    return `<li><button data-goto="${other}"><span class="rel-arrow">${dir}</span>${nodeMap[other].name}`
+      + `<span class="rel-kind">${FILE_LABEL[fileOf(other)]}</span></button></li>`;
+  };
+  document.getElementById("detail").innerHTML = `
+    <span class="badge muted">Source file</span>
+    <h2>${esc(f.label)}</h2>
+    <div class="file">${mine.length} component${mine.length===1?"":"s"} in this diagram</div>
+    <p class="desc">${esc(f.desc)}</p>
+    <div class="sec">Defined here</div>
+    <ul class="rellist">${mine.map(n=>`<li><button data-goto="${n.id}">${n.name}</button></li>`).join("")}</ul>
+    ${out.length?`<div class="sec">Calls out to other files</div><ul class="rellist">${out.map(e=>row(e,"\u2192")).join("")}</ul>`:""}
+    ${inc.length?`<div class="sec">Called from other files</div><ul class="rellist">${inc.map(e=>row(e,"\u2190")).join("")}</ul>`:""}`;
+  document.getElementById("detail").querySelectorAll("button[data-goto]")
+    .forEach(b=> b.addEventListener("click",()=> selectNode(b.dataset.goto)));
+}
+document.getElementById("fileLegend").addEventListener("click",(e)=>{
+  const item=e.target.closest(".legItem"); if(!item) return;
+  if(activeFile===item.dataset.key) resetView(); else selectFile(item.dataset.key);
+});
+
 document.getElementById("resetBtn").addEventListener("click", resetView);
 canvas.addEventListener("click",(e)=>{ if(e.target===canvas || e.target===svg) resetView(); });
 
@@ -712,7 +961,9 @@ function scrollToNodes(ids){
     minX=Math.min(minX,el.offsetLeft); minY=Math.min(minY,el.offsetTop);
     maxX=Math.max(maxX,el.offsetLeft+el.offsetWidth); maxY=Math.max(maxY,el.offsetTop+el.offsetHeight); });
   if(minX===Infinity) return;
-  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+  // offsetLeft/offsetTop are unscaled canvas coordinates; the scroll container
+  // works in scaled pixels, so convert before centering.
+  const cx=((minX+maxX)/2)*curScale, cy=((minY+maxY)/2)*curScale;
   cs.scrollTo({ left: cx - cs.clientWidth/2, top: cy - cs.clientHeight/2, behavior:"smooth" });
 }
 
@@ -766,8 +1017,8 @@ elNext.addEventListener("click", ()=>{ stopPlay(); if(flowIdx<0) enterStep(0); e
 elPrev.addEventListener("click", ()=>{ stopPlay(); flowPrev(); });
 
 /* ---------------- boot ---------------- */
-function boot(){ layout(); applyFilter(); }
-window.addEventListener("resize", layout);
+function boot(){ layout(); applyFilter(); applyZoom(); lastFit = fitScale(); }
+window.addEventListener("resize", ()=>{ layout(); if(userZoom===null) applyZoom(); });
 if(document.readyState==="complete") boot(); else window.addEventListener("load", boot);
 requestAnimationFrame(()=> requestAnimationFrame(layout));
 </script>

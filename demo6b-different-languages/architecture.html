@@ -12,6 +12,18 @@
     --child: #c9791b;    /* child-workflow path (weather) */
     --nexus: #0f9d94;    /* python nexus path (f1) */
     --java:  #b0308a;    /* cross-language nexus path (java travel planner) */
+    /* Python/Java syntax colors for the node signature blocks - deliberately NOT
+       --accent, so code text stops adding to the purple on screen. */
+    --syn-kw: #0b4fbd;
+    --syn-deco: #795e26;
+    --syn-str: #a31515;
+    /* Source-file identity - a separate channel from the edge hues. At most three
+       files carry a hue (the all-pairs colorblind cap); the rest are neutral. */
+    --file-1: #2a78d6;
+    --file-2: #e87ba4;
+    --file-3: #008300;
+    --file-none: #8b95a4;
+    --lane-tq: #54708c;  /* task-queue band (was --accent) */
     --on-accent: #ffffff;
     --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
     --radius: 13px;
@@ -23,6 +35,9 @@
       --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
       --ink: #e6ebf2; --muted: #93a0b1; --faint: #64707f; --line: #29323f; --line-strong: #38434f;
       --accent: #8b8ff5; --child: #f0a848; --nexus: #3ad6ce; --java: #e879c7; --on-accent: #141922;
+      --syn-kw: #569cd6; --syn-deco: #dcdcaa; --syn-str: #ce9178;
+      --file-1: #3987e5; --file-2: #d55181; --file-3: #008300; --file-none: #64707f;
+      --lane-tq: #8ba3bd;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
     }
   }
@@ -30,12 +45,18 @@
     --bg: #eef1f5; --bg-grid: #e2e7ee; --panel: #ffffff; --panel-2: #f7f9fc;
     --ink: #18202e; --muted: #5b6676; --faint: #8b95a4; --line: #d3dae3; --line-strong: #b9c2ce;
     --accent: #5457d6; --child: #c9791b; --nexus: #0f9d94; --java: #b0308a; --on-accent: #ffffff;
+    --syn-kw: #0b4fbd; --syn-deco: #795e26; --syn-str: #a31515;
+    --file-1: #2a78d6; --file-2: #e87ba4; --file-3: #008300; --file-none: #8b95a4;
+    --lane-tq: #54708c;
     --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
   }
   :root[data-theme="dark"] {
     --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
     --ink: #e6ebf2; --muted: #93a0b1; --faint: #64707f; --line: #29323f; --line-strong: #38434f;
     --accent: #8b8ff5; --child: #f0a848; --nexus: #3ad6ce; --java: #e879c7; --on-accent: #141922;
+    --syn-kw: #569cd6; --syn-deco: #dcdcaa; --syn-str: #ce9178;
+    --file-1: #3987e5; --file-2: #d55181; --file-3: #008300; --file-none: #64707f;
+    --lane-tq: #8ba3bd;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
   }
 
@@ -49,11 +70,7 @@
 
   header.masthead { margin-bottom: 18px; }
   .eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--java); font-weight: 600; margin: 0 0 8px; }
-  h1 { font-size: clamp(24px, 3.4vw, 38px); line-height: 1.08; margin: 0 0 10px; letter-spacing: -.02em; text-wrap: balance; font-weight: 700; }
-  h1 .thin { color: var(--muted); font-weight: 400; }
-  .lede { margin: 0; max-width: 78ch; color: var(--muted); font-size: 15.5px; }
-  .lede code { font-family: var(--mono); font-size: .9em; color: var(--ink); background: color-mix(in srgb, var(--java) 12%, var(--panel)); padding: 1px 5px; border-radius: 5px; }
-  .lede b { color: var(--ink); }
+  h1 { font-size: clamp(24px, 3.4vw, 38px); line-height: 1.08; margin: 0; letter-spacing: -.02em; text-wrap: balance; font-weight: 700; }
 
   .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 18px 0 12px; padding: 11px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
   .controls .clabel { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
@@ -136,6 +153,31 @@
   .node .ntype { font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
   .node .nname { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); margin-top: 2px; word-break: break-word; }
   .node .nsub { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+  /* source-declaration block: reads like the real file. Lines are authored
+     pre-wrapped in the node data, so `pre` never surprises us with a reflow. */
+  .node .ncode { font-family: var(--mono); font-size: 10.5px; line-height: 1.55; white-space: pre; color: var(--muted); }
+  .node .ncode .cd { color: var(--syn-deco); }
+  .node .ncode .ck { color: var(--syn-kw); }
+  .node .ncode .cn { color: var(--ink); font-weight: 700; }
+  .node .ncode .cs { color: var(--syn-str); }
+  /* source-file row: colored dot carries identity, filename stays in muted ink */
+  .node .nfile { display: flex; align-items: center; gap: 5px; margin-top: 6px; font-family: var(--mono); font-size: 9.5px; color: var(--faint); letter-spacing: .01em; }
+  .fdot { width: 7px; height: 7px; border-radius: 50%; background: var(--fc, var(--file-none)); flex: none; }
+  .node[data-file="f1"]   { --fc: var(--file-1); }
+  .node[data-file="f2"]   { --fc: var(--file-2); }
+  .node[data-file="f3"]   { --fc: var(--file-3); }
+  .node[data-file="none"] { --fc: var(--file-none); }
+  .node.fileLit { box-shadow: 0 0 0 2px var(--fc), var(--shadow); }
+  .legItem[data-file="f1"]   .fdot { background: var(--file-1); }
+  .legItem[data-file="f2"]   .fdot { background: var(--file-2); }
+  .legItem[data-file="f3"]   .fdot { background: var(--file-3); }
+  .legItem[data-file="none"] .fdot { background: var(--file-none); }
+  .legItem .fdot { width: 9px; height: 9px; }
+  .legItem.on { border-color: var(--line-strong); background: var(--panel); box-shadow: inset 0 0 0 1px var(--line-strong); font-weight: 600; }
+  .zoomgrp { display: inline-flex; align-items: center; gap: 6px; }
+  .zoomlabel { font-family: var(--mono); font-size: 11.5px; color: var(--muted); min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
+  .btn.zoombtn { min-width: 30px; padding: 5px 9px; font-size: 14px; line-height: 1; }
+  .badge.lane   { background: color-mix(in srgb, var(--lane-tq) 18%, var(--panel)); color: var(--lane-tq); }
   .node[data-hue="accent"] { border-left-color: var(--accent); }
   .node[data-hue="child"] { border-left-color: var(--child); }
   .node[data-hue="nexus"] { border-left-color: var(--nexus); }
@@ -192,8 +234,7 @@
 <div class="wrap">
   <header class="masthead">
     <p class="eyebrow">Demo 6b · Temporal · Python + Java</p>
-    <h1>Cross-Language Multi-Agent Orchestration <span class="thin">— one orchestrator, three specialists, two languages</span></h1>
-    <p class="lede">A Python <code>PersonalAssistant</code> orchestrator drives three specialists: a weather forecaster (<b>child workflow</b>), a Python F1 expert (<b>Nexus</b>), and a <b>Java + Spring AI travel planner reached over a cross-language Nexus boundary</b>. Same orchestration mechanism, different language — the rose path crosses 🐍 → ☕. Click any box, lane, or worker; press <b>Play data flow</b> to trace a request through all three.</p>
+    <h1>Cross-Language Multi-Agent Orchestration</h1>
   </header>
 
   <div class="controls" role="group" aria-label="Diagram controls">
@@ -206,7 +247,20 @@
       <button class="legItem" data-cat="setup" aria-pressed="true"><span class="swatch"></span>Start &amp; setup</button>
       <button class="legItem dashed" data-cat="external" aria-pressed="true"><span class="swatch"></span>External I/O</button>
     </div>
+    <span class="clabel">Files</span>
+    <div class="legend" id="fileLegend">
+      <button class="legItem" data-key="pa" data-file="f1" type="button"><span class="fdot"></span>personal_assistant.py</button>
+      <button class="legItem" data-key="f1x" data-file="f3" type="button"><span class="fdot"></span>f1_expert_agent.py</button>
+      <button class="legItem" data-key="java" data-file="f2" type="button"><span class="fdot"></span>travel-planner-java/</button>
+      <button class="legItem" data-key="other" data-file="none" type="button"><span class="fdot"></span>python support / external</button>
+    </div>
     <span class="spacer"></span>
+    <span class="zoomgrp" role="group" aria-label="Zoom">
+      <button class="btn zoombtn" id="zoomOut" type="button" aria-label="Zoom out">−</button>
+      <span class="zoomlabel" id="zoomLabel">100%</span>
+      <button class="btn zoombtn" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+      <button class="btn" id="zoomFit" type="button">Fit</button>
+    </span>
     <button class="btn" id="resetBtn" type="button">Reset view</button>
   </div>
 
@@ -226,7 +280,7 @@
     <div class="canvasScroll" id="canvasScroll">
       <div class="canvasFit" id="canvasFit">
         <div class="canvas" id="canvas">
-          <svg class="edges" id="edges" viewBox="0 0 1560 1030" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <svg class="edges" id="edges" viewBox="0 0 1820 1200" preserveAspectRatio="none" aria-hidden="true"></svg>
         </div>
       </div>
     </div>
@@ -245,29 +299,92 @@
 
 <script>
 "use strict";
-const CANVAS_W = 1560, CANVAS_H = 1030;
+const CANVAS_W = 1820, CANVAS_H = 1200;
 
 const canvas = document.getElementById("canvas");
 const canvasFit = document.getElementById("canvasFit");
 const canvasScroll = document.getElementById("canvasScroll");
 const svg = document.getElementById("edges");
 const SVGNS = "http://www.w3.org/2000/svg";
+
+/* ---------------- source-file grouping ----------------
+   Which file each box lives in. At most three files carry a hue (the palette cap
+   for all-pairs colorblind separation); every other file is neutral and identified
+   by the filename on its footer row. */
+const FILES = [
+  { key:"pa", dot:"f1", label:"personal_assistant.py",
+    desc:"The Python orchestrator and the three specialist tools it hands to the LLM." },
+  { key:"f1x", dot:"f3", label:"f1_expert_agent.py",
+    desc:"The Python F1 specialist, its Nexus contract and handler." },
+  { key:"java", dot:"f2", label:"travel-planner-java/",
+    desc:"The Java specialist: Nexus contract, handler, workflow, Spring AI ChatClient and tools." },
+  { key:"other", dot:"none", label:"python support / external",
+    desc:"weather_agent.py, tool_activities.py, child_workflow_tool.py, start_workflow.py and the external services." },
+];
+const NODE_FILE = {
+  starter:"other",
+  pa_wf:"pa",
+  tool_weather:"pa",
+  tool_f1:"pa",
+  tool_travel:"pa",
+  weather_wf:"other",
+  weather_agent:"other",
+  act_ip:"other",
+  act_loc:"other",
+  act_coord:"other",
+  act_weather:"other",
+  f1_service:"f1x",
+  f1_handler:"f1x",
+  f1_wf:"f1x",
+  f1_agent:"f1x",
+  f1_mcp:"f1x",
+  java_service:"java",
+  java_handler:"java",
+  java_wf:"java",
+  chatclient:"java",
+  chat_activity:"java",
+  travel_tools:"java",
+  weather_api:"other",
+  f1_mcp_server:"other",
+  travel_api:"other",
+};
+const NODE_FILE_LABEL = {
+  starter:"start_workflow.py",
+  weather_wf:"weather_agent.py",
+  weather_agent:"weather_agent.py",
+  act_ip:"tool_activities.py",
+  act_loc:"tool_activities.py",
+  act_coord:"tool_activities.py",
+  act_weather:"tool_activities.py",
+  java_service:"TravelPlannerService.java",
+  java_handler:"TravelPlannerServiceImpl.java",
+  java_wf:"TravelPlannerAgentWorkflowImpl.java",
+  chatclient:"TravelPlannerAgentWorkflowImpl.java",
+  chat_activity:"temporal-spring-ai (generated)",
+  travel_tools:"tools/TravelTools.java",
+  weather_api:"external service",
+  f1_mcp_server:"external service",
+  travel_api:"external service",
+};
+const FILE_LABEL = Object.fromEntries(FILES.map(f=>[f.key,f.label]));
+const FILE_DOT = Object.fromEntries(FILES.map(f=>[f.key,f.dot]));
+function fileOf(id){ return NODE_FILE[id] || "other"; }
 canvas.style.width = CANVAS_W + "px";
 canvas.style.height = CANVAS_H + "px";
 
 /* ---------------- worker process outlines ---------------- */
 const WORKERS = [
-  { id:"w-pa", cls:"", x:8, y:110, w:560, h:790, label:"worker_pa.py", proc:"🐍 Python · process A",
+  { id:"w-pa", cls:"", x:8, y:110, w:620, h:900, label:"worker_pa.py", proc:"🐍 Python · process A",
     detail:{ badge:"accent", type:"Worker process A · Python", name:"worker_pa.py",
       file:"solution/worker_pa.py:30", tq:"polls orchestrator-tq + weather-agent-tq",
       desc:"One Python process running two Workers via asyncio.gather — the orchestrator (orchestrator-tq) and the weather specialist (weather-agent-tq). No travel-planner activity is registered here: that specialist is a separate Java worker reached over Nexus. Plugin keeps add_temporal_spans=True.",
       members:["OpenAIAgentsPlugin(add_temporal_spans=True)","Worker(orchestrator-tq, [PersonalAssistantWorkflow])","Worker(weather-agent-tq, [WeatherAgentWorkflow] + 4 activities)","asyncio.gather(weather_worker.run(), orchestrator_worker.run())"] } },
-  { id:"w-f1", cls:"", x:602, y:250, w:430, h:650, label:"worker_f1.py", proc:"🐍 Python · process B",
+  { id:"w-f1", cls:"", x:660, y:250, w:480, h:680, label:"worker_f1.py", proc:"🐍 Python · process B",
     detail:{ badge:"nexus", type:"Worker process B · Python", name:"worker_f1.py",
       file:"solution/worker_f1.py", tq:"polls f1-expert-agent-tq",
       desc:"A separate Python process for the F1 team. Runs F1ExpertAgentWorkflow plus the Python Nexus service handler, and registers the F1 stateless-MCP provider. Plugin sets add_temporal_spans=False (Nexus doesn't propagate trace context).",
       members:["OpenAIAgentsPlugin(add_temporal_spans=False)","StatelessMCPServerProvider(name=\"f1-data\")","Worker(f1-expert-agent-tq, [F1ExpertAgentWorkflow], nexus_service_handlers=[F1ExpertServiceHandler()])"] } },
-  { id:"w-java", cls:"w-java", x:1066, y:250, w:486, h:650, label:"WorkerApplication", proc:"☕ Java / Spring Boot · process C",
+  { id:"w-java", cls:"w-java", x:1170, y:250, w:620, h:795, label:"WorkerApplication", proc:"☕ Java / Spring Boot · process C",
     detail:{ badge:"java", type:"Worker process C · Java / Spring Boot", name:"WorkerApplication.java",
       file:"travel-planner-java/.../WorkerApplication.java", tq:"polls travel-planner-agent-tq",
       desc:"A separate JVM process. temporal-spring-boot-starter reads application.yaml to build a Worker on travel-planner-agent-tq hosting the travel-planner workflow, its tool activities, and the cross-language Nexus handler bean. temporal-spring-ai auto-registers the ChatModelActivity (the durable LLM call).",
@@ -276,25 +393,25 @@ const WORKERS = [
 
 /* ---------------- task-queue lanes ---------------- */
 const LANES = [
-  { id:"tq-orch", x:24, y:152, w:528, h:248, color:"var(--accent)",
+  { id:"tq-orch", x:26, y:152, w:584, h:352, color:"var(--lane-tq)",
     name:"orchestrator-tq", tag:"PersonalAssistantWorkflow",
-    detail:{ badge:"accent", type:"Task queue", name:"orchestrator-tq",
+    detail:{ badge:"lane", type:"Task queue", name:"orchestrator-tq",
       file:"worker_pa.py:27 (ORCHESTRATOR_TASK_QUEUE)", tq:"polled by worker_pa.py (Python)",
       desc:"The orchestrator's queue. worker_pa runs PersonalAssistantWorkflow here. The starter targets it in execute_workflow. Its three tools dispatch across boundaries: weather (child workflow), F1 (Python Nexus), travel (cross-language Nexus to Java).",
       members:["Polled by: worker_pa.py","Runs: PersonalAssistantWorkflow","Entered by: start_workflow.py → execute_workflow(task_queue=\"orchestrator-tq\")"] } },
-  { id:"tq-weather", x:24, y:420, w:528, h:470, color:"var(--child)",
+  { id:"tq-weather", x:26, y:512, w:584, h:480, color:"var(--child)",
     name:"weather-agent-tq", tag:"WeatherAgentWorkflow + 4 activities",
     detail:{ badge:"child", type:"Task queue", name:"weather-agent-tq",
       file:"worker_pa.py:26 (WEATHER_TASK_QUEUE)", tq:"polled by worker_pa.py (Python)",
       desc:"The weather specialist's queue — polled by the SAME process, worker_pa. The child-workflow tool starts WeatherAgentWorkflow here; its four weather activities run here too. Same-cluster child workflow, so trace context propagates.",
       members:["Polled by: worker_pa.py","Runs: WeatherAgentWorkflow","Activities: get_ip_address, get_location_info, get_coordinates, get_weather","Entered by: ask_weather_agent → execute_child_workflow(task_queue=\"weather-agent-tq\")"] } },
-  { id:"tq-f1", x:618, y:292, w:398, h:596, color:"var(--nexus)",
+  { id:"tq-f1", x:678, y:292, w:444, h:600, color:"var(--nexus)",
     name:"f1-expert-agent-tq", tag:"F1ExpertAgentWorkflow + Nexus handler",
     detail:{ badge:"nexus", type:"Task queue", name:"f1-expert-agent-tq",
       file:"worker_f1.py", tq:"polled by worker_f1.py (Python)",
       desc:"The F1 expert's queue — polled by worker_f1. The Nexus endpoint \"f1-expert-d6\" targets it; the Python service handler starts F1ExpertAgentWorkflow here. A same-language (Python→Python) Nexus boundary.",
       members:["Polled by: worker_f1.py","Runs: F1ExpertAgentWorkflow","Hosts: F1ExpertServiceHandler (Python Nexus handler)","Endpoint: f1-expert-d6"] } },
-  { id:"tq-travel", x:1082, y:292, w:454, h:596, color:"var(--java)",
+  { id:"tq-travel", x:1188, y:292, w:584, h:738, color:"var(--java)",
     name:"travel-planner-agent-tq", tag:"TravelPlannerAgentWorkflow + Nexus handler (Java)",
     detail:{ badge:"java", type:"Task queue", name:"travel-planner-agent-tq",
       file:"application.yaml:24", tq:"polled by the Java worker (WorkerApplication)",
@@ -304,131 +421,152 @@ const LANES = [
 
 /* ---------------- nodes ---------------- */
 const NODES = [
-  { id:"starter", x:250, y:24, w:250, h:64, hue:"muted", type:"Client · asyncio · Python",
+  { id:"starter", x:240, y:20, w:400, h:64, hue:"muted", type:"Client · asyncio · Python",
+    code:"async def main() -> None:\n    with trace(\"PersonalAssistant\"):\n        await client.execute_workflow(...)",
     name:"start_workflow.py", sub:"execute_workflow()",
     file:"solution/start_workflow.py:50", tq:"— (separate client process)",
     desc:"CLI entry point. Opens a trace span, then starts one PersonalAssistantWorkflow on orchestrator-tq and awaits the combined answer.",
     members:["main()", "with trace(\"PersonalAssistant\")", "client.execute_workflow(task_queue=\"orchestrator-tq\")"],
     snippet:[['c','# start_workflow.py'],['nl'],['k','with '],['fn','trace'],['p','('],['s','"PersonalAssistant"'],['p','):'],['nl'],['p','    result = await client.'],['fn','execute_workflow'],['p','('],['nl'],['p','        PersonalAssistantWorkflow.run, query,'],['nl'],['p','        task_queue='],['s','"orchestrator-tq"'],['p',')']] },
 
-  { id:"pa_wf", x:176, y:206, w:224, h:70, hue:"accent", type:"@workflow.defn · Python",
+  { id:"pa_wf", x:120, y:192, w:420, h:70, hue:"accent", type:"@workflow.defn · Python",
+    code:"@workflow.defn\nclass PersonalAssistantWorkflow:\n    @workflow.run\n    async def run(self, question: str) -> str:",
     name:"PersonalAssistantWorkflow", sub:".run(question) → str",
     file:"solution/personal_assistant.py:49", tq:"orchestrator-tq",
     desc:"The orchestrator. Builds three tools — a child-workflow tool and two Nexus tools (one Python, one Java) — hands them to an Agent(\"PersonalAssistant\", gpt-4o), and runs it. The LLM decides which specialists to call.",
     members:["run(question) → str","child_workflow_as_tool(...) → weather_tool","nexus_operation_as_tool(...) → f1_tool (endpoint f1-expert-d6)","nexus_operation_as_tool(...) → travel_tool (endpoint travel-planner)","Agent(name=\"PersonalAssistant\", tools=[3])"],
     snippet:[['c','# personal_assistant.py'],['nl'],['p','agent = '],['fn','Agent'],['p','(name='],['s','"PersonalAssistant"'],['p',', model='],['s','"gpt-4o"'],['p',','],['nl'],['p','    tools=[weather_tool, f1_tool, travel_tool])']] },
 
-  { id:"tool_weather", x:38, y:306, w:150, h:72, hue:"child", type:"FunctionTool",
+  { id:"tool_weather", x:40, y:310, w:270, h:72, hue:"child", type:"FunctionTool",
+    code:"weather_tool = child_workflow_as_tool(\n    WeatherAgentWorkflow.run,\n    task_queue=\"weather-agent-tq\")",
     name:"ask_weather_agent", sub:"child_workflow_as_tool",
     file:"solution/personal_assistant.py:56", tq:"orchestrator-tq",
     desc:"The weather tool. Built by child_workflow_as_tool(WeatherAgentWorkflow.run, ...). Invoking it starts a WeatherAgentWorkflow child on weather-agent-tq.",
     members:["task_queue=\"weather-agent-tq\"","execution_timeout=5min"] },
-  { id:"tool_f1", x:200, y:306, w:148, h:72, hue:"nexus", type:"FunctionTool",
+  { id:"tool_f1", x:326, y:310, w:270, h:72, hue:"nexus", type:"FunctionTool",
+    code:"f1_tool = nexus_operation_as_tool(\n    F1ExpertService.ask_f1_expert,\n    endpoint=\"f1-expert-d6\")",
     name:"ask_f1_expert", sub:"nexus_operation_as_tool",
     file:"solution/personal_assistant.py:69", tq:"orchestrator-tq",
     desc:"The F1 tool. Built from F1ExpertService.ask_f1_expert, endpoint \"f1-expert-d6\". A Python→Python Nexus operation.",
     members:["service=F1ExpertService","endpoint=\"f1-expert-d6\"","schedule_to_close_timeout=5min"] },
-  { id:"tool_travel", x:360, y:306, w:176, h:72, hue:"java", type:"FunctionTool",
+  { id:"tool_travel", x:40, y:406, w:380, h:72, hue:"java", type:"FunctionTool",
+    code:"travel_tool = nexus_operation_as_tool(\n    TravelPlannerService.ask_travel_planner,\n    endpoint=\"travel-planner\")",
     name:"ask_travel_planner", sub:"nexus_operation_as_tool",
     file:"solution/personal_assistant.py:88", tq:"orchestrator-tq",
     desc:"The travel tool. Built from TravelPlannerService.ask_travel_planner (the Python CALLER stub in travel_planner_service.py — there is no Python handler), endpoint \"travel-planner\". The endpoint routes the call to whatever worker polls travel-planner-agent-tq — here, the Java worker. Python and Java share no code, only the string names and JSON shapes.",
     members:["service=TravelPlannerService (Python caller stub)","endpoint=\"travel-planner\"","schedule_to_close_timeout=5min","contract: ask_travel_planner / {question} → {answer}"],
     snippet:[['p','travel_tool = '],['fn','nexus_operation_as_tool'],['p','('],['nl'],['p','    TravelPlannerService.ask_travel_planner,'],['nl'],['p','    service=TravelPlannerService,'],['nl'],['p','    endpoint='],['s','"travel-planner"'],['p',')']] },
 
-  { id:"weather_wf", x:176, y:480, w:200, h:66, hue:"child", type:"@workflow.defn",
+  { id:"weather_wf", x:120, y:552, w:420, h:66, hue:"child", type:"@workflow.defn",
+    code:"@workflow.defn\nclass WeatherAgentWorkflow:\n    @workflow.run\n    async def run(self, question: str) -> str:",
     name:"WeatherAgentWorkflow", sub:".run(question) → str",
     file:"solution/weather_agent.py", tq:"weather-agent-tq",
     desc:"Weather specialist, running as its own child-workflow execution. Builds an Agent(\"WeatherAgent\", gpt-4o) whose four tools are Temporal activities via activity_as_tool.",
     members:["run(question) → str","Agent(name=\"WeatherAgent\")","tools=[4× activity_as_tool(...)]"] },
-  { id:"weather_agent", x:176, y:575, w:200, h:58, hue:"child", type:"Agent (gpt-4o)",
+  { id:"weather_agent", x:120, y:674, w:420, h:58, hue:"child", type:"Agent (gpt-4o)",
+    code:"agent = Agent(name=\"WeatherAgent\", model=\"gpt-4o\",\n    tools=[activity_as_tool(get_ip_address), ...])",
     name:"WeatherAgent", sub:"Runner.run(...)",
     file:"solution/weather_agent.py", tq:"weather-agent-tq",
     desc:"OpenAI Agents SDK agent inside the weather workflow. Its LLM and tool calls run as Temporal activities via the plugin.",
     members:["model=\"gpt-4o\"","4 activity tools"] },
-  { id:"act_ip", x:38, y:662, w:170, h:56, hue:"child", type:"@activity.defn",
+  { id:"act_ip", x:40, y:770, w:270, h:56, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_ip_address() -> str:",
     name:"get_ip_address", sub:"→ str", file:"solution/tool_activities.py:13", tq:"weather-agent-tq",
     desc:"Public IP of the machine via httpx GET icanhazip.com.", members:["get_ip_address() → str"] },
-  { id:"act_loc", x:230, y:662, w:186, h:56, hue:"child", type:"@activity.defn",
+  { id:"act_loc", x:326, y:770, w:270, h:56, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_location_info(\n        ipaddress: str) -> str:",
     name:"get_location_info", sub:"(ipaddress) → str", file:"solution/tool_activities.py:22", tq:"weather-agent-tq",
     desc:"IP-based geolocation via httpx GET ip-api.com.", members:["get_location_info(ipaddress) → str"] },
-  { id:"act_coord", x:38, y:750, w:170, h:56, hue:"child", type:"@activity.defn",
+  { id:"act_coord", x:40, y:870, w:270, h:56, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_coordinates(\n        city: str) -> str:",
     name:"get_coordinates", sub:"(city) → str", file:"solution/tool_activities.py:37", tq:"weather-agent-tq",
     desc:"City → lat/lon via Open-Meteo geocoder. Returns an explicit no_match payload when nothing matches.", members:["get_coordinates(city) → str"] },
-  { id:"act_weather", x:230, y:750, w:186, h:56, hue:"child", type:"@activity.defn",
+  { id:"act_weather", x:326, y:870, w:270, h:56, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_weather(\n        latitude: float,\n        longitude: float) -> str:",
     name:"get_weather", sub:"(lat, lon) → str", file:"solution/tool_activities.py:72", tq:"weather-agent-tq",
     desc:"Current weather via Open-Meteo forecast API.", members:["get_weather(latitude, longitude) → str"] },
 
-  { id:"f1_service", x:688, y:350, w:210, h:64, hue:"nexus", type:"@nexusrpc.service",
+  { id:"f1_service", x:696, y:342, w:408, h:64, hue:"nexus", type:"@nexusrpc.service",
+    code:"@nexusrpc.service\nclass F1ExpertService:\n    ask_f1_expert: Operation[AskRequest, AskResponse]",
     name:"F1ExpertService", sub:"ask_f1_expert: Operation",
     file:"solution/f1_expert_agent.py", tq:"f1-expert-agent-tq",
     desc:"The typed Python Nexus contract for the F1 expert. Pydantic AskRequest → AskResponse.",
     members:["ask_f1_expert: Operation[AskRequest, AskResponse]"] },
-  { id:"f1_handler", x:688, y:444, w:210, h:64, hue:"nexus", type:"@service_handler",
+  { id:"f1_handler", x:696, y:448, w:408, h:64, hue:"nexus", type:"@service_handler",
+    code:"@service_handler(service=F1ExpertService)\nclass F1ExpertServiceHandler:\n    @nexus.workflow_run_operation\n    async def ask_f1_expert(self, ctx, request):",
     name:"F1ExpertServiceHandler", sub:"ask_f1_expert(ctx, req)",
     file:"solution/f1_expert_agent.py", tq:"f1-expert-agent-tq",
     desc:"Python Nexus handler. @nexus.workflow_run_operation starts an F1ExpertAgentWorkflow and returns a handle.",
     members:["@nexus.workflow_run_operation","ctx.start_workflow(F1ExpertAgentWorkflow.run, ...)"] },
-  { id:"f1_wf", x:688, y:538, w:210, h:68, hue:"nexus", type:"@workflow.defn",
+  { id:"f1_wf", x:696, y:570, w:408, h:68, hue:"nexus", type:"@workflow.defn",
+    code:"@workflow.defn\nclass F1ExpertAgentWorkflow:\n    @workflow.run\n    async def run(self, request) -> AskResponse:",
     name:"F1ExpertAgentWorkflow", sub:".run(AskRequest) → AskResponse",
     file:"solution/f1_expert_agent.py", tq:"f1-expert-agent-tq",
     desc:"F1 specialist workflow, started by the Nexus handler. Builds an Agent(\"F1Expert\", gpt-4o) whose toolkit is the F1 MCP server.",
     members:["run(request) → AskResponse","Agent(name=\"F1Expert\", mcp_servers=[f1])"] },
-  { id:"f1_agent", x:688, y:632, w:210, h:58, hue:"nexus", type:"Agent (gpt-4o)",
+  { id:"f1_agent", x:696, y:692, w:408, h:58, hue:"nexus", type:"Agent (gpt-4o)",
+    code:"agent = Agent(name=\"F1Expert\", model=\"gpt-4o\",\n    mcp_servers=[f1])",
     name:"F1Expert", sub:"Runner.run(...)",
     file:"solution/f1_expert_agent.py", tq:"f1-expert-agent-tq",
     desc:"Agents SDK agent given MCP servers instead of activity tools; the F1 toolkit is discovered from the MCP server.",
     members:["model=\"gpt-4o\"","mcp_servers=[f1-data]"] },
-  { id:"f1_mcp", x:688, y:720, w:210, h:58, hue:"nexus", type:"MCP handle",
+  { id:"f1_mcp", x:696, y:782, w:408, h:58, hue:"nexus", type:"MCP handle",
+    code:"f1 = stateless_mcp_server(name=\"f1-data\",\n    cache_tools_list=True)",
     name:"stateless_mcp_server", sub:"name=\"f1-data\"",
     file:"solution/f1_expert_agent.py", tq:"f1-expert-agent-tq",
     desc:"In-workflow MCP handle, resolved to worker_f1's StatelessMCPServerProvider, which launches the F1 MCP server on demand.",
     members:["stateless_mcp_server(name=\"f1-data\", cache_tools_list=True)"] },
 
-  { id:"java_service", x:1158, y:350, w:300, h:66, hue:"java", type:"@Service · Java interface",
+  { id:"java_service", x:1206, y:342, w:548, h:66, hue:"java", type:"@Service · Java interface",
+    code:"@Service(name = \"TravelPlannerService\")\npublic interface TravelPlannerService {\n    @Operation(name = \"ask_travel_planner\")\n    AskResponse askTravelPlanner(AskRequest request);",
     name:"TravelPlannerService", sub:"askTravelPlanner(req)",
     file:"travel-planner-java/.../TravelPlannerService.java:13", tq:"travel-planner-agent-tq",
     desc:"The JAVA side of the cross-language Nexus contract. @Service(name=\"TravelPlannerService\") and @Operation(name=\"ask_travel_planner\") must match the Python names byte-for-byte; the AskRequest/AskResponse POJOs carry @JsonProperty(\"question\"/\"answer\") to match the Python Pydantic shapes. No shared code — only strings and JSON.",
     members:["@Service(name = \"TravelPlannerService\")","@Operation(name = \"ask_travel_planner\")","class AskRequest { @JsonProperty(\"question\") ... }","class AskResponse { @JsonProperty(\"answer\") ... }"],
     snippet:[['c','// TravelPlannerService.java'],['nl'],['p','@'],['fn','Service'],['p','(name = '],['s','"TravelPlannerService"'],['p',')'],['nl'],['k','interface '],['fn','TravelPlannerService'],['p',' {'],['nl'],['p','  @'],['fn','Operation'],['p','(name = '],['s','"ask_travel_planner"'],['p',')'],['nl'],['p','  AskResponse askTravelPlanner(AskRequest r);'],['nl'],['p','}']] },
-  { id:"java_handler", x:1158, y:446, w:300, h:66, hue:"java", type:"@ServiceImpl · Java",
+  { id:"java_handler", x:1206, y:460, w:548, h:66, hue:"java", type:"@ServiceImpl · Java",
+    code:"@ServiceImpl(service = TravelPlannerService.class)\npublic class TravelPlannerServiceImpl {\n    @OperationImpl\n    public OperationHandler<AskRequest, AskResponse> askTravelPlanner() {",
     name:"TravelPlannerServiceImpl", sub:"askTravelPlanner()",
     file:"travel-planner-java/.../TravelPlannerServiceImpl.java:17", tq:"travel-planner-agent-tq",
     desc:"The Java Nexus handler bean (travelPlannerServiceImpl). Its @OperationImpl returns a WorkflowRunOperation that starts a TravelPlannerAgentWorkflow on this task queue and hands back its result.",
     members:["@ServiceImpl(service = TravelPlannerService.class)","@OperationImpl askTravelPlanner()","WorkflowRunOperation.fromWorkflowMethod(...)","registered via application.yaml nexus-service-beans"],
     snippet:[['c','// TravelPlannerServiceImpl.java'],['nl'],['p','@'],['fn','OperationImpl'],['nl'],['p','OperationHandler<...> '],['fn','askTravelPlanner'],['p','() {'],['nl'],['p','  return WorkflowRunOperation.'],['fn','fromWorkflowMethod'],['p','('],['nl'],['p','    (ctx, d, req) -> ...newWorkflowStub(...)::run);'],['nl'],['p','}']] },
-  { id:"java_wf", x:1158, y:542, w:300, h:70, hue:"java", type:"Workflow · Java",
+  { id:"java_wf", x:1206, y:578, w:548, h:70, hue:"java", type:"Workflow · Java",
+    code:"public class TravelPlannerAgentWorkflowImpl\n        implements TravelPlannerAgentWorkflow {\n    @Override\n    public AskResponse run(AskRequest request) {",
     name:"TravelPlannerAgentWorkflowImpl", sub:".run(AskRequest) → AskResponse",
     file:"travel-planner-java/.../TravelPlannerAgentWorkflowImpl.java:14", tq:"travel-planner-agent-tq",
     desc:"The Java travel-planner agent workflow. Builds a Spring AI ChatClient via TemporalChatClient and runs a per-step durable loop: every LLM call becomes a ChatModelActivity and every tool call becomes its own activity. This per-step durability is the payoff over demo 6a's single coarse activity.",
     members:["@WorkflowInit(TravelPlannerService.AskRequest)","run(request) → AskResponse","TemporalChatClient.builder(activityChatModel)","defaultTools(travelTools)"],
     snippet:[['c','// TravelPlannerAgentWorkflowImpl.java'],['nl'],['p','this.chatClient = TemporalChatClient'],['nl'],['p','  .'],['fn','builder'],['p','(activityChatModel)'],['nl'],['p','  .'],['fn','defaultSystem'],['p','(SYSTEM_PROMPT)'],['nl'],['p','  .'],['fn','defaultTools'],['p','(travelTools).build();']] },
-  { id:"chatclient", x:1158, y:640, w:300, h:60, hue:"java", type:"Spring AI · Java",
+  { id:"chatclient", x:1206, y:696, w:548, h:60, hue:"java", type:"Spring AI · Java",
+    code:"private final ChatClient chatClient;\nchatClient = TemporalChatClient.builder(\n        activityChatModel).build();",
     name:"TemporalChatClient", sub:"chatClient.prompt()...call()",
     file:"...TravelPlannerAgentWorkflowImpl.java:46", tq:"travel-planner-agent-tq",
     desc:"Spring AI ChatClient wrapped by temporal-spring-ai. Driving one prompt runs the agent loop: it dispatches the LLM call as a ChatModelActivity and each tool call as its own activity — all durable.",
     members:["ActivityChatModel.forDefault()","chatClient.prompt().user(q).call().content()"] },
-  { id:"chat_activity", x:1090, y:734, w:210, h:64, hue:"java", type:"activity (auto)",
+  { id:"chat_activity", x:1206, y:916, w:548, h:64, hue:"java", type:"activity (auto)",
     name:"ChatModelActivity", sub:"one per LLM call",
     file:"temporal-spring-ai (SpringAiPlugin)", tq:"travel-planner-agent-tq",
     desc:"The durable LLM-call activity that temporal-spring-ai auto-registers on the worker. ActivityChatModel routes each model call here, so every LLM turn is a retryable Temporal activity (per-step durability). Calls OpenAI (gpt-4o) under the hood.",
     members:["auto-registered by temporal-spring-ai","one Temporal activity per LLM call","→ OpenAI gpt-4o"] },
-  { id:"travel_tools", x:1316, y:734, w:220, h:64, hue:"java", type:"@ActivityInterface + @Tool",
+  { id:"travel_tools", x:1206, y:798, w:548, h:64, hue:"java", type:"@ActivityInterface + @Tool",
+    code:"@ActivityInterface\npublic interface TravelTools {\n    @ActivityMethod @Tool\n    String getWikipediaSummary(String topic);",
     name:"TravelTools", sub:"getWikipediaSummary / getCountryInfo",
     file:"travel-planner-java/.../tools/TravelTools.java:12", tq:"travel-planner-agent-tq",
     desc:"Dual-annotated interface: @ActivityInterface makes each call a durable Temporal activity; @Tool/@ToolParam is the metadata the model sees. Two tools — a Wikipedia summary and country background — implemented in TravelToolsImpl over public REST APIs.",
     members:["@Tool getWikipediaSummary(topic) → String","@Tool getCountryInfo(country) → String","impl bean: travelToolsImpl","one Temporal activity per tool call"] },
 
-  { id:"weather_api", x:110, y:944, w:300, h:56, hue:"muted", type:"external",
+  { id:"weather_api", x:100, y:1070, w:400, h:56, hue:"muted", type:"external",
     name:"Public HTTP APIs", sub:"httpx → icanhazip · ip-api · open-meteo",
     file:"(external services)", tq:"—",
     desc:"Free public endpoints the weather activities call over httpx.",
     members:["icanhazip.com","ip-api.com","geocoding-api.open-meteo.com","api.open-meteo.com/forecast"] },
-  { id:"f1_mcp_server", x:650, y:944, w:240, h:60, hue:"muted", type:"external · stdio",
+  { id:"f1_mcp_server", x:696, y:1070, w:408, h:60, hue:"muted", type:"external · stdio",
     name:"F1 MCP server", sub:"node build/index.js → 8 tools",
     file:"worker_f1.py", tq:"—",
     desc:"External Node.js MCP server launched over stdio by worker_f1. Exposes 8 F1 data tools.",
     members:["MCPServerStdio(...)","8 F1 data tools"] },
-  { id:"travel_api", x:1150, y:944, w:320, h:60, hue:"muted", type:"external",
+  { id:"travel_api", x:1206, y:1070, w:440, h:60, hue:"muted", type:"external",
     name:"Wikipedia + REST Countries", sub:"HttpHelper.get(...)",
     file:"travel-planner-java/.../tools/TravelToolsImpl.java", tq:"—",
     desc:"Free public REST APIs the Java travel tools call: Wikipedia REST summary and REST Countries. Same endpoints the demo 6a Python travel agent used.",
@@ -509,7 +647,7 @@ LANES.forEach(ln=>{
   canvas.appendChild(el); ln._el = el;
 });
 
-[["weather-agent-tq (Python)",110,918],["f1 (Python)",650,918],["travel tools (Java)",1150,918]].forEach(([t,x,y])=>{
+[["weather-agent-tq (Python)",100,1040],["f1 (Python)",696,1040],["travel tools (Java)",1206,1040]].forEach(([t,x,y])=>{
   const cap = document.createElement("div");
   cap.className = "ext-cap"; cap.style.left=x+"px"; cap.style.top=y+"px";
   cap.textContent = "External · " + t; canvas.appendChild(cap);
@@ -519,7 +657,15 @@ NODES.forEach(n=>{
   const el = document.createElement("button");
   el.type="button"; el.className="node"; el.dataset.id=n.id; el.dataset.hue=n.hue;
   el.style.left=n.x+"px"; el.style.top=n.y+"px"; el.style.width=n.w+"px";
-  el.innerHTML = `<div class="ntype">${n.type}</div><div class="nname">${n.name}</div>${n.sub?`<div class="nsub">${n.sub}</div>`:""}`
+  const fkey = fileOf(n.id);
+  el.dataset.file = FILE_DOT[fkey];
+  // Declaration boxes render the real signature; the few that are not
+  // declarations (external services, generated activities) keep the kicker form.
+  const body = n.code
+    ? `<div class="ncode">${hl(n.code)}</div>`
+    : `<div class="ntype">${n.type}</div><div class="nname">${n.name}</div>${n.sub?`<div class="nsub">${n.sub}</div>`:""}`;
+  el.innerHTML = body
+    + `<div class="nfile"><span class="fdot"></span>${NODE_FILE_LABEL[n.id] || FILE_LABEL[fkey]}</div>`
     + (n.id==="starter"?`<span class="start-badge">START</span>`:"")
     + (LANG_TAG[n.id]?`<span class="langtag">${LANG_TAG[n.id]}</span>`:"");
   el.addEventListener("click",(e)=>{ e.stopPropagation(); selectNode(n.id); });
@@ -561,14 +707,77 @@ function layout(){
 
 /* ---------------- scale-to-fit ---------------- */
 let currentScale = 1;
-function fit(){
+let userZoom = null;   // null = follow fit-to-width
+const MIN_ZOOM = 0.3, MAX_ZOOM = 2;
+function fitScale(){
   const avail = canvasScroll.clientWidth - 4;
-  let s = avail / CANVAS_W;
-  s = Math.min(s, 1.25);
+  if(!avail) return 1;
+  return Math.min(Math.max(avail / CANVAS_W, MIN_ZOOM), 1.25);
+}
+function fit(){
+  const s = userZoom === null ? fitScale() : userZoom;
   currentScale = s;
   canvas.style.transform = `scale(${s})`;
   canvasFit.style.height = (CANVAS_H * s) + "px";
+  const lbl = document.getElementById("zoomLabel");
+  if(lbl) lbl.textContent = Math.round(s*100)+"%";
+  const fb = document.getElementById("zoomFit");
+  if(fb) fb.disabled = (userZoom === null);
 }
+function nudgeZoom(d){
+  const base = userZoom === null ? fitScale() : userZoom;
+  userZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round((base+d)*100)/100));
+  fit();
+}
+document.getElementById("zoomIn").addEventListener("click", ()=> nudgeZoom(+0.15));
+document.getElementById("zoomOut").addEventListener("click", ()=> nudgeZoom(-0.15));
+document.getElementById("zoomFit").addEventListener("click", ()=>{ userZoom = null; fit(); });
+
+/* ---------------- file filter ----------------
+   Pick a file: ring its nodes, dim the rest, keep only edges that touch it - so a
+   cross-file call reads as an edge leaving the lit set. */
+let activeFile = null;
+function selectFile(key){
+  exitFlow();
+  clearState();
+  document.querySelectorAll("#fileLegend .legItem").forEach(b=> b.classList.toggle("on", b.dataset.key===key));
+  activeFile = key;
+  NODES.forEach(nd=>{
+    if(fileOf(nd.id)===key) nd._el.classList.add("fileLit");
+    else nd._el.classList.add("dim");
+  });
+  edgeEls.forEach(({data,path,txt})=>{
+    if(fileOf(data.from)===key || fileOf(data.to)===key) path.classList.add("hot");
+    else { path.classList.add("dim"); txt.classList.add("dim"); }
+  });
+  renderFileDetail(key);
+}
+function renderFileDetail(key){
+  const f = FILES.find(x=>x.key===key);
+  const mine = NODES.filter(nd=>fileOf(nd.id)===key);
+  const ids = new Set(mine.map(nd=>nd.id));
+  const out = EDGES.filter(e=>ids.has(e.from) && !ids.has(e.to));
+  const inc = EDGES.filter(e=>!ids.has(e.from) && ids.has(e.to));
+  const row = (e,dir)=>{
+    const other = dir==="\u2192" ? e.to : e.from;
+    return `<li><button data-goto="${other}"><span class="rel-arrow">${dir}</span>${nodeMap[other].name}`
+      + `<span class="rel-kind">${NODE_FILE_LABEL[other] || FILE_LABEL[fileOf(other)]}</span></button></li>`;
+  };
+  detailInner.innerHTML = `
+    <span class="badge muted">Source file</span>
+    <h2>${esc(f.label)}</h2>
+    <div class="file">${mine.length} component${mine.length===1?"":"s"} in this diagram</div>
+    <p class="desc">${esc(f.desc)}</p>
+    <div class="sec">Defined here</div>
+    <ul class="rellist">${mine.map(nd=>`<li><button data-goto="${nd.id}">${nd.name}</button></li>`).join("")}</ul>
+    ${out.length?`<div class="sec">Calls out to other files</div><ul class="rellist">${out.map(e=>row(e,"\u2192")).join("")}</ul>`:""}
+    ${inc.length?`<div class="sec">Called from other files</div><ul class="rellist">${inc.map(e=>row(e,"\u2190")).join("")}</ul>`:""}`;
+  detailInner.querySelectorAll("button[data-goto]").forEach(b=> b.addEventListener("click",()=> selectNode(b.dataset.goto)));
+}
+document.getElementById("fileLegend").addEventListener("click",(e)=>{
+  const item=e.target.closest(".legItem"); if(!item) return;
+  if(activeFile===item.dataset.key) resetView(); else selectFile(item.dataset.key);
+});
 
 /* ---------------- interaction ---------------- */
 const activeCats = new Set(["child","nexus","xlang","agent","setup","external"]);
@@ -581,7 +790,9 @@ function neighborsOf(id){
   return { nodes, edges };
 }
 function clearState(){
-  NODES.forEach(n=> n._el.classList.remove("dim","active","neighbor"));
+  NODES.forEach(n=> n._el.classList.remove("dim","active","neighbor","fileLit"));
+  activeFile = null;
+  document.querySelectorAll("#fileLegend .legItem").forEach(b=> b.classList.remove("on"));
   WORKERS.forEach(w=> w._el.classList.remove("lit"));
   LANES.forEach(l=> l._el.classList.remove("lit"));
   edgeEls.forEach(({path,txt})=>{ path.classList.remove("dim","hot"); txt.classList.remove("dim"); });
@@ -612,6 +823,22 @@ function relList(id){
 }
 function relItemHTML(r){ const n=nodeMap[r.id]; return `<li><button data-goto="${r.id}"><span class="rel-arrow">${r.dir}</span>${n.name}<span class="rel-kind">${CAT_LABEL[r.cat]}</span></button></li>`; }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* Minimal Python/Java highlighter for the node signature blocks. Single pass with
+   one regex and a callback - a chain of .replace() calls would re-scan the markup
+   it just inserted and match the word "class" inside class="...".
+   The regex is a literal rather than a shared const: hl() is called from the
+   node-render pass that runs earlier in this script, so a const declared here
+   would be in its temporal dead zone. */
+function hl(src){
+  return esc(src).replace(/(@[\w.]+)|("(?:[^"\\]|\\.)*")|\b(class|def|interface)(\s+)(\w+)|\b(async|await|lambda|not|return|None|True|False|self|public|private|final|new|void|implements|extends)\b/g, (m, deco, str_, kw1, sp, name, kw2) => {
+    if(deco) return `<span class="cd">${deco}</span>`;
+    if(str_) return `<span class="cs">${str_}</span>`;
+    if(kw1)  return `<span class="ck">${kw1}</span>${sp}<span class="cn">${name}</span>`;
+    return `<span class="ck">${kw2}</span>`;
+  });
+}
+
 function snippetHTML(parts){
   if(!parts) return "";
   let out=""; parts.forEach(([t,v])=>{
