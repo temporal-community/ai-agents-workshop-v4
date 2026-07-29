@@ -133,6 +133,13 @@ cp /root/workshop/demo5-multi-agent/architecture.html /root/arch/index.html 2>/d
 nohup python3 -m http.server 8090 --directory /root/arch \
     > /tmp/arch-server.log 2>&1 &
 
+# Static server for the Demo 6a architecture diagram (Architecture tab, port 8093).
+# Served from its own web root so "/" serves the diagram directly.
+mkdir -p /root/arch-6a
+cp /root/workshop/demo6a-different-sdks/architecture.html /root/arch-6a/index.html 2>/dev/null || true
+nohup python3 -m http.server 8093 --directory /root/arch-6a \
+    > /tmp/arch-server-6a.log 2>&1 &
+
 # Static server for the Demo 6b architecture diagram (Architecture tab, port 8091).
 # Served from its own web root so "/" serves the diagram directly.
 mkdir -p /root/arch-6b

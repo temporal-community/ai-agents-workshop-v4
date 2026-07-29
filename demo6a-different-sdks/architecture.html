@@ -1,0 +1,1160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo 6a · Heterogeneous Agents — Different SDKs</title>
+<style>
+  :root {
+    --bg: #eef1f5;
+    --bg-grid: #e2e7ee;
+    --panel: #ffffff;
+    --panel-2: #f7f9fc;
+    --ink: #18202e;
+    --muted: #5b6676;
+    --faint: #8b95a4;
+    --line: #d3dae3;
+    --line-strong: #b9c2ce;
+    --accent: #5457d6;   /* agent tool calls (and selection affordances) */
+    --child: #c9791b;    /* child-workflow path (weather) */
+    --nexus: #0f9d94;    /* nexus path (f1) */
+    --strands: #b0308a;  /* third-party agent wrapped in one activity (travel) */
+    /* Python syntax colors for the node signature blocks - deliberately NOT
+       --accent, so code text stops adding to the purple on screen. */
+    --syn-kw: #0b4fbd;    /* class, def, async, await, return... */
+    --syn-deco: #795e26;  /* @decorators */
+    --syn-str: #a31515;   /* string literals */
+    /* Source-file identity - a separate channel from the edge hues. Validated
+       categorical palette; at most three files carry a hue, rest are neutral. */
+    --file-1: #2a78d6;
+    --file-2: #e87ba4;
+    --file-3: #008300;
+    --file-none: #8b95a4;
+    --lane-tq: #54708c;  /* task-queue band */
+    --on-accent: #ffffff;
+    --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
+    --radius: 13px;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
+      --ink: #e6ebf2; --muted: #93a0b1; --faint: #64707f; --line: #29323f; --line-strong: #38434f;
+      --accent: #8b8ff5; --child: #f0a848; --nexus: #3ad6ce; --strands: #e879c7; --on-accent: #141922;
+      --syn-kw: #569cd6; --syn-deco: #dcdcaa; --syn-str: #ce9178;
+      --file-1: #3987e5; --file-2: #d55181; --file-3: #008300; --file-none: #64707f;
+      --lane-tq: #8ba3bd;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #eef1f5; --bg-grid: #e2e7ee; --panel: #ffffff; --panel-2: #f7f9fc;
+    --ink: #18202e; --muted: #5b6676; --faint: #8b95a4; --line: #d3dae3; --line-strong: #b9c2ce;
+    --accent: #5457d6; --child: #c9791b; --nexus: #0f9d94; --strands: #b0308a; --on-accent: #ffffff;
+    --syn-kw: #0b4fbd; --syn-deco: #795e26; --syn-str: #a31515;
+    --file-1: #2a78d6; --file-2: #e87ba4; --file-3: #008300; --file-none: #8b95a4;
+    --lane-tq: #54708c;
+    --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
+    --ink: #e6ebf2; --muted: #93a0b1; --faint: #64707f; --line: #29323f; --line-strong: #38434f;
+    --accent: #8b8ff5; --child: #f0a848; --nexus: #3ad6ce; --strands: #e879c7; --on-accent: #141922;
+    --syn-kw: #569cd6; --syn-deco: #dcdcaa; --syn-str: #ce9178;
+    --file-1: #3987e5; --file-2: #d55181; --file-3: #008300; --file-none: #64707f;
+    --lane-tq: #8ba3bd;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 1px 1px, var(--bg-grid) 1px, transparent 0) 0 0 / 26px 26px,
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1560px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  header.masthead { margin-bottom: 22px; }
+  .eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--strands); font-weight: 600; margin: 0 0 8px; }
+  h1 { font-size: clamp(26px, 4vw, 40px); line-height: 1.08; margin: 0; letter-spacing: -.02em; text-wrap: balance; font-weight: 700; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 20px 0 16px; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .controls .clabel { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+  .legItem { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: var(--ink); padding: 5px 11px 5px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); user-select: none; transition: opacity .15s, border-color .15s; }
+  .legItem:hover { border-color: var(--line-strong); }
+  .legItem.off { opacity: .38; }
+  .legItem .swatch { width: 22px; height: 0; border-top-width: 3px; border-top-style: solid; border-radius: 3px; }
+  .legItem.dashed .swatch { border-top-style: dashed; }
+  .legItem[data-cat="child"]   .swatch { border-color: var(--child); }
+  .legItem[data-cat="nexus"]   .swatch { border-color: var(--nexus); }
+  .legItem[data-cat="strands"] .swatch { border-color: var(--strands); border-top-width: 4px; }
+  .legItem[data-cat="agent"]   .swatch { border-color: var(--accent); }
+  .legItem[data-cat="setup"]   .swatch { border-color: var(--faint); }
+  .legItem[data-cat="external"] .swatch { border-color: var(--faint); }
+  .spacer { flex: 1 1 auto; }
+  .btn { font-family: var(--sans); font-size: 12.5px; font-weight: 500; cursor: pointer; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); padding: 6px 13px; border-radius: 8px; transition: border-color .15s; }
+  .btn:hover { border-color: var(--line-strong); }
+  .btn:focus-visible, .legItem:focus-visible, .node:focus-visible, .worker:focus-visible, .lane:focus-visible, .region:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .stage { display: grid; grid-template-columns: minmax(0,1fr) 344px; gap: 20px; align-items: start; }
+  /* Below this width the side-by-side split starves the canvas, so the detail
+     panel drops underneath and the diagram gets the full pane width. */
+  @media (max-width: 1560px) {
+    .stage { grid-template-columns: minmax(0,1fr); }
+    aside.detail { position: static; }
+  }
+
+  .canvasScroll { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: auto; position: relative; }
+  .canvasViewport { position: relative; margin: 0 auto; }
+  .canvas { position: relative; width: 1580px; height: 1740px; transform-origin: top left; }
+  svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
+  svg.edges path { fill: none; transition: opacity .18s, stroke-width .18s; }
+  svg.edges .elabel { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; transition: opacity .18s; }
+  .edge-child { stroke: var(--child); }
+  .edge-nexus { stroke: var(--nexus); }
+  .edge-strands { stroke: var(--strands); }
+  .edge-agent { stroke: var(--accent); }
+  .edge-setup { stroke: var(--faint); }
+  .edge-external { stroke: var(--faint); stroke-dasharray: 5 5; }
+  path.dim, text.dim { opacity: .1 !important; }
+  path.hot { stroke-width: 3.2px !important; }
+
+  /* worker process outlines */
+  .worker { position: absolute; z-index: 0; border: 1.5px dashed var(--line-strong); border-radius: 18px; cursor: pointer; background: transparent; transition: border-color .15s; }
+  .worker:hover { border-color: var(--accent); }
+  .worker.lit { border-style: solid; border-color: var(--accent); }
+  .worker .wlabel { position: absolute; top: -13px; left: 22px; padding: 3px 13px; background: var(--panel); border: 1px solid var(--line-strong); border-radius: 999px; font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .worker .wlabel .wp { color: var(--faint); font-weight: 500; }
+
+  /* task-queue swim lanes */
+  .lane { position: absolute; z-index: 1; border-radius: 14px; cursor: pointer; overflow: hidden; border: 1px solid color-mix(in srgb, var(--lane-color) 32%, var(--line)); background: color-mix(in srgb, var(--lane-color) 6%, var(--panel)); transition: box-shadow .15s; }
+  .lane:hover { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lane-color) 45%, transparent); }
+  .lane.lit { box-shadow: inset 0 0 0 2.5px var(--lane-color); }
+  .lane-head { display: flex; align-items: center; gap: 9px; padding: 8px 14px; background: color-mix(in srgb, var(--lane-color) 16%, var(--panel)); border-bottom: 1px solid color-mix(in srgb, var(--lane-color) 30%, transparent); pointer-events: none; }
+  .lane-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--lane-color); flex: none; }
+  .lane-kicker { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in srgb, var(--lane-color) 50%, var(--muted)); font-weight: 700; }
+  .lane-name { font-family: var(--mono); font-size: 14.5px; font-weight: 700; color: color-mix(in srgb, var(--lane-color) 62%, var(--ink)); }
+  .lane-tag { font-size: 11px; color: var(--muted); margin-left: auto; font-family: var(--mono); text-align: right; }
+
+  /* Opaque region - a fourth container type, nested one level deeper than a lane.
+     It is NOT a task queue: everything inside it runs within a single activity
+     invocation, so Temporal schedules the box, never its contents. Same z-index
+     as .lane but appended later, so it paints on top of the lane it sits in. */
+  .region { position: absolute; z-index: 1; border-radius: 14px; cursor: pointer; border: 1.5px dashed color-mix(in srgb, var(--strands) 55%, var(--line-strong)); background: color-mix(in srgb, var(--strands) 7%, var(--panel)); transition: box-shadow .15s; }
+  .region:hover { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--strands) 45%, transparent); }
+  .region.lit { box-shadow: inset 0 0 0 2.5px var(--strands); }
+  /* Two pills rather than one: the entry edge has to cross the region's top edge,
+     and a single wide pill spanning it collided with that edge's label. */
+  .region .rlabel { position: absolute; top: -12px; padding: 3px 13px; background: var(--panel); border: 1px solid color-mix(in srgb, var(--strands) 45%, var(--line-strong)); border-radius: 999px; white-space: nowrap; pointer-events: none; }
+  .region .rlabel.rl-name { left: 20px; }
+  .region .rlabel.rl-note { right: 20px; }
+  .region .rname { font-family: var(--mono); font-size: 12px; font-weight: 700; color: color-mix(in srgb, var(--strands) 70%, var(--ink)); }
+  .region .rnote { font-size: 11px; color: var(--muted); }
+
+  /* nodes */
+  .node { position: absolute; z-index: 3; cursor: pointer; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-left-width: 4px; border-radius: 10px; padding: 9px 12px; box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s, opacity .18s, border-color .15s; font-family: var(--sans); }
+  .node:hover { transform: translateY(-2px); }
+  .node .ntype { font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .node .nname { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--ink); margin-top: 2px; word-break: break-word; }
+  .node .nsub { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+  /* source-declaration block: reads like the real file. Lines are authored
+     pre-wrapped in the node data, so `pre` never surprises us with a reflow. */
+  .node .ncode { font-family: var(--mono); font-size: 10.5px; line-height: 1.55; white-space: pre; color: var(--muted); }
+  .node .ncode .cd { color: var(--syn-deco); }
+  .node .ncode .ck { color: var(--syn-kw); }
+  .node .ncode .cn { color: var(--ink); font-weight: 700; }
+  .node .ncode .cs { color: var(--syn-str); }
+  /* source-file row: colored dot carries identity, filename stays in muted ink */
+  .node .nfile { display: flex; align-items: center; gap: 5px; margin-top: 6px; font-family: var(--mono); font-size: 9.5px; color: var(--faint); letter-spacing: .01em; }
+  .fdot { width: 7px; height: 7px; border-radius: 50%; background: var(--fc, var(--file-none)); flex: none; }
+  .node[data-file="f1"]   { --fc: var(--file-1); }
+  .node[data-file="f2"]   { --fc: var(--file-2); }
+  .node[data-file="f3"]   { --fc: var(--file-3); }
+  .node[data-file="none"] { --fc: var(--file-none); }
+  .node.fileLit { box-shadow: 0 0 0 2px var(--fc), var(--shadow); }
+  .legItem[data-file="f1"]   .fdot { background: var(--file-1); }
+  .legItem[data-file="f2"]   .fdot { background: var(--file-2); }
+  .legItem[data-file="f3"]   .fdot { background: var(--file-3); }
+  .legItem[data-file="none"] .fdot { background: var(--file-none); }
+  .legItem .fdot { width: 9px; height: 9px; }
+  .legItem.on { border-color: var(--line-strong); background: var(--panel); box-shadow: inset 0 0 0 1px var(--line-strong); font-weight: 600; }
+  .zoomgrp { display: inline-flex; align-items: center; gap: 6px; }
+  .zoomlabel { font-family: var(--mono); font-size: 11.5px; color: var(--muted); min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
+  .btn.zoombtn { min-width: 30px; padding: 5px 9px; font-size: 14px; line-height: 1; }
+  .badge.lane { background: color-mix(in srgb, var(--lane-tq) 18%, var(--panel)); color: var(--lane-tq); }
+  .node[data-hue="accent"]  { border-left-color: var(--accent); }
+  .node[data-hue="child"]   { border-left-color: var(--child); }
+  .node[data-hue="nexus"]   { border-left-color: var(--nexus); }
+  .node[data-hue="strands"] { border-left-color: var(--strands); }
+  .node[data-hue="muted"]   { border-left-color: var(--line-strong); }
+  .node.dim { opacity: .2; }
+  .node.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+  .node.neighbor { box-shadow: 0 0 0 1.5px var(--line-strong), var(--shadow); }
+
+  /* external services caption */
+  .ext-cap { position: absolute; z-index: 1; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+
+  /* detail panel */
+  aside.detail { position: sticky; top: 20px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; min-height: 300px; }
+  .detail .placeholder { color: var(--muted); font-size: 14px; }
+  .detail .placeholder strong { color: var(--ink); }
+  .badge { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: .04em; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; }
+  .badge.accent  { background: color-mix(in srgb, var(--accent) 16%, var(--panel)); color: var(--accent); }
+  .badge.child   { background: color-mix(in srgb, var(--child) 18%, var(--panel)); color: var(--child); }
+  .badge.nexus   { background: color-mix(in srgb, var(--nexus) 18%, var(--panel)); color: var(--nexus); }
+  .badge.strands { background: color-mix(in srgb, var(--strands) 18%, var(--panel)); color: var(--strands); }
+  .badge.muted   { background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); }
+  .detail h2 { font-family: var(--mono); font-size: 17px; margin: 12px 0 3px; letter-spacing: -.01em; word-break: break-word; }
+  .detail .file { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-bottom: 14px; }
+  .detail .file b { color: var(--muted); }
+  .detail p.desc { font-size: 13.5px; color: var(--ink); margin: 0 0 15px; }
+  .detail .sec { font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin: 16px 0 7px; }
+  .members, .rellist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  .members li { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 5px 9px; }
+  .rellist button { all: unset; cursor: pointer; display: flex; align-items: center; gap: 7px; width: 100%; font-family: var(--mono); font-size: 12px; color: var(--ink); padding: 5px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel-2); box-sizing: border-box; }
+  .rellist button:hover { border-color: var(--line-strong); }
+  .rellist button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .rellist .rel-arrow { font-size: 13px; opacity: .7; }
+  .rellist .rel-kind { margin-left: auto; font-family: var(--sans); font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); white-space: nowrap; }
+  .snippet { font-family: var(--mono); font-size: 11.5px; line-height: 1.55; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 11px 12px; overflow-x: auto; white-space: pre; margin-top: 4px; }
+  .snippet .k { color: var(--accent); }
+  .snippet .s { color: var(--child); }
+  .snippet .c { color: var(--faint); font-style: italic; }
+
+  /* data-flow player */
+  .flowbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 16px; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .btn.primary { background: var(--strands); color: var(--on-accent); border-color: var(--strands); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.06); border-color: var(--strands); }
+  .flowbtn { min-width: 38px; text-align: center; font-size: 14px; padding: 6px 10px; }
+  .flowbtn:disabled { opacity: .4; cursor: default; }
+  .flowstep { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .flownarr { flex: 1 1 320px; min-width: 240px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .flowphase { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--strands); background: color-mix(in srgb, var(--strands) 14%, var(--panel)); padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .flowcap { font-size: 13px; color: var(--ink); }
+  .flowpayload { font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; }
+  .flowbar.idle .flowphase, .flowbar.idle .flowpayload { display: none; }
+  .flowbar.idle .flowcap { color: var(--muted); }
+
+  /* start marker + active flow states */
+  .start-badge { position: absolute; top: -11px; right: -9px; z-index: 5; background: var(--accent); color: var(--on-accent); font-size: 9px; font-weight: 700; letter-spacing: .12em; padding: 3px 8px; border-radius: 999px; box-shadow: var(--shadow); }
+  .start-badge::before { content: "▶ "; }
+  .node.flow-on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); z-index: 4; }
+  @keyframes flowdash { to { stroke-dashoffset: -26; } }
+  @keyframes flowdashrev { to { stroke-dashoffset: 26; } }
+  svg.edges path.flowing { opacity: 1 !important; stroke-width: 3.4px !important; stroke-dasharray: 7 6; animation: flowdash .8s linear infinite; }
+  svg.edges path.flowing.rev { animation: flowdashrev .8s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { svg.edges path.flowing { animation: none; } }
+
+  footer { margin-top: 26px; font-size: 12px; color: var(--faint); text-align: center; }
+  footer code { font-family: var(--mono); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">Demo 6a · Temporal · OpenAI Agents SDK + Strands</p>
+    <h1>Heterogeneous Agents — Different SDKs</h1>
+  </header>
+
+  <div class="controls" role="group" aria-label="Diagram controls">
+    <span class="clabel">Filter edges</span>
+    <div class="legend" id="legend">
+      <button class="legItem" data-cat="child"   aria-pressed="true"><span class="swatch"></span>Child workflow</button>
+      <button class="legItem" data-cat="nexus"   aria-pressed="true"><span class="swatch"></span>Nexus operation</button>
+      <button class="legItem" data-cat="strands" aria-pressed="true"><span class="swatch"></span>Activity · third-party agent</button>
+      <button class="legItem" data-cat="agent"   aria-pressed="true"><span class="swatch"></span>Agent tool call</button>
+      <button class="legItem" data-cat="setup"   aria-pressed="true"><span class="swatch"></span>Start &amp; setup</button>
+      <button class="legItem dashed" data-cat="external" aria-pressed="true"><span class="swatch"></span>External I/O</button>
+    </div>
+    <span class="clabel">Files</span>
+    <div class="legend" id="fileLegend">
+      <button class="legItem" data-key="pa"    data-file="f1" type="button"><span class="fdot"></span>personal_assistant.py</button>
+      <button class="legItem" data-key="tpa"   data-file="f3" type="button"><span class="fdot"></span>travel_planner_activity.py</button>
+      <button class="legItem" data-key="tp"    data-file="f2" type="button"><span class="fdot"></span>travel_planner.py</button>
+      <button class="legItem" data-key="other" data-file="none" type="button"><span class="fdot"></span>weather / F1 / activities / client</button>
+    </div>
+    <span class="spacer"></span>
+    <span class="zoomgrp" role="group" aria-label="Zoom">
+      <button class="btn zoombtn" id="zoomOut" type="button" aria-label="Zoom out">−</button>
+      <span class="zoomlabel" id="zoomLabel">100%</span>
+      <button class="btn zoombtn" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+      <button class="btn" id="zoomFit" type="button">Fit</button>
+    </span>
+    <button class="btn" id="resetBtn" type="button">Reset view</button>
+  </div>
+
+  <div class="flowbar idle" id="flowbar" role="group" aria-label="Data flow player">
+    <button class="btn primary flowbtn" id="flowPlay" type="button">▶ Play data flow</button>
+    <button class="btn flowbtn" id="flowPrev" type="button" aria-label="Previous step" disabled>◀</button>
+    <span class="flowstep" id="flowStep">step — / —</span>
+    <button class="btn flowbtn" id="flowNext" type="button" aria-label="Next step">▶</button>
+    <div class="flownarr">
+      <span class="flowphase" id="flowPhase"></span>
+      <span class="flowcap" id="flowCap">Trace <b>“I’m going to the next F1 race — what’s the weather, and what should I know about the destination?”</b> through all three specialists.</span>
+      <code class="flowpayload" id="flowPayload"></code>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="canvasScroll">
+      <div class="canvasViewport" id="viewport">
+        <div class="canvas" id="canvas">
+          <svg class="edges" id="edges" viewBox="0 0 1580 1740" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <!-- workers, lanes, regions, nodes injected here -->
+        </div>
+      </div>
+    </div>
+
+    <aside class="detail" id="detail" aria-live="polite">
+      <div class="placeholder">
+        <p><strong>Select a component</strong> to inspect it.</p>
+        <p>Every box is a real class, function, or file in <code>demo6a-different-sdks/solution/</code>. The colored bands are the three task queues; the dashed outlines are the two worker processes. The rose box inside <code>orchestrator-tq</code> is the one that matters here — everything in it runs inside a <b>single activity</b>, invisible to Temporal.</p>
+      </div>
+    </aside>
+  </div>
+
+  <footer>Reflects <code>demo6a-different-sdks/solution/</code> · three task queues · two worker processes · two agent frameworks · one asyncio starter.</footer>
+</div>
+
+<script>
+"use strict";
+
+const canvas = document.getElementById("canvas");
+const svg = document.getElementById("edges");
+const SVGNS = "http://www.w3.org/2000/svg";
+const CANVAS_W = 1580, CANVAS_H = 1740;
+
+/* ---------------- source-file grouping ----------------
+   Which file each box lives in, so you can see which file calls into which.
+   At most three files carry a hue (the palette cap for all-pairs colorblind
+   separation); every other file is neutral and identified by its label. The
+   three colored slots go to the files this demo is about: the orchestrator,
+   the third-party Strands agent, and the ten-line activity between them. */
+const FILES = [
+  { key:"pa", dot:"f1", label:"personal_assistant.py",
+    desc:"The orchestrator workflow and the three specialist tools it hands to the LLM — one per invocation pattern: child workflow, Nexus, activity." },
+  { key:"tpa", dot:"f3", label:"travel_planner_activity.py",
+    desc:"The personal-assistant team's wrapper: one @activity.defn that lazy-imports the Strands agent and calls its run(). About ten lines, and the only part of the travel path Temporal can see." },
+  { key:"tp", dot:"f2", label:"travel_planner.py",
+    desc:"The third-party Strands agent — zero Temporal imports. Pretend it was vendored from another team: the orchestrator drives it without either side knowing about the other's framework." },
+  { key:"other", dot:"none", label:"weather / F1 / activities / client",
+    desc:"weather_agent.py, f1_expert_agent.py, tool_activities.py, child_workflow_tool.py, start_workflow.py, the workers, and the external services — all carried over from demo 5." },
+];
+const NODE_FILE = {
+  starter:"other",
+  pa_wf:"pa",
+  tool_weather:"pa",
+  tool_f1:"pa",
+  tool_travel:"pa",
+  act_travel:"tpa",
+  strands_run:"tp",
+  strands_agent:"tp",
+  tool_wiki:"tp",
+  tool_country:"tp",
+  travel_api:"other",
+  weather_wf:"other",
+  weather_agent:"other",
+  act_ip:"other",
+  act_loc:"other",
+  act_coord:"other",
+  act_weather:"other",
+  f1_service:"other",
+  f1_handler:"other",
+  f1_wf:"other",
+  f1_agent:"other",
+  f1_mcp:"other",
+  weather_api:"other",
+  f1_mcp_server:"other",
+};
+const NODE_FILE_LABEL = {
+  starter:"start_workflow.py",
+  weather_wf:"weather_agent.py",
+  weather_agent:"weather_agent.py",
+  act_ip:"tool_activities.py",
+  act_loc:"tool_activities.py",
+  act_coord:"tool_activities.py",
+  act_weather:"tool_activities.py",
+  f1_service:"f1_expert_agent.py",
+  f1_handler:"f1_expert_agent.py",
+  f1_wf:"f1_expert_agent.py",
+  f1_agent:"f1_expert_agent.py",
+  f1_mcp:"f1_expert_agent.py",
+  weather_api:"external service",
+  f1_mcp_server:"external service",
+  travel_api:"external service",
+};
+const FILE_LABEL = Object.fromEntries(FILES.map(f=>[f.key,f.label]));
+const FILE_DOT = Object.fromEntries(FILES.map(f=>[f.key,f.dot]));
+function fileOf(id){ return NODE_FILE[id] || "other"; }
+
+/* ---------------- worker process outlines ---------------- */
+const WORKERS = [
+  { id:"w-pa", x:8, y:108, w:1056, h:1439, label:"worker_pa.py", proc:"process A",
+    detail:{ badge:"accent", type:"Worker process A", name:"worker_pa.py",
+      file:"solution/worker_pa.py:30", tq:"polls orchestrator-tq + weather-agent-tq",
+      desc:"One OS process running two Workers via asyncio.gather — the orchestrator (orchestrator-tq) and the weather specialist (weather-agent-tq). The travel-planner activity is registered on the orchestrator Worker: the personal-assistant team owns that wrapper, so it runs on the PA team's infrastructure. Its OpenAIAgentsPlugin keeps add_temporal_spans=True (default).",
+      members:["OpenAIAgentsPlugin(add_temporal_spans=True)","Worker(orchestrator-tq, workflows=[PersonalAssistantWorkflow], activities=[ask_travel_planner])","Worker(weather-agent-tq, workflows=[WeatherAgentWorkflow], activities=[4])","asyncio.gather(weather_worker.run(), orchestrator_worker.run())"] } },
+  { id:"w-f1", x:1100, y:250, w:460, h:663, label:"worker_f1.py", proc:"process B",
+    detail:{ badge:"nexus", type:"Worker process B", name:"worker_f1.py",
+      file:"solution/worker_f1.py:46", tq:"polls f1-expert-agent-tq",
+      desc:"A separate process for the F1 team. Runs F1ExpertAgentWorkflow plus the Nexus service handler, and registers the F1 stateless-MCP provider. Its plugin sets add_temporal_spans=False — Nexus doesn't propagate trace context, so this silences no-op span leaks (HTTP 400 spam).",
+      members:["OpenAIAgentsPlugin(add_temporal_spans=False)","StatelessMCPServerProvider(name=\"f1-data\", server_factory=…)","Worker(f1-expert-agent-tq, workflows=[F1ExpertAgentWorkflow], nexus_service_handlers=[F1ExpertServiceHandler()])"] } },
+];
+
+/* ---------------- task-queue lanes ---------------- */
+const LANES = [
+  { id:"tq-orch", x:26, y:150, w:1020, h:880, color:"var(--lane-tq)",
+    name:"orchestrator-tq", tag:"PersonalAssistantWorkflow + ask_travel_planner",
+    detail:{ badge:"lane", type:"Task queue", name:"orchestrator-tq",
+      file:"worker_pa.py:27 (ORCHESTRATOR_TASK_QUEUE)", tq:"polled by worker_pa.py",
+      desc:"The orchestrator's queue. worker_pa polls it and runs PersonalAssistantWorkflow here. Unlike demo 5, this queue also carries an activity: ask_travel_planner, the wrapper around the third-party Strands agent. So two of the three specialists leave this queue (child workflow, Nexus) and one runs on it.",
+      members:["Polled by: worker_pa.py","Runs: PersonalAssistantWorkflow","Activity: ask_travel_planner (the whole Strands loop)","Entered by: start_workflow.py → execute_workflow(task_queue=\"orchestrator-tq\")"] } },
+  { id:"tq-weather", x:26, y:1058, w:764, h:471, color:"var(--child)",
+    name:"weather-agent-tq", tag:"WeatherAgentWorkflow + 4 activities",
+    detail:{ badge:"child", type:"Task queue", name:"weather-agent-tq",
+      file:"worker_pa.py:26 (WEATHER_TASK_QUEUE)", tq:"polled by worker_pa.py",
+      desc:"The weather specialist's queue — polled by the SAME process, worker_pa. The child-workflow tool starts WeatherAgentWorkflow here, and its four weather activities run here too. Because it's a child workflow in the same cluster, trace context propagates from the orchestrator.",
+      members:["Polled by: worker_pa.py","Runs: WeatherAgentWorkflow","Activities: get_ip_address, get_location_info, get_coordinates, get_weather","Entered by: ask_weather_agent tool → execute_child_workflow(task_queue=\"weather-agent-tq\")"] } },
+  { id:"tq-f1", x:1118, y:290, w:424, h:605, color:"var(--nexus)",
+    name:"f1-expert-agent-tq", tag:"F1ExpertAgentWorkflow + handler",
+    detail:{ badge:"nexus", type:"Task queue", name:"f1-expert-agent-tq",
+      file:"worker_f1.py:22 (F1_EXPERT_TASK_QUEUE)", tq:"polled by worker_f1.py",
+      desc:"The F1 expert's queue — polled by the OTHER process, worker_f1. The Nexus endpoint \"f1-expert-d6\" is registered against this queue; the service handler starts F1ExpertAgentWorkflow here. This is the cross-process boundary the Nexus call reaches across.",
+      members:["Polled by: worker_f1.py","Runs: F1ExpertAgentWorkflow","Hosts: F1ExpertServiceHandler (Nexus operation handler)","Entered by: ask_f1_expert tool → Nexus endpoint \"f1-expert-d6\" → ctx.start_workflow"] } },
+];
+
+/* ---------------- opaque region ----------------
+   Nested inside the orchestrator lane, one level deeper than a task queue.
+   Not a queue: Temporal schedules the ask_travel_planner activity, never
+   anything inside this box. That asymmetry is the whole point of demo 6a. */
+const REGIONS = [
+  { id:"rg-strands", x:300, y:588, w:730, h:422,
+    name:"inside one activity", note:"opaque to Temporal · no per-step history",
+    detail:{ badge:"strands", type:"Opaque region", name:"one activity invocation",
+      file:"travel_planner_activity.py:9 → travel_planner.py", tq:"orchestrator-tq · one ScheduleActivityTask",
+      desc:"Everything in this box runs inside a single ask_travel_planner activity. Temporal schedules the activity — not its contents. The Strands agent loop, its LLM turns and its two tool calls never appear in workflow history, so the orchestrator's history shows exactly one ScheduleActivityTask / ActivityTaskCompleted pair for the entire travel path. That is coarse-grained durability: the activity does retry on worker death, but from scratch — every internal LLM and tool call re-executes, and re-charges.",
+      members:["1 Temporal event pair: ScheduleActivityTask: ask_travel_planner","0 events for the Strands loop inside it","Failure mode: the whole loop restarts","Contrast: weather + F1 emit one activity per LLM call and per tool call"] } },
+];
+
+/* ---------------- nodes ---------------- */
+const NODES = [
+  { id:"starter", x:310, y:14, w:400, h:89, hue:"muted", type:"Client · asyncio",
+    code:"async def main() -> None:\n    with trace(\"PersonalAssistant\"):\n        await client.execute_workflow(...)",
+    name:"start_workflow.py", sub:"execute_workflow()",
+    file:"solution/start_workflow.py:51", tq:"— (separate client process)",
+    desc:"CLI entry point. Opens a `with trace(\"PersonalAssistant\")` span, then starts one PersonalAssistantWorkflow on orchestrator-tq and awaits its result. Runs as its own process, outside both workers.",
+    members:["main()","with trace(\"PersonalAssistant\")","client.execute_workflow(task_queue=\"orchestrator-tq\")"],
+    snippet:[['c','# start_workflow.py'],['nl'],['k','with '],['fn','trace'],['p','('],['s','"PersonalAssistant"'],['p','):'],['nl'],['p','    result = await client.'],['fn','execute_workflow'],['p','('],['nl'],['p','        PersonalAssistantWorkflow.run, query,'],['nl'],['p','        task_queue='],['s','"orchestrator-tq"'],['p',')']] },
+
+  { id:"pa_wf", x:300, y:196, w:420, h:105, hue:"accent", type:"@workflow.defn",
+    code:"@workflow.defn\nclass PersonalAssistantWorkflow:\n    @workflow.run\n    async def run(self, question: str) -> str:",
+    name:"PersonalAssistantWorkflow", sub:".run(question) → str",
+    file:"solution/personal_assistant.py:52", tq:"orchestrator-tq",
+    desc:"The orchestrator. Builds three tools — one per invocation pattern — hands them to an Agent(\"PersonalAssistant\", gpt-4o), and runs it. The LLM decides which specialists to call. It cannot tell that one of them is built with a different framework.",
+    members:["run(question) → str","child_workflow_as_tool(...) → weather_tool","nexus_operation_as_tool(...) → f1_tool","activity_as_tool(...) → travel_tool","Agent(name=\"PersonalAssistant\", tools=[3])"],
+    snippet:[['c','# personal_assistant.py'],['nl'],['p','agent = '],['fn','Agent'],['p','(name='],['s','"PersonalAssistant"'],['p',', model='],['s','"gpt-4o"'],['p',','],['nl'],['p','    tools=[weather_tool, f1_tool, travel_tool])'],['nl'],['p','result = await Runner.'],['fn','run'],['p','(agent, input=question)']] },
+
+  { id:"tool_weather", x:40, y:326, w:320, h:89, hue:"child", type:"FunctionTool",
+    code:"weather_tool = child_workflow_as_tool(\n    WeatherAgentWorkflow.run,\n    task_queue=\"weather-agent-tq\")",
+    name:"ask_weather_agent", sub:"child_workflow_as_tool",
+    file:"solution/personal_assistant.py:59", tq:"orchestrator-tq",
+    desc:"The weather tool the LLM sees. Invoking it starts a WeatherAgentWorkflow child on weather-agent-tq — an independently durable workflow execution with its own history.",
+    members:["name=\"ask_weather_agent\"","task_queue=\"weather-agent-tq\"","execution_timeout=5min","→ StartChildWorkflowExecution in history"],
+    snippet:[['p','weather_tool = '],['fn','child_workflow_as_tool'],['p','('],['nl'],['p','    WeatherAgentWorkflow.run,'],['nl'],['p','    name='],['s','"ask_weather_agent"'],['p',','],['nl'],['p','    task_queue='],['s','"weather-agent-tq"'],['p',')']] },
+
+  { id:"tool_f1", x:740, y:326, w:300, h:89, hue:"nexus", type:"FunctionTool",
+    code:"f1_tool = nexus_operation_as_tool(\n    F1ExpertService.ask_f1_expert,\n    endpoint=\"f1-expert-d6\")",
+    name:"ask_f1_expert", sub:"nexus_operation_as_tool",
+    file:"solution/personal_assistant.py:72", tq:"orchestrator-tq",
+    desc:"The F1 tool the LLM sees. Built from the F1ExpertService.ask_f1_expert Nexus operation, pointed at the \"f1-expert-d6\" endpoint. Its description is set by hand — the contrib helper has no description hook.",
+    members:["service=F1ExpertService","endpoint=\"f1-expert-d6\"","schedule_to_close_timeout=5min","f1_tool.description = \"...\"","→ NexusOperationScheduled in history"],
+    snippet:[['p','f1_tool = '],['fn','nexus_operation_as_tool'],['p','('],['nl'],['p','    F1ExpertService.ask_f1_expert,'],['nl'],['p','    service=F1ExpertService,'],['nl'],['p','    endpoint='],['s','"f1-expert-d6"'],['p',')']] },
+
+  { id:"tool_travel", x:376, y:326, w:330, h:105, hue:"strands", type:"FunctionTool",
+    code:"travel_tool = activity_as_tool(\n    ask_travel_planner,\n    start_to_close_timeout=timedelta(\n        minutes=5))",
+    name:"ask_travel_planner", sub:"activity_as_tool",
+    file:"solution/personal_assistant.py:92", tq:"orchestrator-tq",
+    desc:"The travel tool the LLM sees. Same activity_as_tool helper the weather agent uses for its individual tools — but here it wraps an entire third-party agent loop instead of one HTTP call. No sub-workflow: the specialist never gets a workflow execution of its own.",
+    members:["activity_as_tool(ask_travel_planner)","start_to_close_timeout=5min","no task_queue argument — runs on the caller's queue","→ one ScheduleActivityTask in history"],
+    snippet:[['c','# personal_assistant.py'],['nl'],['p','travel_tool = '],['fn','activity_as_tool'],['p','('],['nl'],['p','    ask_travel_planner,'],['nl'],['p','    start_to_close_timeout=timedelta(minutes='],['s','5'],['p','))']] },
+
+  { id:"act_travel", x:520, y:471, w:330, h:89, hue:"strands", type:"@activity.defn",
+    code:"@activity.defn\nasync def ask_travel_planner(\n        question: str) -> str:",
+    name:"ask_travel_planner", sub:"(question) → str",
+    file:"solution/travel_planner_activity.py:9", tq:"orchestrator-tq",
+    desc:"The personal-assistant team's ten-line wrapper — the entire Temporal footprint of the travel path. It lazy-imports travel_planner inside the activity body, keeping the heavy Strands + boto3 dependency tree out of any workflow's imports_passed_through resolution, then awaits travel_planner.run(question).",
+    members:["@activity.defn","import travel_planner  ← lazy, inside the body","activity.logger.info(...)","return await travel_planner.run(question)"],
+    snippet:[['c','# travel_planner_activity.py'],['nl'],['p','@'],['fn','activity.defn'],['nl'],['k','async def '],['fn','ask_travel_planner'],['p','(question: str) -> str:'],['nl'],['c','    # lazy import: keeps Strands out of workflow imports'],['nl'],['p','    import travel_planner'],['nl'],['p','    return await travel_planner.'],['fn','run'],['p','(question)']] },
+
+  { id:"strands_run", x:322, y:638, w:340, h:105, hue:"strands", type:"module fn · Strands",
+    code:"async def run(question: str) -> str:\n    agent = build_agent()\n    result = await agent.invoke_async(\n        question)",
+    name:"travel_planner.run", sub:"(question) → str",
+    file:"solution/travel_planner.py:64", tq:"— (inside the activity)",
+    desc:"The third-party agent's own entry point. Builds a fresh Strands Agent per question and awaits one invoke_async. Zero Temporal imports in this file — it could be a library vendored from another team, which is exactly the framing.",
+    members:["build_agent()","await agent.invoke_async(question)","return str(result)","no Temporal imports anywhere in this file"] },
+
+  { id:"strands_agent", x:682, y:638, w:340, h:122, hue:"strands", type:"Strands Agent",
+    code:"def build_agent() -> Agent:\n    return Agent(\n        model=OpenAIModel(\n            model_id=\"gpt-4o\"),\n        tools=[wikipedia_summary, ...])",
+    name:"Strands Agent", sub:"OpenAIModel(gpt-4o)",
+    file:"solution/travel_planner.py:55", tq:"— (inside the activity)",
+    desc:"A Strands agent, not an OpenAI Agents SDK agent. It runs its own loop: LLM turns and @tool dispatches, with callback_handler=None to silence Strands' default stdout printing. None of these steps become Temporal activities — the plugin that does that for the OpenAI agents has no Strands equivalent.",
+    members:["model=OpenAIModel(model_id=\"gpt-4o\")","tools=[wikipedia_summary, country_info]","system_prompt=travel planner prompt","callback_handler=None"] },
+
+  { id:"tool_wiki", x:322, y:781, w:340, h:89, hue:"strands", type:"@tool · Strands",
+    code:"@tool\nasync def wikipedia_summary(\n        topic: str) -> str:",
+    name:"wikipedia_summary", sub:"(topic) → str",
+    file:"solution/travel_planner.py:12", tq:"— (inside the activity)",
+    desc:"A Strands @tool, not a Temporal activity. Its docstring and signature become the LLM-facing schema, exactly as activity_as_tool would — but there is no retry, no timeout and no history event behind it.",
+    members:["@tool (Strands decorator)","httpx GET en.wikipedia.org/api/rest_v1/page/summary/{topic}","timeout=5.0","not a Temporal activity"] },
+
+  { id:"tool_country", x:682, y:781, w:340, h:89, hue:"strands", type:"@tool · Strands",
+    code:"@tool\nasync def country_info(\n        country: str) -> str:",
+    name:"country_info", sub:"(country) → str",
+    file:"solution/travel_planner.py:28", tq:"— (inside the activity)",
+    desc:"The second Strands tool: country background — currency, languages, region, capital, timezones. Same story as its sibling; opaque to Temporal.",
+    members:["@tool (Strands decorator)","httpx GET restcountries.com/v3.1/name/{country}","timeout=5.0","not a Temporal activity"] },
+
+  { id:"travel_api", x:322, y:892, w:700, h:96, hue:"muted", type:"external · called from inside the activity",
+    name:"Wikipedia REST + REST Countries", sub:"httpx → en.wikipedia.org · restcountries.com",
+    file:"(external services)", tq:"— (inside the activity)",
+    desc:"The public APIs the Strands tools call. They sit inside the opaque region rather than in the external row below, because from Temporal's point of view these calls happen inside that one activity — there is no activity boundary between the agent and the network.",
+    members:["en.wikipedia.org/api/rest_v1/page/summary/{title}","restcountries.com/v3.1/name/{name}","called over httpx from the Strands @tool functions"] },
+
+  { id:"weather_wf", x:40, y:1103, w:420, h:105, hue:"child", type:"@workflow.defn",
+    code:"@workflow.defn\nclass WeatherAgentWorkflow:\n    @workflow.run\n    async def run(self, question: str) -> str:",
+    name:"WeatherAgentWorkflow", sub:".run(question) → str",
+    file:"solution/weather_agent.py:37", tq:"weather-agent-tq",
+    desc:"Weather specialist, running as its own durable child-workflow execution. Builds an Agent(\"WeatherAgent\", gpt-4o) whose four tools are Temporal activities wrapped by activity_as_tool — the per-step end of the spectrum.",
+    members:["run(question) → str","Agent(name=\"WeatherAgent\")","tools=[4× activity_as_tool(...)]","Runner.run(agent, question)"],
+    snippet:[['c','# weather_agent.py'],['nl'],['p','agent = '],['fn','Agent'],['p','(name='],['s','"WeatherAgent"'],['p',', model='],['s','"gpt-4o"'],['p',','],['nl'],['p','    tools=[activity_as_tool(get_ip_address, ...), ...])']] },
+
+  { id:"weather_agent", x:40, y:1228, w:420, h:73, hue:"child", type:"Agent (gpt-4o)",
+    code:"agent = Agent(name=\"WeatherAgent\", model=\"gpt-4o\",\n    tools=[activity_as_tool(get_ip_address), ...])",
+    name:"WeatherAgent", sub:"Runner.run(...)",
+    file:"solution/weather_agent.py:42", tq:"weather-agent-tq",
+    desc:"The OpenAI Agents SDK agent inside the weather workflow. Its LLM calls and tool calls each run as their own Temporal activity via the plugin. Compare with the Strands agent above: same job, entirely different granularity in history.",
+    members:["instructions = weather system prompt","model=\"gpt-4o\"","4 activity tools","one activity per LLM call + one per tool call"] },
+
+  { id:"act_ip", x:40, y:1325, w:355, h:73, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_ip_address() -> str:",
+    name:"get_ip_address", sub:"→ str",
+    file:"solution/tool_activities.py:12", tq:"weather-agent-tq",
+    desc:"Returns the caller machine's public IP via httpx GET icanhazip.com.",
+    members:["get_ip_address() → str"] },
+  { id:"act_loc", x:411, y:1325, w:355, h:73, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_location_info(ipaddress) -> str:",
+    name:"get_location_info", sub:"(ipaddress) → str",
+    file:"solution/tool_activities.py:21", tq:"weather-agent-tq",
+    desc:"IP-based geolocation (city/state/country/lat/lon) via httpx GET ip-api.com.",
+    members:["get_location_info(ipaddress) → str"] },
+  { id:"act_coord", x:40, y:1418, w:355, h:73, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_coordinates(city: str) -> str:",
+    name:"get_coordinates", sub:"(city) → str",
+    file:"solution/tool_activities.py:36", tq:"weather-agent-tq",
+    desc:"City → lat/lon via the Open-Meteo geocoder. Returns an explicit no_match payload when the geocoder finds nothing, so the LLM stops retrying the same call.",
+    members:["get_coordinates(city) → str"] },
+  { id:"act_weather", x:411, y:1418, w:355, h:89, hue:"child", type:"@activity.defn",
+    code:"@activity.defn\nasync def get_weather(\n        latitude: float, longitude: float) -> str:",
+    name:"get_weather", sub:"(lat, lon) → str",
+    file:"solution/tool_activities.py:71", tq:"weather-agent-tq",
+    desc:"Current weather (temp °F, weather code, wind) for coordinates via the Open-Meteo forecast API.",
+    members:["get_weather(latitude, longitude) → str"] },
+
+  { id:"f1_service", x:1136, y:340, w:388, h:89, hue:"nexus", type:"@nexusrpc.service",
+    code:"@nexusrpc.service\nclass F1ExpertService:\n    ask_f1_expert: Operation[AskReq, AskResp]",
+    name:"F1ExpertService", sub:"ask_f1_expert: Operation",
+    file:"solution/f1_expert_agent.py:27", tq:"f1-expert-agent-tq",
+    desc:"The typed Nexus contract — the boundary the orchestrator calls across. One operation, ask_f1_expert, with Pydantic AskRequest → AskResponse so the tool schema can be derived.",
+    members:["ask_f1_expert: Operation[AskRequest, AskResponse]","class AskRequest(question: str)","class AskResponse(answer: str)"],
+    snippet:[['p','@'],['fn','nexusrpc.service'],['nl'],['k','class '],['fn','F1ExpertService'],['p',':'],['nl'],['p','    ask_f1_expert: nexusrpc.Operation['],['nl'],['p','        AskRequest, AskResponse]']] },
+
+  { id:"f1_handler", x:1136, y:451, w:388, h:105, hue:"nexus", type:"@service_handler",
+    code:"@service_handler(service=F1ExpertService)\nclass F1ExpertServiceHandler:\n    @nexus.workflow_run_operation\n    async def ask_f1_expert(self, ctx, req):",
+    name:"F1ExpertServiceHandler", sub:"ask_f1_expert(ctx, req)",
+    file:"solution/f1_expert_agent.py:67", tq:"f1-expert-agent-tq",
+    desc:"Implements the Nexus operation. Its @nexus.workflow_run_operation method starts an F1ExpertAgentWorkflow and returns a handle — bridging the Nexus call to a real workflow execution.",
+    members:["@nexus.workflow_run_operation","ask_f1_expert(ctx, request) → WorkflowHandle","ctx.start_workflow(F1ExpertAgentWorkflow.run, ...)"],
+    snippet:[['p','@'],['fn','nexus.workflow_run_operation'],['nl'],['k','async def '],['fn','ask_f1_expert'],['p','(self, ctx, request):'],['nl'],['p','    return await ctx.'],['fn','start_workflow'],['p','('],['nl'],['p','        F1ExpertAgentWorkflow.run, request)']] },
+
+  { id:"f1_wf", x:1136, y:578, w:388, h:105, hue:"nexus", type:"@workflow.defn",
+    code:"@workflow.defn\nclass F1ExpertAgentWorkflow:\n    @workflow.run\n    async def run(self, request) -> AskResponse:",
+    name:"F1ExpertAgentWorkflow", sub:".run(AskRequest) → AskResponse",
+    file:"solution/f1_expert_agent.py:51", tq:"f1-expert-agent-tq",
+    desc:"F1 specialist, running as its own workflow execution started by the Nexus handler. Builds an Agent(\"F1Expert\", gpt-4o) whose toolkit is the F1 MCP server rather than activities.",
+    members:["run(request) → AskResponse","stateless_mcp_server(name=\"f1-data\")","Agent(name=\"F1Expert\", mcp_servers=[f1])","Runner.run(agent, request.question)"],
+    snippet:[['c','# f1_expert_agent.py'],['nl'],['p','f1 = '],['fn','stateless_mcp_server'],['p','(name='],['s','"f1-data"'],['p',')'],['nl'],['p','agent = '],['fn','Agent'],['p','(name='],['s','"F1Expert"'],['p',', mcp_servers=[f1])']] },
+
+  { id:"f1_agent", x:1136, y:705, w:388, h:73, hue:"nexus", type:"Agent (gpt-4o)",
+    code:"agent = Agent(name=\"F1Expert\", model=\"gpt-4o\",\n    mcp_servers=[f1])",
+    name:"F1Expert", sub:"Runner.run(...)",
+    file:"solution/f1_expert_agent.py:56", tq:"f1-expert-agent-tq",
+    desc:"The Agents SDK agent inside the F1 workflow. Instead of activity tools it is given MCP servers — the F1 data toolkit is discovered dynamically from the MCP server.",
+    members:["instructions = F1 system prompt","model=\"gpt-4o\"","mcp_servers=[f1-data]"] },
+
+  { id:"f1_mcp", x:1136, y:800, w:388, h:73, hue:"nexus", type:"MCP handle",
+    code:"f1 = stateless_mcp_server(name=\"f1-data\",\n    cache_tools_list=True)",
+    name:"stateless_mcp_server", sub:"name=\"f1-data\"",
+    file:"solution/f1_expert_agent.py:55", tq:"f1-expert-agent-tq",
+    desc:"In-workflow MCP handle. It resolves to the StatelessMCPServerProvider registered on worker_f1's plugin, which launches the real F1 MCP server on demand. Tool list is cached.",
+    members:["stateless_mcp_server(name=\"f1-data\", cache_tools_list=True)","resolved via worker_f1 plugin provider"] },
+
+  { id:"f1_mcp_server", x:1136, y:958, w:388, h:96, hue:"muted", type:"external · stdio",
+    name:"F1 MCP server", sub:"node build/index.js → 8 tools",
+    file:"worker_f1.py:31 (_f1_server_factory)", tq:"—",
+    desc:"External Node.js MCP server launched over stdio by worker_f1's StatelessMCPServerProvider. Exposes 8 F1 data tools (schedules, results, standings, telemetry). Same install reused from demo 3.",
+    members:["MCPServerStdio(command=\"bash\", ...)","$F1_MCP_SERVER_HOME/build/index.js","8 F1 data tools"] },
+
+  { id:"weather_api", x:100, y:1585, w:400, h:96, hue:"muted", type:"external",
+    name:"Public HTTP APIs", sub:"httpx → icanhazip · ip-api · open-meteo",
+    file:"(external services)", tq:"—",
+    desc:"Free public endpoints the weather activities call over httpx: icanhazip.com, ip-api.com, and Open-Meteo's geocoding + forecast APIs. Each call sits behind its own Temporal activity, so each one retries independently.",
+    members:["icanhazip.com","ip-api.com/json","geocoding-api.open-meteo.com","api.open-meteo.com/forecast"] },
+];
+
+const EDGES = [
+  { from:"starter",       to:"pa_wf",         cat:"setup",    label:"execute_workflow" },
+  { from:"pa_wf",         to:"tool_weather",  cat:"setup",    label:"tools=[…]" },
+  { from:"pa_wf",         to:"tool_f1",       cat:"setup",    label:"" },
+  { from:"pa_wf",         to:"tool_travel",   cat:"setup",    label:"" },
+
+  { from:"tool_weather",  to:"weather_wf",    cat:"child",    label:"execute_child_workflow" },
+  { from:"weather_wf",    to:"weather_agent", cat:"agent",    label:"Runner.run" },
+  { from:"weather_agent", to:"act_ip",        cat:"agent",    label:"activity_as_tool" },
+  { from:"weather_agent", to:"act_loc",       cat:"agent",    label:"" },
+  { from:"weather_agent", to:"act_coord",     cat:"agent",    label:"" },
+  { from:"weather_agent", to:"act_weather",   cat:"agent",    label:"" },
+  { from:"act_ip",        to:"weather_api",   cat:"external", label:"" },
+  { from:"act_loc",       to:"weather_api",   cat:"external", label:"" },
+  { from:"act_coord",     to:"weather_api",   cat:"external", label:"httpx" },
+  { from:"act_weather",   to:"weather_api",   cat:"external", label:"" },
+
+  { from:"tool_f1",       to:"f1_service",    cat:"nexus",    label:"Nexus (f1-expert-d6)" },
+  { from:"f1_service",    to:"f1_handler",    cat:"nexus",    label:"service_handler" },
+  { from:"f1_handler",    to:"f1_wf",         cat:"nexus",    label:"ctx.start_workflow" },
+  { from:"f1_wf",         to:"f1_agent",      cat:"agent",    label:"Runner.run" },
+  { from:"f1_agent",      to:"f1_mcp",        cat:"agent",    label:"mcp_servers=[…]" },
+  { from:"f1_mcp",        to:"f1_mcp_server", cat:"external", label:"stdio launch" },
+
+  { from:"tool_travel",   to:"act_travel",    cat:"strands",  label:"ScheduleActivityTask" },
+  { from:"act_travel",    to:"strands_run",   cat:"strands",  label:"lazy import → run()" },
+  { from:"strands_run",   to:"strands_agent", cat:"strands",  label:"build_agent()" },
+  { from:"strands_agent", to:"tool_wiki",     cat:"strands",  label:"@tool" },
+  { from:"strands_agent", to:"tool_country",  cat:"strands",  label:"@tool" },
+  { from:"tool_wiki",     to:"travel_api",    cat:"external", label:"httpx" },
+  { from:"tool_country",  to:"travel_api",    cat:"external", label:"" },
+];
+
+const CAT_LABEL = { child:"child wf", nexus:"nexus", strands:"activity", agent:"agent tool", setup:"setup", external:"external" };
+
+/* ---------------- render ---------------- */
+const nodeMap = Object.fromEntries(NODES.map(n => [n.id, n]));
+
+// arrowhead markers
+const defs = document.createElementNS(SVGNS, "defs");
+[["child","var(--child)"],["nexus","var(--nexus)"],["strands","var(--strands)"],["agent","var(--accent)"],["setup","var(--faint)"],["external","var(--faint)"]].forEach(([cat,color])=>{
+  const m = document.createElementNS(SVGNS,"marker");
+  m.setAttribute("id","arrow-"+cat); m.setAttribute("viewBox","0 0 10 10");
+  m.setAttribute("refX","8"); m.setAttribute("refY","5");
+  m.setAttribute("markerWidth","7"); m.setAttribute("markerHeight","7"); m.setAttribute("orient","auto-start-reverse");
+  const p = document.createElementNS(SVGNS,"path");
+  p.setAttribute("d","M0,0 L10,5 L0,10 z"); p.setAttribute("fill",color);
+  m.appendChild(p); defs.appendChild(m);
+});
+svg.appendChild(defs);
+
+// worker outlines (z0)
+WORKERS.forEach(wk=>{
+  const el = document.createElement("div");
+  el.className = "worker"; el.dataset.worker = wk.id;
+  el.style.left=wk.x+"px"; el.style.top=wk.y+"px"; el.style.width=wk.w+"px"; el.style.height=wk.h+"px";
+  el.tabIndex = 0;
+  el.innerHTML = `<span class="wlabel">${wk.label} <span class="wp">· ${wk.proc}</span></span>`;
+  const act = ()=> selectContainer(wk);
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); act(); });
+  el.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); act(); } });
+  canvas.appendChild(el); wk._el = el;
+});
+
+// task-queue lanes (z1)
+LANES.forEach(ln=>{
+  const el = document.createElement("div");
+  el.className = "lane"; el.dataset.lane = ln.id;
+  el.style.left=ln.x+"px"; el.style.top=ln.y+"px"; el.style.width=ln.w+"px"; el.style.height=ln.h+"px";
+  el.style.setProperty("--lane-color", ln.color);
+  el.tabIndex = 0;
+  el.innerHTML = `<div class="lane-head"><span class="lane-dot"></span><div><div class="lane-kicker">Task queue</div><div class="lane-name">${ln.name}</div></div><span class="lane-tag">${ln.tag}</span></div>`;
+  const act = ()=> selectContainer(ln);
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); act(); });
+  el.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); act(); } });
+  canvas.appendChild(el); ln._el = el;
+});
+
+// opaque regions (z1, appended after the lanes so they paint on top of them)
+REGIONS.forEach(rg=>{
+  const el = document.createElement("div");
+  el.className = "region"; el.dataset.region = rg.id;
+  el.style.left=rg.x+"px"; el.style.top=rg.y+"px"; el.style.width=rg.w+"px"; el.style.height=rg.h+"px";
+  el.tabIndex = 0;
+  el.innerHTML = `<span class="rlabel rl-name"><span class="rname">${rg.name}</span></span>`
+    + `<span class="rlabel rl-note"><span class="rnote">${rg.note}</span></span>`;
+  const act = ()=> selectContainer(rg);
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); act(); });
+  el.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); act(); } });
+  canvas.appendChild(el); rg._el = el;
+});
+
+// external captions
+[["External services · not on any task queue", 100, 1557],
+ ["External · F1 expert (stdio)", 1136, 930]].forEach(([t,x,y])=>{
+  const cap = document.createElement("div");
+  cap.className = "ext-cap"; cap.style.left = x+"px"; cap.style.top = y+"px";
+  cap.textContent = t;
+  canvas.appendChild(cap);
+});
+
+// nodes (z3)
+NODES.forEach(n=>{
+  const el = document.createElement("button");
+  el.type="button"; el.className="node"; el.dataset.id=n.id; el.dataset.hue=n.hue;
+  el.style.left=n.x+"px"; el.style.top=n.y+"px"; el.style.width=n.w+"px";
+  const fkey = fileOf(n.id);
+  el.dataset.file = FILE_DOT[fkey];
+  // Declaration boxes render the real signature; the few that are not
+  // declarations (external services) keep the kicker/name/sub form.
+  const body = n.code
+    ? `<div class="ncode">${hl(n.code)}</div>`
+    : `<div class="ntype">${n.type}</div><div class="nname">${n.name}</div>${n.sub?`<div class="nsub">${n.sub}</div>`:""}`;
+  el.innerHTML = body
+    + `<div class="nfile"><span class="fdot"></span>${NODE_FILE_LABEL[n.id] || FILE_LABEL[fkey]}</div>`
+    + `${n.id==="starter"?`<span class="start-badge">START</span>`:""}`;
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); selectNode(n.id); });
+  canvas.appendChild(el); n._el = el;
+});
+
+// edge paths (z2)
+const edgeEls = EDGES.map(e=>{
+  const path = document.createElementNS(SVGNS,"path");
+  path.setAttribute("class","edge-"+e.cat);
+  path.setAttribute("marker-end","url(#arrow-"+e.cat+")");
+  path.setAttribute("stroke-width", e.cat==="setup" ? "1.5" : (e.cat==="external" ? "1.6" : (e.cat==="strands" ? "2.6" : "2")));
+  svg.appendChild(path);
+  const txt = document.createElementNS(SVGNS,"text");
+  txt.setAttribute("class","elabel"); txt.setAttribute("text-anchor","middle");
+  txt.textContent = e.label;
+  svg.appendChild(txt);
+  return { data:e, path, txt };
+});
+
+const edgeIndex = {};
+edgeEls.forEach(o => { edgeIndex[o.data.from+">"+o.data.to] = o; });
+
+function rectOf(n){ const h = n._el ? n._el.offsetHeight : n.h; return { x:n.x, y:n.y, w:n.w, h:h, cx:n.x+n.w/2, cy:n.y+h/2 }; }
+function borderPoint(r, tx, ty){
+  const dx=tx-r.cx, dy=ty-r.cy; if(dx===0&&dy===0) return {x:r.cx,y:r.cy};
+  const hw=r.w/2, hh=r.h/2; const scale = 1/Math.max(Math.abs(dx)/hw, Math.abs(dy)/hh);
+  return { x:r.cx+dx*scale, y:r.cy+dy*scale };
+}
+function layout(){
+  edgeEls.forEach(({data,path,txt})=>{
+    const a=rectOf(nodeMap[data.from]), b=rectOf(nodeMap[data.to]);
+    const p1=borderPoint(a,b.cx,b.cy), p2=borderPoint(b,a.cx,a.cy);
+    const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+    const dx=p2.x-p1.x, dy=p2.y-p1.y, len=Math.hypot(dx,dy)||1;
+    const bow=Math.min(26, len*0.11);
+    const cx=mx+(-dy/len)*bow, cy=my+(dx/len)*bow;
+    path.setAttribute("d",`M ${p1.x} ${p1.y} Q ${cx} ${cy} ${p2.x} ${p2.y}`);
+    txt.setAttribute("x",cx); txt.setAttribute("y",cy-3);
+  });
+}
+
+/* ---------------- interaction ---------------- */
+const activeCats = new Set(["child","nexus","strands","agent","setup","external"]);
+
+function neighborsOf(id){
+  const nodes=new Set(), edges=new Set();
+  EDGES.forEach((e,i)=>{ if(e.from===id){nodes.add(e.to);edges.add(i);} if(e.to===id){nodes.add(e.from);edges.add(i);} });
+  return { nodes, edges };
+}
+function clearState(){
+  NODES.forEach(n=> n._el.classList.remove("dim","active","neighbor","fileLit"));
+  activeFile = null;
+  document.querySelectorAll("#fileLegend .legItem").forEach(b=> b.classList.remove("on"));
+  WORKERS.forEach(w=> w._el.classList.remove("lit"));
+  LANES.forEach(l=> l._el.classList.remove("lit"));
+  REGIONS.forEach(r=> r._el.classList.remove("lit"));
+  edgeEls.forEach(({path,txt})=>{ path.classList.remove("dim","hot"); txt.classList.remove("dim"); });
+}
+function applyFilter(){
+  edgeEls.forEach(({data,path,txt})=>{
+    const show=activeCats.has(data.cat);
+    path.style.display=show?"":"none"; txt.style.display=show?"":"none";
+  });
+}
+function selectNode(id){
+  exitFlow();
+  clearState();
+  const { nodes, edges } = neighborsOf(id);
+  NODES.forEach(n=>{
+    if(n.id===id) n._el.classList.add("active");
+    else if(nodes.has(n.id)) n._el.classList.add("neighbor");
+    else n._el.classList.add("dim");
+  });
+  edgeEls.forEach(({path,txt},i)=>{ if(edges.has(i)) path.classList.add("hot"); else { path.classList.add("dim"); txt.classList.add("dim"); } });
+  renderNodeDetail(nodeMap[id]);
+}
+function selectContainer(c){
+  exitFlow();
+  clearState();
+  c._el.classList.add("lit");
+  renderContainerDetail(c.detail);
+}
+function resetView(){ exitFlow(); clearState(); document.getElementById("detail").innerHTML = PLACEHOLDER; }
+
+/* ---------------- detail panel ---------------- */
+const PLACEHOLDER = document.getElementById("detail").innerHTML;
+function relList(id){
+  const calls = EDGES.filter(e=>e.from===id).map(e=>({id:e.to, cat:e.cat, dir:"→"}));
+  const callers = EDGES.filter(e=>e.to===id).map(e=>({id:e.from, cat:e.cat, dir:"←"}));
+  return { calls, callers };
+}
+function relItemHTML(r){
+  const n=nodeMap[r.id];
+  return `<li><button data-goto="${r.id}"><span class="rel-arrow">${r.dir}</span>${n.name}<span class="rel-kind">${CAT_LABEL[r.cat]}</span></button></li>`;
+}
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+/* Minimal Python highlighter for the node signature blocks. Single pass with one
+   regex and a callback - a chain of .replace() calls would re-scan the markup it
+   just inserted and match the word "class" inside class="...".
+   The regex is a literal rather than a shared const: hl() is called from the
+   node-render pass that runs earlier in this script, so a const declared here
+   would be in its temporal dead zone. */
+function hl(src){
+  return esc(src).replace(/(@[\w.]+)|("(?:[^"\\]|\\.)*")|\b(class|def|interface)(\s+)(\w+)|\b(async|await|lambda|not|return|None|True|False|self|public|private|final|new|void|implements|extends)\b/g, (m, deco, str_, kw1, sp, name, kw2) => {
+    if(deco) return `<span class="cd">${deco}</span>`;
+    if(str_) return `<span class="cs">${str_}</span>`;
+    if(kw1)  return `<span class="ck">${kw1}</span>${sp}<span class="cn">${name}</span>`;
+    return `<span class="ck">${kw2}</span>`;
+  });
+}
+
+function snippetHTML(parts){
+  if(!parts) return "";
+  let out="";
+  parts.forEach(([t,v])=>{
+    if(t==="nl") out+="\n";
+    else if(t==="k"||t==="fn") out+=`<span class="k">${esc(v)}</span>`;
+    else if(t==="s") out+=`<span class="s">${esc(v)}</span>`;
+    else if(t==="c") out+=`<span class="c">${esc(v)}</span>`;
+    else out+=esc(v);
+  });
+  return `<div class="sec">Source</div><pre class="snippet">${out}</pre>`;
+}
+function renderNodeDetail(n){
+  const { calls, callers } = relList(n.id);
+  const d=document.getElementById("detail");
+  d.innerHTML = `
+    <span class="badge ${n.hue}">${esc(n.type)}</span>
+    <h2>${n.name}</h2>
+    <div class="file">${esc(n.file)} · <b>tq:</b> ${esc(n.tq)}</div>
+    <p class="desc">${esc(n.desc)}</p>
+    ${n.members&&n.members.length?`<div class="sec">Members</div><ul class="members">${n.members.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`:""}
+    ${calls.length?`<div class="sec">Calls / uses</div><ul class="rellist">${calls.map(relItemHTML).join("")}</ul>`:""}
+    ${callers.length?`<div class="sec">Called / built by</div><ul class="rellist">${callers.map(relItemHTML).join("")}</ul>`:""}
+    ${snippetHTML(n.snippet)}`;
+  d.querySelectorAll("button[data-goto]").forEach(b=> b.addEventListener("click",()=> selectNode(b.dataset.goto)));
+}
+function renderContainerDetail(d){
+  const el=document.getElementById("detail");
+  el.innerHTML = `
+    <span class="badge ${d.badge}">${esc(d.type)}</span>
+    <h2>${d.name}</h2>
+    <div class="file">${esc(d.file)} · <b>${esc(d.tq)}</b></div>
+    <p class="desc">${esc(d.desc)}</p>
+    <div class="sec">${d.type==="Task queue"?"Runs on this queue":(d.type==="Opaque region"?"What Temporal sees":"Registers")}</div>
+    <ul class="members">${d.members.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`;
+}
+
+/* ---------------- controls ---------------- */
+document.getElementById("legend").addEventListener("click",(e)=>{
+  const item=e.target.closest(".legItem"); if(!item) return;
+  const cat=item.dataset.cat;
+  if(activeCats.has(cat)){ activeCats.delete(cat); item.classList.add("off"); item.setAttribute("aria-pressed","false"); }
+  else { activeCats.add(cat); item.classList.remove("off"); item.setAttribute("aria-pressed","true"); }
+  applyFilter();
+});
+
+/* ---------------- zoom / fit-to-width ----------------
+   The canvas is a fixed coordinate space so the absolute node positions and the
+   SVG edge math stay simple. Instead of reflowing it for narrow panes, scale the
+   whole thing to fit the available width - which is what kills the horizontal
+   scrollbar in Instruqt's split view. */
+const viewport = document.getElementById("viewport");
+const scrollEl = document.querySelector(".canvasScroll");
+const elZoomLabel = document.getElementById("zoomLabel");
+const MIN_ZOOM = 0.3, MAX_ZOOM = 2;
+let userZoom = null;   // null = follow fit-to-width
+let curScale = 1;
+
+function fitScale(){
+  const avail = scrollEl.clientWidth;
+  if(!avail) return 1;
+  return Math.min(1, Math.max(MIN_ZOOM, avail / CANVAS_W));
+}
+function applyZoom(){
+  const s = userZoom === null ? fitScale() : userZoom;
+  curScale = s;
+  canvas.style.transform = "scale("+s+")";
+  viewport.style.width = Math.floor(CANVAS_W*s)+"px";
+  viewport.style.height = Math.ceil(CANVAS_H*s)+"px";
+  elZoomLabel.textContent = Math.round(s*100)+"%";
+  document.getElementById("zoomFit").disabled = (userZoom === null);
+}
+function nudgeZoom(delta){
+  const base = userZoom === null ? fitScale() : userZoom;
+  userZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round((base+delta)*100)/100));
+  applyZoom();
+}
+document.getElementById("zoomIn").addEventListener("click", ()=> nudgeZoom(+0.15));
+document.getElementById("zoomOut").addEventListener("click", ()=> nudgeZoom(-0.15));
+document.getElementById("zoomFit").addEventListener("click", ()=>{ userZoom = null; applyZoom(); });
+let lastFit = null;
+if(typeof ResizeObserver !== "undefined"){
+  new ResizeObserver(()=>{
+    if(userZoom !== null) return;
+    const f = fitScale();
+    if(f !== lastFit){ lastFit = f; applyZoom(); }
+  }).observe(scrollEl);
+}
+
+/* ---------------- file filter ----------------
+   Pick a file: ring its nodes, dim the rest, keep only edges that touch it - so a
+   cross-file call reads as an edge leaving the lit set. */
+let activeFile = null;
+function selectFile(key){
+  exitFlow();
+  clearState();
+  document.querySelectorAll("#fileLegend .legItem").forEach(b=>
+    b.classList.toggle("on", b.dataset.key===key));
+  activeFile = key;
+  NODES.forEach(n=>{
+    if(fileOf(n.id)===key) n._el.classList.add("fileLit");
+    else n._el.classList.add("dim");
+  });
+  edgeEls.forEach(({data,path,txt})=>{
+    if(fileOf(data.from)===key || fileOf(data.to)===key) path.classList.add("hot");
+    else { path.classList.add("dim"); txt.classList.add("dim"); }
+  });
+  renderFileDetail(key);
+}
+function renderFileDetail(key){
+  const f = FILES.find(x=>x.key===key);
+  const mine = NODES.filter(n=>fileOf(n.id)===key);
+  const ids = new Set(mine.map(n=>n.id));
+  const out = EDGES.filter(e=>ids.has(e.from) && !ids.has(e.to));
+  const inc = EDGES.filter(e=>!ids.has(e.from) && ids.has(e.to));
+  const row = (e,dir)=>{
+    const other = dir==="→" ? e.to : e.from;
+    return `<li><button data-goto="${other}"><span class="rel-arrow">${dir}</span>${nodeMap[other].name}`
+      + `<span class="rel-kind">${NODE_FILE_LABEL[other] || FILE_LABEL[fileOf(other)]}</span></button></li>`;
+  };
+  document.getElementById("detail").innerHTML = `
+    <span class="badge muted">Source file</span>
+    <h2>${esc(f.label)}</h2>
+    <div class="file">${mine.length} component${mine.length===1?"":"s"} in this diagram</div>
+    <p class="desc">${esc(f.desc)}</p>
+    <div class="sec">Defined here</div>
+    <ul class="rellist">${mine.map(n=>`<li><button data-goto="${n.id}">${n.name}</button></li>`).join("")}</ul>
+    ${out.length?`<div class="sec">Calls out to other files</div><ul class="rellist">${out.map(e=>row(e,"→")).join("")}</ul>`:""}
+    ${inc.length?`<div class="sec">Called from other files</div><ul class="rellist">${inc.map(e=>row(e,"←")).join("")}</ul>`:""}`;
+  document.getElementById("detail").querySelectorAll("button[data-goto]")
+    .forEach(b=> b.addEventListener("click",()=> selectNode(b.dataset.goto)));
+}
+document.getElementById("fileLegend").addEventListener("click",(e)=>{
+  const item=e.target.closest(".legItem"); if(!item) return;
+  if(activeFile===item.dataset.key) resetView(); else selectFile(item.dataset.key);
+});
+
+document.getElementById("resetBtn").addEventListener("click", resetView);
+canvas.addEventListener("click",(e)=>{ if(e.target===canvas || e.target===svg) resetView(); });
+
+/* ---------------- data-flow player ---------------- */
+// scenario: "I'm going to the next F1 race - what's the weather, and what should
+// I know about the destination?" - exercises all three invocation patterns.
+// each step: e = [ [fromId, toId, reverse?], ... ]  (reverse = data flows against the arrow)
+const STEPS = [
+  { phase:"Start", nodes:["starter","pa_wf"], e:[["starter","pa_wf",false]],
+    cap:"start_workflow.py opens a trace and submits the question to the orchestrator queue.",
+    payload:'"…next F1 race — weather, and the destination?"' },
+  { phase:"Orchestrate", nodes:["pa_wf"], e:[],
+    cap:"PersonalAssistantWorkflow builds its three tools, then runs the PersonalAssistant agent (gpt-4o). The LLM plans to consult all three specialists — and cannot tell that one of them uses a different framework.",
+    payload:"LLM plan: F1 → weather → travel" },
+  { phase:"F1 · call", nodes:["pa_wf","tool_f1"], e:[["pa_wf","tool_f1",false]],
+    cap:"The agent calls ask_f1_expert first — it needs the race location before anything else.",
+    payload:'ask_f1_expert("next F1 race?")' },
+  { phase:"F1 · Nexus", nodes:["tool_f1","f1_service","f1_handler","f1_wf"],
+    e:[["tool_f1","f1_service",false],["f1_service","f1_handler",false],["f1_handler","f1_wf",false]],
+    cap:"The tool dispatches a Nexus operation across the process boundary; the handler on worker_f1 starts F1ExpertAgentWorkflow — a workflow execution of its own.",
+    payload:"AskRequest(question=…)" },
+  { phase:"F1 · MCP", nodes:["f1_wf","f1_agent","f1_mcp","f1_mcp_server"],
+    e:[["f1_wf","f1_agent",false],["f1_agent","f1_mcp",false],["f1_mcp","f1_mcp_server",false]],
+    cap:"The F1Expert agent queries its MCP toolkit, which drives the external F1 MCP server over stdio. Every MCP call is its own Temporal activity.",
+    payload:"MCP tool call → race schedule" },
+  { phase:"F1 · return", nodes:["f1_mcp_server","f1_mcp","f1_agent","f1_wf","f1_handler","f1_service","tool_f1","pa_wf"],
+    e:[["f1_mcp","f1_mcp_server",true],["f1_agent","f1_mcp",true],["f1_wf","f1_agent",true],["f1_handler","f1_wf",true],["f1_service","f1_handler",true],["tool_f1","f1_service",true]],
+    cap:"The next race bubbles back up through Nexus to the orchestrator.",
+    payload:'AskResponse(answer="Singapore GP, …")' },
+  { phase:"Weather · call", nodes:["pa_wf","tool_weather"], e:[["pa_wf","tool_weather",false]],
+    cap:"Now ask_weather_agent, passing the race location it just learned.",
+    payload:'ask_weather_agent("weather in Singapore?")' },
+  { phase:"Weather · child wf", nodes:["tool_weather","weather_wf","weather_agent"],
+    e:[["tool_weather","weather_wf",false],["weather_wf","weather_agent",false]],
+    cap:"The child-workflow tool starts WeatherAgentWorkflow on weather-agent-tq (same process, different queue) and runs the WeatherAgent.",
+    payload:"child workflow: question" },
+  { phase:"Weather · APIs", nodes:["weather_agent","act_coord","act_weather","weather_api"],
+    e:[["weather_agent","act_coord",false],["act_coord","weather_api",false],["weather_agent","act_weather",false],["act_weather","weather_api",false]],
+    cap:"Each tool call is its own durable Temporal activity. Kill the worker between them and only the failing step retries.",
+    payload:"get_coordinates → get_weather" },
+  { phase:"Weather · return", nodes:["weather_api","act_weather","weather_agent","weather_wf","tool_weather","pa_wf"],
+    e:[["act_weather","weather_api",true],["weather_agent","act_weather",true],["weather_wf","weather_agent",true],["tool_weather","weather_wf",true]],
+    cap:"The forecast bubbles back up through the child workflow to the orchestrator.",
+    payload:'"~30°C, humid, light wind"' },
+  { phase:"Travel · call", nodes:["pa_wf","tool_travel"], e:[["pa_wf","tool_travel",false]],
+    cap:"Finally ask_travel_planner. To the LLM this looks exactly like the other two tools.",
+    payload:'ask_travel_planner("visiting Singapore?")' },
+  { phase:"Travel · one activity", nodes:["tool_travel","act_travel"], e:[["tool_travel","act_travel",false]],
+    cap:"activity_as_tool schedules a single activity on the orchestrator's own queue. This one event is everything Temporal will ever record about the travel path — no child workflow, no Nexus operation.",
+    payload:"ScheduleActivityTask: ask_travel_planner" },
+  { phase:"Travel · into the black box", nodes:["act_travel","strands_run","strands_agent"],
+    e:[["act_travel","strands_run",false],["strands_run","strands_agent",false]],
+    cap:"The wrapper lazy-imports travel_planner and calls run(), which builds a Strands agent. Past this line Temporal sees nothing at all.",
+    payload:"import travel_planner → build_agent()" },
+  { phase:"Travel · opaque loop", nodes:["strands_agent","tool_wiki","tool_country","travel_api"],
+    e:[["strands_agent","tool_wiki",false],["strands_agent","tool_country",false],["tool_wiki","travel_api",false],["tool_country","travel_api",false]],
+    cap:"The Strands agent runs its own loop — LLM turns and @tool calls, none of them Temporal activities. Kill the worker now and the whole loop restarts from scratch, re-charging every LLM call.",
+    payload:"0 history events for any of this" },
+  { phase:"Travel · return", nodes:["travel_api","tool_wiki","strands_agent","strands_run","act_travel","tool_travel","pa_wf"],
+    e:[["tool_wiki","travel_api",true],["strands_agent","tool_wiki",true],["strands_run","strands_agent",true],["act_travel","strands_run",true],["tool_travel","act_travel",true]],
+    cap:"One string comes back out of one activity. ActivityTaskCompleted — the second and last event of the travel path.",
+    payload:'ActivityTaskCompleted: "Singapore: currency, language, …"' },
+  { phase:"Combine", nodes:["pa_wf"], e:[],
+    cap:"PersonalAssistantWorkflow combines all three specialists' answers into one reply. Three frameworks' worth of work, one workflow result.",
+    payload:"result.final_output" },
+  { phase:"Answer", nodes:["pa_wf","starter"], e:[["starter","pa_wf",true]],
+    cap:"The final answer returns to start_workflow.py, which prints it. Done.",
+    payload:'Result: "At the Singapore GP, expect ~30°C…"' },
+];
+
+const flowbar = document.getElementById("flowbar");
+const elStep = document.getElementById("flowStep");
+const elPhase = document.getElementById("flowPhase");
+const elCap = document.getElementById("flowCap");
+const elPayload = document.getElementById("flowPayload");
+const elPlay = document.getElementById("flowPlay");
+const elPrev = document.getElementById("flowPrev");
+const elNext = document.getElementById("flowNext");
+const IDLE_CAP = elCap.innerHTML;
+
+let flowIdx = -1, playing = false, flowTimer = null;
+
+function showAllEdges(){ edgeEls.forEach(({path,txt})=>{ path.style.display=""; txt.style.display=""; }); }
+function clearFlowClasses(){
+  edgeEls.forEach(({path})=> path.classList.remove("flowing","rev"));
+  NODES.forEach(n=> n._el.classList.remove("flow-on"));
+}
+function stopPlay(){ playing=false; if(flowTimer){ clearInterval(flowTimer); flowTimer=null; } updateFlowUI(); }
+
+function exitFlow(){
+  stopPlay();
+  flowIdx = -1;
+  clearFlowClasses();
+  applyFilter();
+  flowbar.classList.add("idle");
+  elStep.textContent = "step — / —";
+  elPhase.textContent = "";
+  elCap.innerHTML = IDLE_CAP;
+  elPayload.textContent = "";
+  elPlay.textContent = "▶ Play data flow";
+  elPrev.disabled = true; elNext.disabled = false;
+}
+
+function scrollToNodes(ids){
+  const cs = document.querySelector(".canvasScroll");
+  if(!cs || !ids.length) return;
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  ids.forEach(id=>{ const n=nodeMap[id]; if(!n) return; const el=n._el;
+    minX=Math.min(minX,el.offsetLeft); minY=Math.min(minY,el.offsetTop);
+    maxX=Math.max(maxX,el.offsetLeft+el.offsetWidth); maxY=Math.max(maxY,el.offsetTop+el.offsetHeight); });
+  if(minX===Infinity) return;
+  // offsetLeft/offsetTop are unscaled canvas coordinates; the scroll container
+  // works in scaled pixels, so convert before centering.
+  const cx=((minX+maxX)/2)*curScale, cy=((minY+maxY)/2)*curScale;
+  cs.scrollTo({ left: cx - cs.clientWidth/2, top: cy - cs.clientHeight/2, behavior:"smooth" });
+}
+
+function enterStep(i){
+  flowIdx = i;
+  const step = STEPS[i];
+  clearState(); clearFlowClasses(); showAllEdges();
+  flowbar.classList.remove("idle");
+
+  const active = new Set(step.nodes || []);
+  step.e.forEach(([f,t])=>{ active.add(f); active.add(t); });
+  NODES.forEach(n=>{ if(active.has(n.id)) n._el.classList.add("flow-on"); else n._el.classList.add("dim"); });
+
+  const activeEdges = new Set();
+  step.e.forEach(([f,t,rev])=>{ const o=edgeIndex[f+">"+t]; if(o){ o.path.classList.add("flowing"); if(rev) o.path.classList.add("rev"); activeEdges.add(o); } });
+  edgeEls.forEach(o=>{ if(!activeEdges.has(o)){ o.path.classList.add("dim"); o.txt.classList.add("dim"); } });
+
+  elStep.textContent = `step ${i+1} / ${STEPS.length}`;
+  elPhase.textContent = step.phase;
+  elCap.textContent = step.cap;
+  elPayload.textContent = step.payload || "";
+  elPrev.disabled = (i===0);
+  elNext.disabled = (i===STEPS.length-1);
+  scrollToNodes(step.nodes && step.nodes.length ? step.nodes : []);
+  updateFlowUI();
+}
+
+function updateFlowUI(){
+  if(playing){ elPlay.textContent = "⏸ Pause"; }
+  else if(flowIdx >= STEPS.length-1 && flowIdx >= 0){ elPlay.textContent = "↻ Replay"; }
+  else if(flowIdx < 0){ elPlay.textContent = "▶ Play data flow"; }
+  else { elPlay.textContent = "▶ Resume"; }
+}
+
+function flowNext(){ if(flowIdx < STEPS.length-1) enterStep(flowIdx+1); }
+function flowPrev(){ if(flowIdx > 0) enterStep(flowIdx-1); }
+
+function togglePlay(){
+  if(playing){ stopPlay(); return; }
+  if(flowIdx >= STEPS.length-1) flowIdx = -1; // replay from top
+  playing = true; updateFlowUI();
+  enterStep(flowIdx+1);
+  flowTimer = setInterval(()=>{
+    if(flowIdx >= STEPS.length-1){ stopPlay(); return; }
+    enterStep(flowIdx+1);
+  }, 2300);
+}
+
+elPlay.addEventListener("click", togglePlay);
+elNext.addEventListener("click", ()=>{ stopPlay(); if(flowIdx<0) enterStep(0); else flowNext(); });
+elPrev.addEventListener("click", ()=>{ stopPlay(); flowPrev(); });
+
+/* ---------------- boot ---------------- */
+function boot(){ layout(); applyFilter(); applyZoom(); lastFit = fitScale(); }
+window.addEventListener("resize", ()=>{ layout(); if(userZoom===null) applyZoom(); });
+if(document.readyState==="complete") boot(); else window.addEventListener("load", boot);
+requestAnimationFrame(()=> requestAnimationFrame(layout));
+</script>
+</body>
+</html>

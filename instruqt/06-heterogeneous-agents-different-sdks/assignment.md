@@ -60,12 +60,23 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/demo6a-different-sdks
   port: 8080
+- title: Architecture
+  type: service
+  hostname: workshop
+  path: /
+  port: 8093
 difficulty: basic
 timelimit: 1800
 enhanced_loading: null
 ---
 
 # Demo 6a: Heterogeneous Agents - Different SDKs
+
+## See the Big Picture First
+
+Before you touch code, open the [button label="Architecture" background="#444CE7"](tab-6) tab to see how this demo fits together: three specialists behind one orchestrator, grouped by their three task queues and two worker processes.
+
+The rose box is the one that matters here. Everything inside it runs within a **single activity** — the Strands agent, its LLM turns, its two tool calls — so Temporal records exactly one event pair for the whole travel path. Click any box to trace what it calls, or press **Play data flow** to watch a request fan out to all three specialists and back.
 
 ## What Changed
 
