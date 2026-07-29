@@ -235,10 +235,14 @@
   .flowbtn { min-width: 38px; text-align: center; font-size: 14px; padding: 6px 10px; }
   .flowbtn:disabled { opacity: .4; cursor: default; }
   .flowstep { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .flownarr { flex: 1 1 320px; min-width: 240px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .flowphase { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--strands); background: color-mix(in srgb, var(--strands) 14%, var(--panel)); padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  /* Inline flow, not a wrapping flex row. As flex items the pill, caption and
+     payload chip each broke onto their own line once the caption got long, so the
+     bar's height swung between one and four rows between steps. Inline, they
+     reflow as ordinary text and the height only varies by line count. */
+  .flownarr { flex: 1 1 320px; min-width: 240px; }
+  .flowphase { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--strands); background: color-mix(in srgb, var(--strands) 14%, var(--panel)); padding: 2px 9px; margin-right: 8px; border-radius: 999px; white-space: nowrap; }
   .flowcap { font-size: 13px; color: var(--ink); }
-  .flowpayload { font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; }
+  .flowpayload { display: inline-block; font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); padding: 2px 7px; margin-left: 8px; border-radius: 6px; }
   .flowbar.idle .flowphase, .flowbar.idle .flowpayload { display: none; }
   .flowbar.idle .flowcap { color: var(--muted); }
 
@@ -1062,7 +1066,65 @@ const elPayload = document.getElementById("flowPayload");
 const elPlay = document.getElementById("flowPlay");
 const elPrev = document.getElementById("flowPrev");
 const elNext = document.getElementById("flowNext");
+const elNarr = document.querySelector(".flownarr");
 const IDLE_CAP = elCap.innerHTML;
+
+/* ---------------- keep the flowbar from resizing ----------------
+   Stepping through the flow must not move anything. Three things changed size
+   between steps: the narration wrapped onto a second line (which changed the
+   bar's height and shoved the canvas down), the play button's label went from
+   "Play data flow" to "Resume"/"Pause" (which slid the step buttons sideways),
+   and the counter went from "— / —" to "4 / 17" to "17 / 17". Each one moved a
+   button out from under the pointer mid-click.
+
+   Rather than guess at padding, measure the widest/tallest state each element
+   will ever hold and reserve exactly that. Re-measured on resize, since the
+   narration's wrap point depends on the available width. */
+const PLAY_LABELS = ["▶ Play data flow", "⏸ Pause", "▶ Resume", "↻ Replay"];
+// Height as well as width: ⏸ is a shade taller than ▶, which was enough to
+// shift the play button by a pixel when the label changed.
+function reserveBox(el, texts){
+  const keep = el.textContent;
+  el.style.minWidth = "0px";
+  el.style.minHeight = "0px";
+  let w = 0, h = 0;
+  texts.forEach(t => {
+    el.textContent = t;
+    w = Math.max(w, el.offsetWidth);
+    h = Math.max(h, el.offsetHeight);
+  });
+  el.textContent = keep;
+  el.style.minWidth = Math.ceil(w) + "px";
+  el.style.minHeight = Math.ceil(h) + "px";
+}
+function reserveNarrHeight(){
+  const keep = { phase: elPhase.textContent, cap: elCap.innerHTML,
+                 payload: elPayload.textContent, idle: flowbar.classList.contains("idle") };
+  elNarr.style.minHeight = "0px";
+  let max = 0;
+  // the idle caption first: the phase pill and payload chip are display:none in
+  // that state, so it has to be measured with the class applied
+  flowbar.classList.add("idle");
+  elCap.innerHTML = IDLE_CAP;
+  max = Math.max(max, elNarr.offsetHeight);
+  flowbar.classList.remove("idle");
+  STEPS.forEach(s => {
+    elPhase.textContent = s.phase;
+    elCap.textContent = s.cap;
+    elPayload.textContent = s.payload || "";
+    max = Math.max(max, elNarr.offsetHeight);
+  });
+  flowbar.classList.toggle("idle", keep.idle);
+  elPhase.textContent = keep.phase;
+  elCap.innerHTML = keep.cap;
+  elPayload.textContent = keep.payload;
+  elNarr.style.minHeight = Math.ceil(max) + "px";
+}
+function stabilizeFlowbar(){
+  reserveBox(elPlay, PLAY_LABELS);
+  reserveBox(elStep, ["step — / —", `step ${STEPS.length} / ${STEPS.length}`]);
+  reserveNarrHeight();
+}
 
 let flowIdx = -1, playing = false, flowTimer = null;
 
@@ -1151,8 +1213,18 @@ elNext.addEventListener("click", ()=>{ stopPlay(); if(flowIdx<0) enterStep(0); e
 elPrev.addEventListener("click", ()=>{ stopPlay(); flowPrev(); });
 
 /* ---------------- boot ---------------- */
-function boot(){ layout(); applyFilter(); applyZoom(); lastFit = fitScale(); }
-window.addEventListener("resize", ()=>{ layout(); if(userZoom===null) applyZoom(); });
+function boot(){ layout(); applyFilter(); applyZoom(); lastFit = fitScale(); stabilizeFlowbar(); }
+let resizeTimer = null;
+window.addEventListener("resize", ()=>{
+  layout();
+  if(userZoom===null) applyZoom();
+  // the narration's wrap point moves with the width, so the reserved height has
+  // to be recomputed - debounced, since measuring every step forces 17 layouts
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(stabilizeFlowbar, 120);
+});
+// fonts can land after first paint and change every measurement
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(stabilizeFlowbar);
 if(document.readyState==="complete") boot(); else window.addEventListener("load", boot);
 requestAnimationFrame(()=> requestAnimationFrame(layout));
 </script>
