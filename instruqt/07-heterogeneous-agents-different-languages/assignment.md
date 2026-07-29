@@ -94,6 +94,17 @@ The rose path is the one that matters here: the travel planner is reached over a
 | Invocation from orchestrator | direct activity | Nexus operation |
 | Durability of travel agent | coarse (whole loop = one activity) | per-step (each LLM/tool call = one activity) |
 
+## The Nexus Contract
+
+The Python caller and the Java handler share zero code. Every string name and JSON shape they agree on is in this table:
+
+| | Python caller | Java handler |
+|---|---|---|
+| Endpoint name | `endpoint="travel-planner"` | worker on `travel-planner-agent-tq` |
+| Service name | `class TravelPlannerService` | `@Service(name = "TravelPlannerService")` |
+| Operation name | attr `ask_travel_planner` | `@Operation(name = "ask_travel_planner")` |
+| Payload shapes | Pydantic `AskRequest{question}` / `AskResponse{answer}` | POJOs with `@JsonProperty("question")` / `("answer")` |
+
 > [!NOTE]
 > **Hands-on:** Do your coding in the `exercise/` directory. Want to see the working code? Peek at `solution/`.
 
