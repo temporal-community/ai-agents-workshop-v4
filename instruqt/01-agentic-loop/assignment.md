@@ -62,6 +62,19 @@ enhanced_loading: null
 
 # Demo 1: The Hand-Written Agentic Loop
 
+> [!NOTE]
+> **Your tabs.** This demo gives you five:
+> - [button label="Worker" background="#444CE7"](tab-0) - runs the worker process; it stays blocked while it polls
+> - [button label="Starter" background="#444CE7"](tab-1) - where you launch workflows
+> - [button label="Temporal UI" background="#444CE7"](tab-2) - the event history of every workflow you run
+> - [button label="Network Control Panel" background="#444CE7"](tab-3) - toggle external services off to force failures
+> - [button label="Editor" background="#444CE7"](tab-4) - VS Code, opened on this demo's folder
+>
+> Later demos add tabs as the system grows:
+> - **Architecture** (demos 4, 5, 6a, 6b) - a diagram of that demo's files, classes, and task queues
+> - **Worker PA** and **Worker F1** (demo 5 onward) - the single Worker tab splits into one per worker process, once specialists run on their own task queues
+> - **Java Worker** (demo 6b) - the Spring AI travel planner, running on the JVM
+
 ## Why
 
 An agentic loop is the engine behind every AI agent. Most frameworks hide it from you. Module 1 makes you write it by hand, so you see exactly what it is:
