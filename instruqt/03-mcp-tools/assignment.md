@@ -108,15 +108,39 @@ Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab. Three ki
 
 > **Predict before you look:** this prompt needs F1 schedule data AND weather data for that location - two tool families chained together. Which activity type do you expect to appear first in the history, an F1 operation or a weather one? Check the history - does the model's tool-choice order match your prediction?
 
-## Break It
+## Break It: The Durability Test
 
-Before running the next prompt, click the [button label="Network Control Panel" background="#444CE7"](tab-3) and disable **Weather**. Then click the [button label="Starter" background="#444CE7"](tab-1) and run:
+Do all five steps.
+
+**1. Turn off the service.** Click the [button label="Network Control Panel" background="#444CE7"](tab-3) tab and toggle **Weather** off. Leave **OpenAI** on - you want the agent still able to reason.
+
+**2. Run a workflow.** Click the [button label="Starter" background="#444CE7"](tab-1) terminal. Use a prompt that needs the MCP server *and* the weather tools:
 
 ```bash,run
-uv run python -m start_workflow "What is the weather in Paris?"
+uv run python -m start_workflow "When is the next F1 race and what's the weather there right now?"
 ```
 
-Watch the weather activities fail and retry in the [button label="Temporal UI" background="#444CE7"](tab-2). Go back to the [button label="Network Control Panel" background="#444CE7"](tab-3), re-enable **Weather**, and watch the workflow succeed.
+**3. Observe.** Switch to the [button label="Temporal UI" background="#444CE7"](tab-2) tab and open the running workflow:
+
+- Status is still **Running**.
+- The `get_weather` activity is **Retrying**.
+- `f1-data-list-tools` and `f1-data-call-tool-v2` are **Completed** - the MCP work finished before the weather call was ever attempted.
+
+**4. Answer this question.** Before you turn the service back on:
+
+> The MCP operations already succeeded, and the F1 MCP server is a whole separate process the worker spawned. While the weather activity retries, is that MCP server being asked to answer the same questions again?
+
+<details>
+<summary>Answer</summary>
+
+No. It is not called again.
+
+`f1-data-list-tools` and `f1-data-call-tool-v2` are Temporal activities like any other, and their results are recorded in the event history. On replay those results are handed back from the history, not re-fetched from the MCP server.
+
+This matters more than it looks. MCP servers are frequently stateful, slow, rate-limited, or backed by something you pay per call for - here, FastF1 pulling session data. Wrapping MCP operations as activities means a failure *elsewhere* in the agent never costs you a second round-trip to them.
+</details>
+
+**5. Let it finish.** Toggle **Weather** back on in the [button label="Network Control Panel" background="#444CE7"](tab-3). The weather call succeeds on its next attempt and the agent produces the combined race-and-weather answer - without re-querying F1 data.
 
 ## Try More Prompts
 
