@@ -172,6 +172,42 @@ Each specialist is independently observable, independently retryable, and could 
 <div style="margin-top:12px;font-size:13px;color:#c8ccd8;">Same result from the orchestrator's point of view. Different event-history shape underneath.</div>
 </div>
 
+## Break It: The Durability Test
+
+Three workflows, two workers, two task queues. Now take out a dependency that only *one* of them uses.
+
+**1. Turn off the service.** Click the [button label="Network Control Panel" background="#444CE7"](tab-4) tab and toggle **Weather** off. Only the weather specialist calls that host - the F1 expert does not.
+
+**2. Run a workflow.** Click the [button label="Starter" background="#444CE7"](tab-2) terminal:
+
+```bash,run
+uv run python -m start_workflow "When is the next F1 race and what's the weather there right now?"
+```
+
+**3. Observe.** Switch to the [button label="Temporal UI" background="#444CE7"](tab-3) tab and look at all three executions:
+
+- **WeatherAgentWorkflow** on `weather-agent-tq` - its weather activity is **Retrying**.
+- **F1ExpertAgentWorkflow** on `f1-expert-agent-tq` - **Completed**. Unaffected.
+- The **orchestrator** on `orchestrator-tq` - still **Running**, waiting on the child. Its `NexusOperationCompleted` for F1 is already recorded.
+
+**4. Answer this question.** Before you turn the service back on:
+
+> The failure is contained in one of three workflows. What is the orchestrator doing about it - and what would you have had to write yourself if these three agents were three function calls in one process?
+
+<details>
+<summary>Answer</summary>
+
+The orchestrator is doing nothing, and that is the achievement.
+
+It is suspended on the child workflow handle. It holds no thread, burns no CPU, and has no retry logic of its own. The retrying is happening one level down, in the specialist that actually owns the failing dependency, on a different task queue served by a different worker.
+
+As three function calls in one process, an exception in the weather call would have unwound the whole request - and the F1 work you already paid an LLM for would go with it. You would be writing per-dependency retry, partial-result caching, and cleanup by hand.
+
+Here the blast radius is one specialist. That's the operational argument for splitting agents across workflow boundaries, not just the architectural one.
+</details>
+
+**5. Let it finish.** Toggle **Weather** back on in the [button label="Network Control Panel" background="#444CE7"](tab-4). The weather specialist's activity succeeds, the child returns to the orchestrator, and the [button label="Starter" background="#444CE7"](tab-2) prints the combined answer. The F1 side never ran twice.
+
 ## Try More Prompts
 
 Click the [button label="Starter" background="#444CE7"](tab-2) terminal.

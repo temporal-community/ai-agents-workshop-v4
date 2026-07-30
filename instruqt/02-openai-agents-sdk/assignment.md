@@ -116,15 +116,40 @@ Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab. Look at 
 
 > **Compare to demo 1:** demo 1's event history had one LLM-call activity per loop iteration, hand-dispatched by your own code. This one has `invoke_model_activity` entries instead - same idea, but the SDK's `Runner.run()` is what's calling them now, not your `while True` loop. Same durability, one line of code.
 
-## Break It
+## Break It: The Durability Test
 
-Before running the next prompt, click the [button label="Network Control Panel" background="#444CE7"](tab-3) and disable **Weather**. Then click the [button label="Starter" background="#444CE7"](tab-1) and run:
+Do all five steps.
+
+**1. Turn off the service.** Click the [button label="Network Control Panel" background="#444CE7"](tab-3) tab and toggle **Weather** off.
+
+**2. Run a workflow.** Click the [button label="Starter" background="#444CE7"](tab-1) terminal:
 
 ```bash,run
 uv run python -m start_workflow "What is the weather in London?"
 ```
 
-Watch the weather activities fail and retry in the [button label="Temporal UI" background="#444CE7"](tab-2). Go back to the [button label="Network Control Panel" background="#444CE7"](tab-3), re-enable **Weather**, and watch the workflow succeed.
+**3. Observe.** Switch to the [button label="Temporal UI" background="#444CE7"](tab-2) tab and open the running workflow:
+
+- Status is still **Running**.
+- The `get_weather` activity is **Retrying**, attempts climbing with a growing backoff.
+- The `invoke_model_activity` entries before it are still **Completed**.
+- Your [button label="Worker" background="#444CE7"](tab-0) terminal shows the `503` from the proxy on each attempt - the failure is real and it is reaching your code.
+
+**4. Answer this question.** Before you turn the service back on:
+
+> Your workflow code is one line: `result = await Runner.run(agent, input=question)`. You wrote no retry loop, no `try`/`except`, no backoff. So who is retrying this tool call?
+
+<details>
+<summary>Answer</summary>
+
+Temporal is - and the SDK has no idea anything went wrong.
+
+`activity_as_tool(get_weather, ...)` turned that tool into a Temporal activity, and every activity carries a retry policy by default. The `503` fails the activity, the Temporal server schedules the next attempt, and `Runner.run()` is simply still `await`ing a call that hasn't returned yet.
+
+From the agent framework's point of view this is one slow tool call. From your point of view it's a retry policy you never had to write. That's the trade the plugin makes for you.
+</details>
+
+**5. Let it finish.** Toggle **Weather** back on in the [button label="Network Control Panel" background="#444CE7"](tab-3). The next attempt succeeds, `Runner.run()` returns, and the [button label="Starter" background="#444CE7"](tab-1) prints London's weather - from the same workflow execution you started before the outage.
 
 ## Summary
 

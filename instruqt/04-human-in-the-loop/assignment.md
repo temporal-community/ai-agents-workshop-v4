@@ -145,6 +145,42 @@ When you respond, a new event appears in the history: the signal arrives, `wait_
 </div>
 </div>
 
+## Break It: The Durability Test
+
+A human already gave this workflow something it cannot regenerate: an answer only they knew. Now break the network underneath it.
+
+**1. Turn off the service.** Click the [button label="Network Control Panel" background="#444CE7"](tab-3) tab and toggle **Weather** off.
+
+**2. Run a workflow.** Click the [button label="Starter" background="#444CE7"](tab-1) terminal:
+
+```bash,run
+uv run python -m start_workflow "What's the weather like where I'm traveling to this weekend?"
+```
+
+The agent pauses and asks for your destination. Type a city and press Enter - answer it exactly once.
+
+**3. Observe.** Switch to the [button label="Temporal UI" background="#444CE7"](tab-2) tab and open the running workflow:
+
+- Status is still **Running**.
+- The history shows the `provide_user_input` signal you sent, recorded as a permanent event.
+- After it, the weather activity is **Retrying**.
+
+**4. Answer this question.** Before you turn the service back on:
+
+> Your typed destination lives only in the workflow's history - there is no database behind this demo. As the weather activity retries, will the agent prompt you for that destination again?
+
+<details>
+<summary>Answer</summary>
+
+No. You answer once, no matter how long the outage lasts.
+
+The signal is an event in the history, exactly like a completed activity result. On every replay, `wait_condition` sees the flag already flipped and `ask_user` returns your recorded answer immediately - it never blocks again, so the starter never re-prompts.
+
+This is what makes human-in-the-loop practical. Human attention is the most expensive input an agent can take, and the *only* one it cannot retry on its own. A system that re-asks after every downstream hiccup trains people to abandon it.
+</details>
+
+**5. Let it finish.** Toggle **Weather** back on in the [button label="Network Control Panel" background="#444CE7"](tab-3). The activity succeeds on its next attempt and the agent answers using the destination you typed before the outage.
+
 ## Reconnect to a Waiting Workflow
 
 If you interrupt the worker with **Ctrl+C** while the agent is waiting, the workflow keeps running on the server. Find the workflow ID in the [button label="Temporal UI" background="#444CE7"](tab-2), then reconnect by starting the worker again and running the starter with the workflow ID:
