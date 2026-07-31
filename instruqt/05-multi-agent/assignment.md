@@ -95,7 +95,14 @@ Click the [button label="Editor" background="#444CE7"](tab-5) tab. Key files in 
 
 ## Wire Up the Orchestrator
 
-In the [button label="Editor" background="#444CE7"](tab-5) tab, open `exercise/personal_assistant.py` and follow the `TODO`s to uncomment the two specialist tools and wire them into the orchestrator.
+In the [button label="Editor" background="#444CE7"](tab-5) tab, open `exercise/personal_assistant.py` and follow the `TODO`s to build the two specialist tools and wire them into the orchestrator.
+
+The weather tool's `TODO` offers three ways to reach the specialist. Only one is right. Open `worker_pa.py` first to see which task queue each workflow is registered on.
+
+> **Picked wrong?** The starter will hang instead of failing, because Temporal retries a failing workflow task forever. Check the [button label="Worker PA" background="#444CE7"](tab-0) terminal:
+>
+> - `Workflow class WeatherAgentWorkflow is not registered on this worker` - you sent the child workflow to a task queue whose worker does not host it. A task queue is how you address a worker fleet, not a label.
+> - `Bare function without tool and activity decorators is not supported` - `activity_as_tool` expects an activity. A workflow is a different kind of thing, and it gets its own execution rather than running inline.
 
 Stuck? Compare against `solution/personal_assistant.py`.
 

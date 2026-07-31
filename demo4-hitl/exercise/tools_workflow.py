@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import time  # noqa: F401 - only used by one of the ask_user variants below
 from datetime import timedelta
 
 from temporalio import workflow
@@ -64,10 +65,30 @@ class AgentWorkflow:
             Args:
                 question_text: The question to ask the user.
             """
-            # TODO: Uncomment the block below to set workflow state and
-            # suspend the workflow durably until the user answers, then read
-            # the answer back and return it.
+            # TODO: Set workflow state, then suspend the workflow until the
+            # user answers, then read the answer back and return it. Exactly
+            # one of the three blocks marked (A) / (B) / (C) waits correctly.
+            # Read all three and uncomment only that one.
             #
+            # All three set the same state and return the same variable; they
+            # differ only in how they wait. Pick wrong and the workflow either
+            # fails outright or answers you without ever asking - watch the
+            # Worker terminal and the final answer.
+            #
+            # --- (A) ---
+            # self._question = question_text
+            # self._input_needed = True
+            # workflow.logger.info("Waiting for user input: %s", question_text)
+            #
+            # while self._input_needed:
+            #     time.sleep(1)
+            #
+            # answer = self._user_input
+            # self._question = ""
+            # self._user_input = ""
+            # return answer
+
+            # --- (B) ---
             # self._question = question_text
             # self._input_needed = True
             # workflow.logger.info("Waiting for user input: %s", question_text)
@@ -77,6 +98,18 @@ class AgentWorkflow:
             #
             # answer = self._user_input
             # # Reset so subsequent ask_user calls start clean.
+            # self._question = ""
+            # self._user_input = ""
+            # return answer
+
+            # --- (C) ---
+            # self._question = question_text
+            # self._input_needed = True
+            # workflow.logger.info("Waiting for user input: %s", question_text)
+            #
+            # await workflow.wait_condition(lambda: self._input_needed)
+            #
+            # answer = self._user_input
             # self._question = ""
             # self._user_input = ""
             # return answer

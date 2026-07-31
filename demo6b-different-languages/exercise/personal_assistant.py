@@ -6,7 +6,10 @@ from __future__ import annotations
 from datetime import timedelta
 
 from temporalio import workflow
-from temporalio.contrib.openai_agents.workflow import nexus_operation_as_tool
+from temporalio.contrib.openai_agents.workflow import (
+    activity_as_tool,  # noqa: F401 - only used by one of the travel_tool variants below
+    nexus_operation_as_tool,
+)
 
 with workflow.unsafe.imports_passed_through():
     import annotated_types  # noqa: F401
@@ -82,16 +85,42 @@ class PersonalAssistantWorkflow:
             "standings, and circuit telemetry. Pass the full question as plain English."
         )
 
-        # TODO: Uncomment the block below to wire the Java travel planner in as
-        # a third tool. It reaches a Java + Spring AI agent over the same Nexus
-        # mechanism the F1 expert uses, then registers it in the Agent's tools
-        # list. Uncommenting is the whole task.
+        # TODO: Wire the Java travel planner in as a third tool. It reaches a
+        # Java + Spring AI agent that shares no code with this process - only
+        # the typed contract in travel_planner_service.py.
+        #
+        # Exactly one of the three blocks marked (A) / (B) / (C) is correct.
+        # They differ in which wrapper is used and what gets handed to it.
+        # Only one of them can cross a language boundary. Read all three and
+        # uncomment only that one. Pick wrong and the workflow will not
+        # complete - the Worker terminal names the mistake.
+        #
+        # --- (A) ---
+        # travel_tool = activity_as_tool(
+        #     TravelPlannerService.ask_travel_planner,
+        #     start_to_close_timeout=timedelta(minutes=5),
+        # )
+
+        # --- (B) ---
+        # # Wraps a Nexus operation as an agent-SDK tool call: the specialist is
+        # # reached over a Nexus boundary with a typed, cross-language contract.
         # travel_tool = nexus_operation_as_tool(
         #     TravelPlannerService.ask_travel_planner,
         #     service=TravelPlannerService,
         #     endpoint="travel-planner",
         #     schedule_to_close_timeout=timedelta(minutes=5),
         # )
+
+        # --- (C) ---
+        # travel_tool = nexus_operation_as_tool(
+        #     TravelPlannerService,
+        #     service=TravelPlannerService,
+        #     endpoint="travel-planner",
+        #     schedule_to_close_timeout=timedelta(minutes=5),
+        # )
+
+        # Also uncomment the description below, whichever block you picked.
+        #
         # # Same description-hook gap as the F1 tool above — set it explicitly.
         # travel_tool.description = (
         #     "Delegate travel-planning questions to the travel planner specialist. "

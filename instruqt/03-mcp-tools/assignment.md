@@ -71,6 +71,13 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 Open `exercise/worker.py` and `exercise/tools_workflow.py` in the [button label="Editor" background="#444CE7"](tab-4) tab and follow the `TODO` in each.
 
+The workflow's `TODO` offers three ways to hand the MCP server to the agent. Only one is right. The worker file tells you what the server is registered as, so read it first.
+
+> **Picked wrong?** The starter will hang instead of failing, because Temporal retries a failing workflow task forever. Check the [button label="Worker" background="#444CE7"](tab-0) terminal:
+>
+> - `Activity function f1-stateless-list-tools ... is not registered on this worker` - the name you asked for does not match the name the worker registered the provider under. That name is the lookup key between the two.
+> - `Unsupported tool type: f1-data-stateless` - an MCP server is not a tool. It goes in `mcp_servers`, and the agent then discovers its tools at runtime.
+
 Stuck? Compare against `solution/worker.py` and `solution/tools_workflow.py`.
 
 ## Start the Worker

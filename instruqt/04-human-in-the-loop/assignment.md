@@ -87,7 +87,14 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 ## Write the Suspension
 
-In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/tools_workflow.py` and follow the `TODO`s to uncomment the two blocks.
+In the [button label="Editor" background="#444CE7"](tab-4) tab, open `exercise/tools_workflow.py` and follow the two `TODO`s.
+
+The first offers three ways to wait for the user. Only one suspends the workflow correctly. Decide before you run.
+
+> **Picked wrong?** Two different symptoms, depending on which one you took:
+>
+> - The starter hangs and the [button label="Worker" background="#444CE7"](tab-0) terminal shows `Cannot access time.sleep.__call__ from inside a workflow` - a polling loop blocks the workflow thread. Temporal cannot suspend or replay a blocked workflow, so the sandbox refuses it outright.
+> - The agent answers immediately without ever asking you anything, and the answer is built on an empty string - your condition was already true when you waited on it, so `wait_condition` returned at once. Read the predicate again.
 
 Stuck? Compare against `solution/tools_workflow.py`.
 

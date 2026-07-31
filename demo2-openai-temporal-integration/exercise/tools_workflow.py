@@ -41,13 +41,17 @@ class ToolsWorkflow:
     # Entry point Temporal calls to start the workflow.
     @workflow.run
     async def run(self, question: str) -> str:
-        # TODO: Uncomment the block below to build the Agent and run it.
-        # It constructs an Agent whose four tools are Temporal activities wrapped
-        # by activity_as_tool, then hands control to the SDK: Runner.run drives
-        # the entire agentic loop in one line and returns the final answer.
-        # Delete the `pass` placeholder once you uncomment.
+        # TODO: Build the Agent and run it. Exactly one of the three blocks
+        # marked (A) / (B) / (C) is correct. Read all three and uncomment only
+        # that one, then delete the `pass` placeholder.
+        #
+        # Each block hands the same four weather tools to the SDK and lets
+        # Runner drive the whole agentic loop. They differ in how the tools
+        # reach the Agent and how the Runner is called. Pick wrong and the
+        # workflow will not complete - the Worker terminal names the mistake.
         pass
 
+        # --- (A) ---
         # agent = Agent(
         #     name="Agent",
         #     instructions=SYSTEM_PROMPT,
@@ -69,4 +73,44 @@ class ToolsWorkflow:
         # )
         #
         # result = await Runner.run(agent, input=question)
+        # return result.final_output
+
+        # --- (B) ---
+        # agent = Agent(
+        #     name="Agent",
+        #     instructions=SYSTEM_PROMPT,
+        #     model="gpt-4o",
+        #     tools=[
+        #         get_ip_address,
+        #         get_location_info,
+        #         get_coordinates,
+        #         get_weather,
+        #     ],
+        # )
+        #
+        # result = await Runner.run(agent, input=question)
+        # return result.final_output
+
+        # --- (C) ---
+        # agent = Agent(
+        #     name="Agent",
+        #     instructions=SYSTEM_PROMPT,
+        #     model="gpt-4o",
+        #     tools=[
+        #         activity_as_tool(
+        #             get_ip_address, start_to_close_timeout=timedelta(seconds=30)
+        #         ),
+        #         activity_as_tool(
+        #             get_location_info, start_to_close_timeout=timedelta(seconds=30)
+        #         ),
+        #         activity_as_tool(
+        #             get_coordinates, start_to_close_timeout=timedelta(seconds=30)
+        #         ),
+        #         activity_as_tool(
+        #             get_weather, start_to_close_timeout=timedelta(seconds=30)
+        #         ),
+        #     ],
+        # )
+        #
+        # result = Runner.run_sync(agent, input=question)
         # return result.final_output
