@@ -2,7 +2,7 @@
 slug: openai-agents-sdk
 id: fcltf6zbrfhd
 type: challenge
-title: 'Demo 2: OpenAI Agents SDK + Temporal'
+title: OpenAI Agents SDK + Temporal
 teaser: The same agent, but the SDK drives the loop. Durability becomes automatic.
 notes:
 - type: text
@@ -57,7 +57,7 @@ timelimit: 1800
 enhanced_loading: null
 ---
 
-# Demo 2: OpenAI Agents SDK + Temporal
+# OpenAI Agents SDK + Temporal
 
 > [!NOTE]
 > **Your tabs.** Five of them, each pointed at this demo's folder and task queue:
@@ -66,11 +66,6 @@ enhanced_loading: null
 > - [button label="Temporal UI" background="#444CE7"](tab-2) - the event history of every workflow you run
 > - [button label="Network Control Panel" background="#444CE7"](tab-3) - toggle external services off to force failures
 > - [button label="Editor" background="#444CE7"](tab-4) - VS Code, opened on this demo's folder
->
-> Later demos add tabs as the system grows:
-> - **Architecture** (demos 4, 5, 6a, 6b) - a diagram of that demo's files, classes, and task queues
-> - **Worker PA** and **Worker F1** (demo 5 onward) - the single Worker tab splits into one per worker process, once specialists run on their own task queues
-> - **Java Worker** (demo 6b) - the Spring AI travel planner, running on the JVM
 
 ## What Changed
 
