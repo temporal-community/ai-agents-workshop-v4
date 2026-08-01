@@ -24,6 +24,25 @@ the startup log warned you it was missing, add it at
 Open ports from the **Ports** panel in the bottom pane. Each demo uses its own
 task queue, so leaving old workers running is harmless.
 
+## Read this before your first run
+
+**`exercise/` is deliberately incomplete.** Each one has commented-out code with
+a `TODO` above it. Run it untouched and the workflow does nothing and prints
+`Result: None`. That is the exercise working, not a broken environment.
+
+To fill one in: uncomment the block below the `TODO` and delete the `pass`
+placeholder if there is one. To see the finished behaviour immediately, run the
+same commands from `solution/` instead of `exercise/`.
+
+| Demo | Uncomment in `exercise/` |
+|---|---|
+| 2 | `tools_workflow.py:44` — build the Agent and run it |
+| 4 | `tools_workflow.py:67` and `:117` — set state and await, then deliver the answer |
+| 5 | `personal_assistant.py:49`, `:63`, `:84` — the weather tool, the F1 tool, then wire both in |
+| 6b | `personal_assistant.py:85` and `:106` — the Java travel planner, then wire it in |
+
+Restart the worker after editing; workflow code is loaded at worker start.
+
 ## Demo 2 — OpenAI Agents SDK + Temporal
 
 **Terminal 1 — worker.** Stays blocked while it polls; that is correct.
@@ -161,6 +180,8 @@ the activity, then succeed once you toggle it back.
 
 | Symptom | Fix |
 |---|---|
+| `Result: None` | Expected. `exercise/` has a `TODO` to uncomment; see the table above |
+| Edited the code, nothing changed | Restart the worker; workflow code loads at start |
 | `OPENAI_API_KEY not set` | Codespaces secret, then restart the Codespace |
 | Outbound calls hang | mitmproxy holds `HTTP_PROXY`; `bash .devcontainer/start.sh` restarts it |
 | Temporal UI won't open | check the Ports panel for 8233; `tail /tmp/temporal-server.log` |
