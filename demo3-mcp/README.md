@@ -45,15 +45,6 @@ Same as demo2 — activity-backed tools and MCP-backed tools are both coupled to
 | `get_telemetry` | Vehicle telemetry for a lap |
 | `get_championship_standings` | Driver and constructor standings |
 
-## Prerequisites
-
-- **Python 3.10+**
-- **uv** — `brew install uv` (macOS) or see [uv docs](https://docs.astral.sh/uv/)
-- **Node.js 18+** — needed to run the F1 MCP server's TypeScript entrypoint
-- **Temporal CLI** — `brew install temporal` (macOS) or see [Temporal CLI docs](https://docs.temporal.io/cli)
-- **OpenAI API key** — set as `OPENAI_API_KEY` environment variable
-- **F1 MCP server** — installed locally, see [Install the F1 MCP server](#install-the-f1-mcp-server) below
-
 ## Install the F1 MCP server
 
 This is a one-time setup. The worker will launch the server as a local subprocess each time it needs to call an F1 tool, but the server itself is a Node.js + Python hybrid that you have to clone, build, and provision a Python venv for ahead of time.
@@ -96,6 +87,20 @@ export F1_MCP_SERVER_HOME=/absolute/path/to/f1-mcp-server
 ```
 
 Add this to your shell profile if you want it persisted across sessions. The workshop worker reads this variable at startup and bakes it into the `MCPServerStdio` launch command.
+
+## Complete the exercise
+
+`exercise/` ships with the key code commented out. Run it untouched and the
+workflow does nothing, so do this first:
+
+- `worker.py` — uncomment the `mcp_server_providers` argument.
+- `tools_workflow.py` — uncomment `mcp_servers`, which hands the agent the F1 MCP tools.
+
+Search for `TODO` in each file, uncomment the block beneath it, and delete any
+`pass` placeholder. Then continue below.
+
+To skip ahead and see the finished behaviour, run the same commands from
+`solution/` instead of `exercise/`.
 
 ## Running
 
