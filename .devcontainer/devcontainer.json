@@ -1,0 +1,54 @@
+{
+  "name": "Build AI Agents That Survive Failure",
+
+  // The sandbox image the tmprl-dem-cld pipeline builds from main. Public ECR,
+  // pullable without auth. Already contains all seven demos with their uv venvs,
+  // JDK 21 + offline Maven deps, the F1 MCP server and a warm FastF1 cache, so
+  // there is nothing to install at Codespace start.
+  //
+  // Bump this tag when the pipeline builds a newer one. Codespaces-only; the
+  // Instruqt track pins its own image in instruqt/config.yml, independently.
+  "image": "public.ecr.aws/s1u1b8l5/tmprl-dem-cld/ai-agents-workshop-v4/workshop:git-038a1e928949dfd20216b39086fb293b3ebe64d0-b627af6b6e95e",
+
+  // The image is ~3.4 GB and the demos want the headroom Instruqt gave them
+  // (memory: 6144).
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+
+  // postStart only, and start.sh is idempotent. Running it from onCreate as well
+  // would double-start every background service.
+  "postStartCommand": "bash .devcontainer/start.sh",
+
+  // Opens the runbook on attach. Non-fatal if it fails.
+  "postAttachCommand": "code .devcontainer/RUNBOOK.md || true",
+
+  // OPENAI_API_KEY is supplied as a Codespaces secret, which arrives as a real
+  // environment variable in the container. Do NOT map it through remoteEnv with
+  // ${localEnv:...} -- that reads the host environment, not the secret store.
+  //   https://github.com/settings/codespaces
+
+  "forwardPorts": [5000, 7233, 8233, 8090, 8091, 8092, 8093],
+  "portsAttributes": {
+    "5000": { "label": "Network Control Panel", "onAutoForward": "notify" },
+    "7233": { "label": "Temporal gRPC", "onAutoForward": "silent" },
+    "8233": { "label": "Temporal UI", "onAutoForward": "notify" },
+    "8090": { "label": "Architecture demo 5", "onAutoForward": "silent" },
+    "8091": { "label": "Architecture demo 6b", "onAutoForward": "silent" },
+    "8092": { "label": "Architecture demo 4", "onAutoForward": "silent" },
+    "8093": { "label": "Architecture demo 6a", "onAutoForward": "silent" }
+  },
+
+  "customizations": {
+    "vscode": {
+      // Deliberately minimal. Every extension is installed on first start, so
+      // this list is most of what stands between an attendee and a prompt.
+      "extensions": ["ms-python.python"],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}
