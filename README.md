@@ -229,20 +229,39 @@ There is no GitHub Actions pipeline; publishing is manual, and what you run depe
 > public.ecr.aws/s1u1b8l5/tmprl-dem-cld/ai-agents-workshop-v4/workshop:git-<sha>-<hash>
 > ```
 >
-> That `<sha>` is not an object in this repo, so the pipeline builds from a
-> mirror or a different source. Consequence: **building and pushing the Docker
-> Hub tag does not get sandbox-baked changes into the live track** — you have
-> to trigger the internal pipeline. Confirm with
-> `instruqt track pull` and diff `config.yml` against `config.yml.remote`
-> before assuming a `docker buildx --push` had any effect.
+> That `<sha>` **is** a commit in this repo — it has been the merge commit of
+> the most recently merged PR each time it has been checked (e.g. `64ddd0e`,
+> the merge of #19). So the pipeline builds from this repo's `main` and
+> appears to trigger on merges to it. Two consequences:
+>
+> - **Building and pushing the Docker Hub tag does not get sandbox-baked
+>   changes into the live track.** Confirm with `instruqt track pull` and diff
+>   `config.yml` against `config.yml.remote` before assuming a
+>   `docker buildx --push` had any effect.
+> - **The pipeline, not you, publishes the track.** It rewrites `config.yml`
+>   to the ECR tag and pushes, so a local `instruqt track push --force` would
+>   replace the pinned image with the Docker Hub tag above. Merge a PR and let
+>   the pipeline run; if the live track doesn't reflect a merge, the pipeline
+>   is what to chase, not the CLI. Note the CodeQL check going green is *not*
+>   the pipeline — this repo's only workflows are CodeQL, Copilot review, and
+>   Dependency Graph.
 
 `instruqt track test` runs the track's *local* files against the deployed image, so it's the way to verify a change before pushing.
 
-**`instruqt track push` can report `[ERROR]` and still succeed.** If the
-deployed track's checksum has drifted from the repo, push prints
-`There are remote changes for this track` — but the content is applied
-anyway. Verify by pulling and diffing the `*.remote` files rather than
-trusting the exit message, then commit any server-assigned tab ids.
+**A push that fails the delta check applies nothing.** When the deployed
+track's checksum has drifted from `checksum:` in the local `track.yml`, push
+stops at `==> Checking deltas` with `There are remote changes for this track`
+and the remote is left untouched — verified 2026-07-31 by pulling straight
+afterwards and finding none of the local edits applied. Do not read that
+`[ERROR]` as "pushed anyway". Because the pipeline pushes on every merge, the
+local `checksum:` is almost always stale, so this is the *expected* outcome of
+a local push, not a problem to force through. Either way, verify by pulling
+and diffing the `*.remote` files rather than trusting the exit message.
+
+To inspect the deployed track without touching your working tree, copy
+`instruqt/` to a scratch directory and run `instruqt track pull` there — it
+writes `*.remote` files alongside the originals, so diffing in place is safe
+but leaves litter (`just clean-remote`).
 
 **Tab ids drift.** The repo's pinned `id:` values for service tabs have gone
 stale more than once (the track appears to get re-created periodically,
