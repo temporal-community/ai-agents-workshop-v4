@@ -157,6 +157,43 @@ That contrast is the point.
 </div>
 </div>
 
+## Break It: The Durability Test
+
+You now have two durability shapes in one workflow. Break the network and watch how differently they behave.
+
+**1. Turn off the service.** Click the [button label="Network Control Panel" background="#444CE7"](tab-4) tab and toggle **Weather** off.
+
+**2. Run a workflow.** Click the [button label="Starter" background="#444CE7"](tab-2) terminal. Use a prompt that hits all three specialists:
+
+```bash,run
+uv run python -m start_workflow "When is the next F1 race, what's the weather there right now, and what should I know about visiting?"
+```
+
+**3. Observe.** Switch to the [button label="Temporal UI" background="#444CE7"](tab-3) tab:
+
+- The orchestrator is still **Running**.
+- `ask_travel_planner` is **Completed** - the entire Strands loop, every internal LLM call and tool call, finished inside that one event.
+- The F1 Nexus operation is **Completed**.
+- The weather child workflow's activity is **Retrying**.
+
+**4. Answer this question.** Before you turn the service back on:
+
+> `ask_travel_planner` is one opaque activity wrapping a multi-turn LLM conversation - the most expensive thing in this workflow. While the weather path retries, is that loop running again?
+
+<details>
+<summary>Answer</summary>
+
+No. It ran once and its result is in the history, so replay hands that result back without re-entering the Strands agent.
+
+But notice precisely *why* you're safe: the failure happened **outside** the opaque activity. That's the whole story of coarse-grained durability.
+
+Flip it around. Had the outage hit a service the Strands agent itself calls, the activity would have failed as a unit - and the retry would restart the travel-planning conversation **from the first LLM call**, re-paying for every turn that had already succeeded inside it. Temporal cannot checkpoint what it cannot see, and it sees nothing inside a framework with zero Temporal imports.
+
+That is the real price of the ten-line wrapper. It buys you retries, timeouts, and observability at the *boundary* of a foreign framework - not inside it. Demo 6b shows what changes when the specialist is Temporal-aware.
+</details>
+
+**5. Let it finish.** Toggle **Weather** back on in the [button label="Network Control Panel" background="#444CE7"](tab-4). The weather activity succeeds and the orchestrator assembles the final answer - without re-running either the Strands loop or the F1 specialist.
+
 ## Try More Prompts
 
 Click the [button label="Starter" background="#444CE7"](tab-2) terminal.

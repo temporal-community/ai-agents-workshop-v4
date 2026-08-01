@@ -192,12 +192,49 @@ Then find the **`TravelPlannerAgentWorkflow`** on `travel-planner-agent-tq`. Its
 <div style="margin-top:12px;font-size:13px;color:#c8ccd8;">Same specialist, same job — travel advice. Different event-history shape and crash-recovery story underneath.</div>
 </div>
 
+## Break It: The Durability Test
+
+Two languages, three worker processes, four task queues. Break the network and see how far the damage spreads.
+
+**1. Turn off the service.** Click the [button label="Network Control Panel" background="#444CE7"](tab-5) tab and toggle **Weather** off. The Java worker does not call that host - its tools are Wikipedia and REST Countries.
+
+**2. Run a workflow.** Click the [button label="Starter" background="#444CE7"](tab-3) terminal. Use a prompt that crosses the language boundary *and* needs weather:
+
+```bash,run
+uv run python -m start_workflow "What's the weather at the next F1 race and what should I know about visiting the destination?"
+```
+
+**3. Observe.** Switch to the [button label="Temporal UI" background="#444CE7"](tab-4) tab:
+
+- The Python orchestrator is still **Running**.
+- **`TravelPlannerAgentWorkflow`** on `travel-planner-agent-tq` - **Completed**. Its `ChatModelActivity` and per-tool activities all finished, over in the JVM.
+- The orchestrator's `NexusOperationCompleted` for the travel planner is recorded.
+- The weather child workflow's activity is **Retrying**.
+
+Your [button label="Java Worker" background="#444CE7"](tab-0) terminal is quiet throughout. It has nothing to do.
+
+**4. Answer this question.** Before you turn the service back on:
+
+> A Python workflow is stuck retrying, and part of its answer came from a Java process it reached over Nexus. As those retries pile up, is the Java worker being asked to redo its work?
+
+<details>
+<summary>Answer</summary>
+
+No. The Nexus result is recorded in the Python orchestrator's history, and replay hands it back locally - no call crosses the process, language, or namespace boundary a second time.
+
+Worth being precise about what makes this true. It is not that Nexus is special: it is that the **completion is an event**, the same way an activity result or a signal is. Every mechanism in this workshop reduces to that one idea.
+
+And the Java side has the property demo 6a's Strands agent lacked. Because Spring AI's `@Tool` methods are also `@ActivityInterface` methods, a failure *inside* the travel agent retries only the step that failed - not the whole conversation. Same specialist role as 6a, opposite durability shape, and the orchestrator's code barely changed.
+</details>
+
+**5. Let it finish.** Toggle **Weather** back on in the [button label="Network Control Panel" background="#444CE7"](tab-5). The weather activity succeeds, and the [button label="Starter" background="#444CE7"](tab-3) prints one answer assembled from a Python child workflow, a Python Nexus service, and a Java Nexus service - none of which ran twice.
+
 ## Try More Prompts
 
 Click the [button label="Starter" background="#444CE7"](tab-3) terminal.
 
 ```bash,run
-uv run python -m start_workflow "What's the weather at the next F1 race and what should I know about visiting the destination?"
+uv run python -m start_workflow "What should I know about visiting Suzuka Circuit?"
 ```
 
 ```bash,run

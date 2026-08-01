@@ -62,6 +62,19 @@ enhanced_loading: null
 
 # Demo 1: The Hand-Written Agentic Loop
 
+> [!NOTE]
+> **Your tabs.** This demo gives you five:
+> - [button label="Worker" background="#444CE7"](tab-0) - runs the worker process; it stays blocked while it polls
+> - [button label="Starter" background="#444CE7"](tab-1) - where you launch workflows
+> - [button label="Temporal UI" background="#444CE7"](tab-2) - the event history of every workflow you run
+> - [button label="Network Control Panel" background="#444CE7"](tab-3) - toggle external services off to force failures
+> - [button label="Editor" background="#444CE7"](tab-4) - VS Code, opened on this demo's folder
+>
+> Later demos add tabs as the system grows:
+> - **Architecture** (demos 4, 5, 6a, 6b) - a diagram of that demo's files, classes, and task queues
+> - **Worker PA** and **Worker F1** (demo 5 onward) - the single Worker tab splits into one per worker process, once specialists run on their own task queues
+> - **Java Worker** (demo 6b) - the Spring AI travel planner, running on the JVM
+
 ## Why
 
 An agentic loop is the engine behind every AI agent. Most frameworks hide it from you. Module 1 makes you write it by hand, so you see exactly what it is:
@@ -119,14 +132,42 @@ Switch to the [button label="Temporal UI" background="#444CE7"](tab-2) tab while
 
 > **Predict before you look:** the prompt needed IP lookup, location lookup, coordinates, and weather - four tool calls plus the LLM reasoning between each. How many activities do you expect in the event history? Now check - were you right?
 
-## The Durability Point
+## Break It: The Durability Test
 
-Before running the next prompt, click the [button label="Network Control Panel" background="#444CE7"](tab-3) and disable **Weather**. Then click the [button label="Starter" background="#444CE7"](tab-1) and run:
+Do all five steps. This is the point of the whole workshop.
+
+**1. Turn off the service.** Click the [button label="Network Control Panel" background="#444CE7"](tab-3) tab and toggle **Weather** off. The proxy now returns `503` for every call to `api.open-meteo.com`.
+
+**2. Run a workflow.** Click the [button label="Starter" background="#444CE7"](tab-1) terminal:
 
 ```bash,run
 uv run python -m start_workflow "What is the weather where I am right now?"
 ```
 
-Watch the activity fail and retry in the [button label="Temporal UI" background="#444CE7"](tab-2). Go back to the [button label="Network Control Panel" background="#444CE7"](tab-3), re-enable **Weather**, and watch the workflow resume.
+The starter does not return. Leave it.
+
+**3. Observe.** Switch to the [button label="Temporal UI" background="#444CE7"](tab-2) tab and open the running workflow. Find these three things:
+
+- The workflow status is still **Running** - it did not fail.
+- The `get_weather` activity is in **Retrying**, with an attempt counter climbing and a growing backoff between attempts.
+- Every activity *before* it - the LLM calls, `get_ip_address`, `get_location_info`, `get_coordinates` - is still marked **Completed**. Their results are in the history.
+
+**4. Answer this question.** Before you turn the service back on, commit to an answer:
+
+> The LLM has already answered several times and three tools have already run. When the weather call finally succeeds, does your `while True` loop start over from the first LLM call?
+
+<details>
+<summary>Answer</summary>
+
+No. Nothing before the failure re-executes.
+
+When the retry succeeds, Temporal rebuilds your workflow's state by **replaying** the recorded history. Each `await workflow.execute_activity(...)` that already completed returns its recorded result instantly - the LLM is not called again, and the three tools are not called again. Your loop is fast-forwarded to exactly the iteration it was on, and only the weather call actually runs.
+
+The LLM tokens you already paid for stay paid for once.
+</details>
+
+**5. Let it finish.** Go back to the [button label="Network Control Panel" background="#444CE7"](tab-3) and toggle **Weather** back on. Within one retry interval the activity succeeds, the loop continues, and your [button label="Starter" background="#444CE7"](tab-1) terminal prints the final answer.
+
+You never restarted the workflow. You never re-ran the prompt. The outage lasted as long as you left the toggle off, and the agent simply waited through it.
 
 Click **Check** when you've run at least one workflow successfully.
