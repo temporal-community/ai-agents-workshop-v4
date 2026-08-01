@@ -170,3 +170,13 @@ RUN echo '' >> /root/.bashrc \
     && echo '[ -f /etc/bash.bashrc ] && . /etc/bash.bashrc' >> /root/.bashrc
 
 WORKDIR /root
+
+# Keep PID 1 alive. This image had no CMD, so it inherited ubuntu:22.04's
+# CMD ["/bin/bash"]; started without a TTY, bash reads EOF on stdin and exits
+# immediately, so the container dies with status 0 before the tab proxy can
+# reach any port. The failure mode is silent and misleading: every tab returns
+# HTTP 572 while terraform, the track setup script and every challenge script
+# all log success, because lifecycle scripts do not go through the proxy.
+# `instruqt track test` passes for the same reason. Verified 2026-08-01 by
+# running the image with no TTY and watching it exit 0 in under a second.
+CMD ["sleep", "infinity"]
