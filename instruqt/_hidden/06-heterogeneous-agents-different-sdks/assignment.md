@@ -60,7 +60,8 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/demo6a-different-sdks
   port: 8080
-- title: Architecture
+- id: k51kscxcenez
+  title: Architecture
   type: service
   hostname: workshop
   path: /

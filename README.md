@@ -91,7 +91,9 @@ ai-agents-workshop-v4/
 
 ## Instruqt track
 
-This repo is also the source for a hands-on Instruqt lab: eight challenges (an environment-setup prologue plus one per demo) that walk an attendee through the same progression in a browser-based sandbox, no local setup required.
+This repo is also the source for a hands-on Instruqt lab: an environment-setup prologue plus one challenge per demo that walk an attendee through the same progression in a browser-based sandbox, no local setup required.
+
+Challenges for demos 1, 3, and 6a currently live in `instruqt/_hidden/` — Instruqt only treats numbered top-level directories as challenges, so those three are excluded from the track while the content stays in the repo. Restoring one means moving it back out and renumbering the active directories so they stay sequential (`00`, `01`, `02`, …), which Instruqt requires.
 
 ```
 instruqt/
@@ -105,14 +107,15 @@ instruqt/
 │   ├── Dockerfile                                    # sandbox image
 │   ├── warmup_f1_cache.py                            # pre-warms FastF1 data at build time
 │   └── proxy/                                        # mitmproxy addon + Flask control panel
+├── _hidden/                                          # excluded from the track (demos 1, 3, 6a)
+│   ├── 01-agentic-loop/
+│   ├── 03-mcp-tools/
+│   └── 06-heterogeneous-agents-different-sdks/
 ├── 00-environment-setup/
-├── 01-agentic-loop/
-├── 02-openai-agents-sdk/
-├── 03-mcp-tools/
-├── 04-human-in-the-loop/
-├── 05-multi-agent/
-├── 06-heterogeneous-agents-different-sdks/
-└── 07-heterogeneous-agents-different-languages/
+├── 01-openai-agents-sdk/                             # demo 2
+├── 02-human-in-the-loop/                             # demo 4
+├── 03-multi-agent/                                   # demo 5
+└── 04-heterogeneous-agents-different-languages/      # demo 6b
     ├── assignment.md                                 # challenge instructions + tab definitions
     ├── setup-workshop                                 # stages that chapter's code, kills straggler processes
     ├── check-workshop                                 # verifies the attendee completed the challenge
