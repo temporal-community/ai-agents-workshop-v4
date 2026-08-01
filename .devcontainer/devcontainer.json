@@ -1,14 +1,24 @@
 {
   "name": "Build AI Agents That Survive Failure",
 
-  // The sandbox image the tmprl-dem-cld pipeline builds from main. Public ECR,
-  // pullable without auth. Already contains all seven demos with their uv venvs,
-  // JDK 21 + offline Maven deps, the F1 MCP server and a warm FastF1 cache, so
-  // there is nothing to install at Codespace start.
+  // Contains all seven demos with their uv venvs, JDK 21 + offline Maven deps,
+  // the F1 MCP server and a warm FastF1 cache, so there is nothing to install at
+  // Codespace start. Codespaces-only; the Instruqt track pins its own image in
+  // instruqt/config.yml, independently.
   //
-  // Bump this tag when the pipeline builds a newer one. Codespaces-only; the
-  // Instruqt track pins its own image in instruqt/config.yml, independently.
-  "image": "public.ecr.aws/s1u1b8l5/tmprl-dem-cld/ai-agents-workshop-v4/workshop:git-038a1e928949dfd20216b39086fb293b3ebe64d0-b627af6b6e95e",
+  // NOT the pipeline's public ECR tag. Public ECR rate-limits anonymous pulls
+  // and Codespaces pulls anonymously, so it fails with
+  //   docker: Error response from daemon: toomanyrequests: Rate exceeded
+  // and Codespaces then silently falls back to a recovery container
+  // (mcr.microsoft.com/devcontainers/base:alpine) that contains none of this.
+  // Verified 2026-08-01. Do not point this at public.ecr.aws.
+  //
+  // Docker Hub also rate-limits anonymous pulls, at 100 per 6h per IP, which is
+  // fine for one person but not for a room. Before a live workshop, mirror this
+  // to ghcr.io in the temporal-community org: Codespaces authenticates to GHCR
+  // in the same org automatically and is not rate-limited there. A Codespaces
+  // prebuild removes the pull from the attendee's critical path entirely.
+  "image": "nadvolod/ai-agents-workshop-v4-sandbox:latest",
 
   // The image is ~3.4 GB and the demos want the headroom Instruqt gave them
   // (memory: 6144).
