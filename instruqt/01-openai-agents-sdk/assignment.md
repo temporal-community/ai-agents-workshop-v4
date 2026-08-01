@@ -9,9 +9,10 @@ notes:
   contents: |-
     # What if you didn't have to write the loop?
 
-    Demo 1 was ~50 lines of explicit loop logic. What if a single function
-    call replaced all of it, and Temporal durability still applied to every
-    step inside?
+    A self-made loop is ~50 lines of explicit logic: a `while True`, tool
+    dispatch, and every call wired up as an activity by hand. What if a
+    single function call replaced all of it, and Temporal durability still
+    applied to every step inside?
 
     That's the OpenAI Agents SDK + Temporal integration. One line replaces
     the loop. Every LLM call and every tool invocation still becomes a
@@ -59,7 +60,7 @@ enhanced_loading: null
 # Demo 2: OpenAI Agents SDK + Temporal
 
 > [!NOTE]
-> **Your tabs.** The same five as demo 1, each pointed at this demo's folder and task queue:
+> **Your tabs.** Five of them, each pointed at this demo's folder and task queue:
 > - [button label="Worker" background="#444CE7"](tab-0) - runs the worker process; it stays blocked while it polls
 > - [button label="Starter" background="#444CE7"](tab-1) - where you launch workflows
 > - [button label="Temporal UI" background="#444CE7"](tab-2) - the event history of every workflow you run
@@ -98,7 +99,7 @@ uv run python -m worker
 
 The worker starts polling its task queue and keeps running. It prints no startup banner and does not return you to the prompt. That blocked terminal is the worker doing its job. Leave it running and move on.
 
-> **If it fails:** `OPENAI_API_KEY not set` means the key didn't carry into this terminal - open a fresh tab and re-check. Port or task-queue conflicts are unlikely here since each demo uses its own queue, but if a demo1 worker is still running, it's harmless - they don't interfere.
+> **If it fails:** `OPENAI_API_KEY not set` means the key didn't carry into this terminal - open a fresh tab and re-check. Port or task-queue conflicts are unlikely here since each demo uses its own queue.
 
 ## Run It
 
@@ -114,7 +115,7 @@ You should see a final answer describing Tokyo's current weather, printed after 
 
 Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab. Look at a completed workflow. `invoke_model_activity` appears as its own named entry - the SDK's model calls are now first-class Temporal activities alongside the tool calls.
 
-> **Compare to demo 1:** demo 1's event history had one LLM-call activity per loop iteration, hand-dispatched by your own code. This one has `invoke_model_activity` entries instead - same idea, but the SDK's `Runner.run()` is what's calling them now, not your `while True` loop. Same durability, one line of code.
+> **Compare to a self-made loop:** write the loop yourself and this same history shows one LLM-call activity per iteration, each dispatched by your own code. Here it's `invoke_model_activity` entries instead - same idea, but the SDK's `Runner.run()` is what's calling them, not your `while True` loop. Same durability, one line of code.
 
 ## Break It: The Durability Test
 
@@ -153,9 +154,9 @@ From the agent framework's point of view this is one slow tool call. From your p
 
 ## Summary
 
-Demo 1 and demo 2 build the same agent with the same durability. The only thing that changed is who writes the loop. It's the classic build-vs-adopt-a-framework tradeoff:
+A self-made loop and the OpenAI Agents SDK build the same agent with the same durability. The only thing that changes is who writes the loop. It's the classic build-vs-adopt-a-framework tradeoff:
 
-| | Demo 1 (hand-written) | Demo 2 (SDK) |
+| | Self-made loop | OpenAI Agents SDK |
 |---|---|---|
 | Who writes the loop | You (`while True`) | `Runner.run()` |
 | Lines of orchestration code | ~50 | 1 |
@@ -165,7 +166,7 @@ Demo 1 and demo 2 build the same agent with the same durability. The only thing 
 
 ### Who writes the loop
 
-Demo 1, you write the loop by hand:
+Self-made loop - you write it by hand:
 
 ```python,nocopy
 while True:
@@ -178,7 +179,7 @@ while True:
         return llm_result.output_text
 ```
 
-Demo 2, the SDK's Runner owns the loop:
+OpenAI Agents SDK - the `Runner` owns the loop:
 
 ```python,nocopy
 result = await Runner.run(agent, input=question)
@@ -187,7 +188,7 @@ return result.final_output
 
 ### Lines of orchestration code
 
-Demo 1 also needs a tool-dispatch helper, part of the ~50 lines you maintain:
+A self-made loop also needs a tool-dispatch helper, part of the ~50 lines you maintain:
 
 ```python,nocopy
 async def _handle_function_call(self, item, llm_result, input_list):
@@ -198,7 +199,7 @@ async def _handle_function_call(self, item, llm_result, input_list):
     return tool_output
 ```
 
-Demo 2 replaces all of it with one call:
+The SDK replaces all of it with one call:
 
 ```python,nocopy
 result = await Runner.run(agent, input=question)
@@ -206,14 +207,14 @@ result = await Runner.run(agent, input=question)
 
 ### Durability
 
-Demo 1, you make each LLM call and tool call durable by dispatching it as an activity yourself:
+Self-made loop - you make each LLM call and tool call durable by dispatching it as an activity yourself:
 
 ```python,nocopy
 llm_result = await workflow.execute_activity(openai_responses.create, ...)
 tool_output = await workflow.execute_activity(item.name, args, ...)
 ```
 
-Demo 2, the wrapper turns each tool into an activity:
+OpenAI Agents SDK - the wrapper turns each tool into an activity:
 
 ```python,nocopy
 tools=[
