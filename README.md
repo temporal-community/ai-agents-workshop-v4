@@ -93,7 +93,17 @@ ai-agents-workshop-v4/
 
 This repo is also the source for a hands-on Instruqt lab: four challenges that walk an attendee through demos 2, 4, 5, and 6b in a browser-based sandbox, no local setup required.
 
-Everything under `instruqt/_hidden/` is excluded from the track — currently demos 1, 3, and 6a plus the environment-setup prologue. Instruqt only treats numbered top-level directories as challenges, so the content stays in the repo without being published. Restoring one means moving it back out and renumbering the active directories so they stay sequential from `00`, which Instruqt requires.
+Everything under `instruqt/_hidden/` is excluded from the track — currently demos 1, 3, and 6a plus the environment-setup prologue. Instruqt only treats numbered top-level directories as challenges, so the content stays in the repo without being published. Restoring one means moving it back out and renumbering the active directories so they stay sequential, which Instruqt requires.
+
+> [!CAUTION]
+> **Number challenge directories from `01`, never `00`.** A challenge in a `00-`
+> directory is silently dropped on publish: `instruqt track validate` passes,
+> `instruqt track push` reports `Checking challenges OK`, and the challenge then
+> does not exist on the platform. Verified 2026-08-01 in the Instruqt UI, twice
+> over — this repo's original `00-environment-setup` had never been live despite
+> years of pushes, and a four-challenge layout numbered `00`–`03` published as
+> three. `validate` accepts a sequence starting at either `00` or `01`, so
+> nothing warns you.
 
 Dropping the environment-setup challenge means attendees no longer get its up-front Temporal-health and `OPENAI_API_KEY` check. Nothing depends on it — the track-level `setup-workshop` does the real work (starting services, minting the LiteLLM key), each challenge defines its own tabs, and every challenge's assignment already explains what an `OPENAI_API_KEY not set` failure means.
 
@@ -114,10 +124,10 @@ instruqt/
 │   ├── 01-agentic-loop/
 │   ├── 03-mcp-tools/
 │   └── 06-heterogeneous-agents-different-sdks/
-├── 00-openai-agents-sdk/                             # demo 2
-├── 01-human-in-the-loop/                             # demo 4
-├── 02-multi-agent/                                   # demo 5
-└── 03-heterogeneous-agents-different-languages/      # demo 6b
+├── 01-openai-agents-sdk/                             # demo 2 (numbering starts at 01, see above)
+├── 02-human-in-the-loop/                             # demo 4
+├── 03-multi-agent/                                   # demo 5
+└── 04-heterogeneous-agents-different-languages/      # demo 6b
     ├── assignment.md                                 # challenge instructions + tab definitions
     ├── setup-workshop                                 # stages that chapter's code, kills straggler processes
     ├── check-workshop                                 # verifies the attendee completed the challenge
@@ -299,15 +309,11 @@ for d in "$t"/*/; do
 done
 ```
 
-> [!CAUTION]
-> **`pull` omits the `00`-numbered challenge.** Observed twice on 2026-08-01, on
-> two different published layouts: a track whose challenges were `00`–`07` pulled
-> as `01`–`07`, and after republishing as `00`–`03` it pulled as `01`–`03`. Both
-> pushes had validated with the `00` directory present and reported
-> `Checking challenges OK`, so this is a `pull`-side gap, not a publish failure —
-> but it means **this snippet under-reports by one and cannot confirm the first
-> challenge is live.** For that, open the track in the browser:
-> https://play.instruqt.com/manage/temporal/tracks/temporal-ai-agents-python-v4
+This listing is trustworthy — it is the deployed set. When a `00-` numbered
+challenge is missing from it, that challenge really is absent from the platform
+(see the caution above), not merely absent from the pull. The Instruqt UI is
+the independent confirmation:
+https://play.instruqt.com/manage/temporal/tracks/temporal-ai-agents-python-v4
 
 Comparing the two checksums tells you whether a push will pass the delta check.
 The challenge list is what attendees see in the sidebar, so it's the direct check
