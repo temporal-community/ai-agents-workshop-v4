@@ -1,7 +1,8 @@
 #!/bin/bash
 # ABOUTME: Track-level setup. Runs once when the attendee enters the track.
 # Everything heavy is baked into the image. This script only:
-#   1. Stages /opt/workshop -> /root/workshop (attendee's writable copy)
+#   1. Stages the demos this track uses, /opt/workshop -> /root/workshop
+#      (attendee's writable copy)
 #   2. Copies proxy state to a writable location
 #   3. Patches the runtime proxy config for LiteLLM
 #   4. Starts background services
@@ -83,8 +84,25 @@ mint_litellm_token() {
 }
 
 # 1. Stage workshop source into writable home directory.
+#
+# Only the demos this track actually walks through. The image bakes in all
+# seven, but each demo's exercise/ + solution/ venvs expand to ~180-240 MB
+# once cp breaks the image's hardlinks, so staging the four the challenges
+# use keeps ~650 MB and ~28k files off the lab-start critical path. The rest
+# stay readable under /opt/workshop. Keep this list in sync with the
+# challenge directories.
+STAGED_DEMOS=(
+    demo2-openai-temporal-integration
+    demo4-hitl
+    demo5-multi-agent
+    demo6b-different-languages
+)
+
 if [ ! -d /root/workshop ]; then
-    cp -r /opt/workshop /root/workshop
+    mkdir -p /root/workshop
+    for demo in "${STAGED_DEMOS[@]}"; do
+        cp -r "/opt/workshop/${demo}" "/root/workshop/${demo}"
+    done
 fi
 
 # 2. Stage proxy state into writable location.
@@ -122,28 +140,28 @@ nohup code-server \
 # Static server for the Demo 4 architecture diagram (Architecture tab, port 8092).
 # Served from its own web root so "/" serves the diagram directly.
 mkdir -p /root/arch-4
-cp /root/workshop/demo4-hitl/architecture.html /root/arch-4/index.html 2>/dev/null || true
+cp /opt/workshop/demo4-hitl/architecture.html /root/arch-4/index.html 2>/dev/null || true
 nohup python3 -m http.server 8092 --directory /root/arch-4 \
     > /tmp/arch-server-4.log 2>&1 &
 
 # Static server for the Demo 5 architecture diagram (Architecture tab, port 8090).
 # Served from its own web root so "/" serves the diagram directly.
 mkdir -p /root/arch
-cp /root/workshop/demo5-multi-agent/architecture.html /root/arch/index.html 2>/dev/null || true
+cp /opt/workshop/demo5-multi-agent/architecture.html /root/arch/index.html 2>/dev/null || true
 nohup python3 -m http.server 8090 --directory /root/arch \
     > /tmp/arch-server.log 2>&1 &
 
 # Static server for the Demo 6a architecture diagram (Architecture tab, port 8093).
 # Served from its own web root so "/" serves the diagram directly.
 mkdir -p /root/arch-6a
-cp /root/workshop/demo6a-different-sdks/architecture.html /root/arch-6a/index.html 2>/dev/null || true
+cp /opt/workshop/demo6a-different-sdks/architecture.html /root/arch-6a/index.html 2>/dev/null || true
 nohup python3 -m http.server 8093 --directory /root/arch-6a \
     > /tmp/arch-server-6a.log 2>&1 &
 
 # Static server for the Demo 6b architecture diagram (Architecture tab, port 8091).
 # Served from its own web root so "/" serves the diagram directly.
 mkdir -p /root/arch-6b
-cp /root/workshop/demo6b-different-languages/architecture.html /root/arch-6b/index.html 2>/dev/null || true
+cp /opt/workshop/demo6b-different-languages/architecture.html /root/arch-6b/index.html 2>/dev/null || true
 nohup python3 -m http.server 8091 --directory /root/arch-6b \
     > /tmp/arch-server-6b.log 2>&1 &
 
