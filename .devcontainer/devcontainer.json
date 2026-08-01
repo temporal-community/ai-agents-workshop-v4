@@ -6,19 +6,33 @@
   // Codespace start. Codespaces-only; the Instruqt track pins its own image in
   // instruqt/config.yml, independently.
   //
-  // NOT the pipeline's public ECR tag. Public ECR rate-limits anonymous pulls
-  // and Codespaces pulls anonymously, so it fails with
-  //   docker: Error response from daemon: toomanyrequests: Rate exceeded
-  // and Codespaces then silently falls back to a recovery container
-  // (mcr.microsoft.com/devcontainers/base:alpine) that contains none of this.
-  // Verified 2026-08-01. Do not point this at public.ecr.aws.
+  // Public GHCR, pinned to an immutable tag. Byte-identical to the image the
+  // tmprl-dem-cld pipeline built from commit 038a1e9: copied from
+  // public.ecr.aws/.../workshop:git-038a1e92...-b627af6b6e95e, digest verified
+  // sha256:81ce22fcec6fac41c77b1507f16482f835f0e21cee3018a08a1625be55a6a6c5.
   //
-  // Docker Hub also rate-limits anonymous pulls, at 100 per 6h per IP, which is
-  // fine for one person but not for a room. Before a live workshop, mirror this
-  // to ghcr.io in the temporal-community org: Codespaces authenticates to GHCR
-  // in the same org automatically and is not rate-limited there. A Codespaces
-  // prebuild removes the pull from the attendee's critical path entirely.
-  "image": "nadvolod/ai-agents-workshop-v4-sandbox:latest",
+  // Two registries were tried first and are the wrong answer:
+  //
+  //   public.ecr.aws  rate-limits anonymous pulls. Codespaces pulls
+  //                   anonymously, so creation failed with "toomanyrequests:
+  //                   Rate exceeded" and Codespaces then SILENTLY fell back to
+  //                   a recovery container (devcontainers/base:alpine)
+  //                   containing none of the workshop. It looks like a healthy
+  //                   Codespace with everything missing.
+  //   Docker Hub      100 anonymous pulls per 6h per IP. Survivable for one
+  //                   person, not for a room sharing Codespaces egress IPs.
+  //
+  // GHCR does not apply those anonymous limits. The package lives in a personal
+  // namespace because temporal-community org policy disables both Public and
+  // Internal package visibility, and the org package's Codespaces
+  // repository-access picker would not list this repo.
+  //
+  // Verified public and anonymously pullable 2026-08-01: manifest list resolves
+  // to a linux/amd64 child, 29 layers, 1.46 GB compressed, no credentials.
+  //
+  // Codespaces-only. The Instruqt track pins its own image in
+  // instruqt/config.yml, independently.
+  "image": "ghcr.io/nadvolod/ai-agents-workshop-v4-sandbox:git-038a1e9",
 
   // The image is ~3.4 GB and the demos want the headroom Instruqt gave them
   // (memory: 6144).
