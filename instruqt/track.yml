@@ -1,16 +1,15 @@
 slug: temporal-ai-agents-python-v4
 id: xnemkij8fssg
 title: Build AI Agents That Survive Failure
-teaser: From a hand-written agentic loop to heterogeneous multi-agent systems. Seven
-  progressive demos, one Temporal dev server, zero infrastructure headaches.
+teaser: From the OpenAI Agents SDK to heterogeneous multi-agent systems. Four progressive
+  demos, one Temporal dev server, zero infrastructure headaches.
 description: |-
   A progressive workshop showing how to build production-grade AI agents
   with the OpenAI Agents SDK and Temporal for durable execution.
 
-  Starting from a hand-written agentic loop, you add the OpenAI Agents SDK
-  integration, MCP tool servers, human-in-the-loop signals, multi-agent
-  orchestration with child workflows and Nexus, and finally heterogeneous
-  agents spanning different frameworks and languages.
+  Starting from the OpenAI Agents SDK integration, you add human-in-the-loop
+  signals, multi-agent orchestration with child workflows and Nexus, and
+  finally heterogeneous agents spanning different frameworks and languages.
 
   Each demo adds exactly one capability so you can see before and after
   in the Temporal Web UI.
@@ -26,6 +25,7 @@ developers:
 - marcus.merrell@temporal.io
 - cornelia@temporal.io
 - nikolay.advolodkin@temporal.io
+skipping_enabled: true
 idle_timeout: 1800
 timelimit: 10800
 lab_config:
@@ -75,5 +75,5 @@ lab_config:
   hideStopButton: false
   default_layout: AssignmentLeft
   default_layout_sidebar_size: 35
-checksum: "6111385254525952163"
+checksum: "17820136113430719539"
 enhanced_loading: false
