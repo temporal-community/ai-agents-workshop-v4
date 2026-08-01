@@ -229,10 +229,12 @@ There is no GitHub Actions pipeline; publishing is manual, and what you run depe
 > public.ecr.aws/s1u1b8l5/tmprl-dem-cld/ai-agents-workshop-v4/workshop:git-<sha>-<hash>
 > ```
 >
-> That `<sha>` **is** a commit in this repo — it has been the merge commit of
-> the most recently merged PR each time it has been checked (e.g. `64ddd0e`,
-> the merge of #19). So the pipeline builds from this repo's `main` and
-> appears to trigger on merges to it. Two consequences:
+> That `<sha>` **is** a commit in this repo — it has been a `main` commit each
+> time it has been checked (e.g. `64ddd0e`, the merge of #19). So the pipeline
+> builds from this repo's `main`. What triggers it is *not* established: on
+> 2026-08-01, two merges to `main` (#20 and #21) left the deployed tag still
+> pinned to #19's merge commit, so do not assume merging republishes the track.
+> Check, don't assume — see the snippet below. Two consequences:
 >
 > - **Building and pushing the Docker Hub tag does not get sandbox-baked
 >   changes into the live track.** Confirm with `instruqt track pull` and diff
@@ -244,7 +246,7 @@ There is no GitHub Actions pipeline; publishing is manual, and what you run depe
 >   the pipeline run; if the live track doesn't reflect a merge, the pipeline
 >   is what to chase, not the CLI. Note the CodeQL check going green is *not*
 >   the pipeline — this repo's only workflows are CodeQL, Copilot review, and
->   Dependency Graph.
+>   Dependency Graph, none of which builds an image or publishes a track.
 
 `instruqt track test` runs the track's *local* files against the deployed image, so it's the way to verify a change before pushing.
 
@@ -253,15 +255,38 @@ track's checksum has drifted from `checksum:` in the local `track.yml`, push
 stops at `==> Checking deltas` with `There are remote changes for this track`
 and the remote is left untouched — verified 2026-07-31 by pulling straight
 afterwards and finding none of the local edits applied. Do not read that
-`[ERROR]` as "pushed anyway". Because the pipeline pushes on every merge, the
-local `checksum:` is almost always stale, so this is the *expected* outcome of
-a local push, not a problem to force through. Either way, verify by pulling
-and diffing the `*.remote` files rather than trusting the exit message.
+`[ERROR]` as "pushed anyway". Because the pipeline publishes without updating
+this repo, the local `checksum:` is almost always stale, so this is the
+*expected* outcome of a local push, not a problem to force through.
 
-To inspect the deployed track without touching your working tree, copy
-`instruqt/` to a scratch directory and run `instruqt track pull` there — it
-writes `*.remote` files alongside the originals, so diffing in place is safe
-but leaves litter (`just clean-remote`).
+#### Does the deployed track match `main`?
+
+Read-only, and safe to run any time. It pulls into a temp copy, so the working
+tree is untouched and there are no `*.remote` leftovers to clean up. Run it from
+the repo root:
+
+```bash
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+cp -r instruqt/. "$tmp"/
+(cd "$tmp" && instruqt track pull >/dev/null)
+
+printf 'deployed image pinned to: %s\n' \
+  "$(awk '/image:/ {print $2; exit}' "$tmp/config.yml.remote")"
+printf 'main HEAD:                %s\n' "$(git rev-parse HEAD)"
+printf 'deployed challenges:\n'
+(cd "$tmp" && find . -name 'assignment.md.remote' \
+  | sed 's|^\./||; s|/assignment.md.remote||' | sort | sed 's/^/  /')
+```
+
+The `git-<sha>` in the image tag is the commit the pipeline last published.
+If it doesn't match `main HEAD`, the deployed track is behind and nothing you
+do with the CLI will change that — chase the pipeline. The challenge list is
+the other half of the answer: it is what attendees actually see in the sidebar,
+so it's the direct check on whether a challenge add/remove has gone live.
+
+Paths renamed locally (challenges moved into `instruqt/_hidden/`, or renumbered)
+appear under their old names in that listing, since it reflects the deployed
+track rather than the repo.
 
 **Tab ids drift.** The repo's pinned `id:` values for service tabs have gone
 stale more than once (the track appears to get re-created periodically,
