@@ -26,11 +26,18 @@ task queue, so leaving old workers running is harmless.
 
 ## Demo 2 — OpenAI Agents SDK + Temporal
 
-`~/workshop/demo2-openai-temporal-integration/exercise`
+**Terminal 1 — worker.** Stays blocked while it polls; that is correct.
 
 ```bash
-uv run python -m worker                                        # terminal 1
-uv run python -m start_workflow "What is the weather in Tokyo?"   # terminal 2
+cd ~/workshop/demo2-openai-temporal-integration/exercise
+uv run python -m worker
+```
+
+**Terminal 2 — start a workflow.**
+
+```bash
+cd ~/workshop/demo2-openai-temporal-integration/exercise
+uv run python -m start_workflow "What is the weather in Tokyo?"
 ```
 
 **Look at:** the Temporal UI event history. Every LLM call and every tool call is
@@ -42,11 +49,19 @@ The durability is identical. The cost is that tools must now be
 
 ## Demo 4 — Human-in-the-loop
 
-`~/workshop/demo4-hitl/exercise`
+**Terminal 1 — worker.**
 
 ```bash
-uv run python -m worker                                                              # terminal 1
-uv run python -m start_workflow "What's the weather like where I'm traveling to this weekend?"   # terminal 2
+cd ~/workshop/demo4-hitl/exercise
+uv run python -m worker
+```
+
+**Terminal 2 — start a workflow.** The agent will stop and ask you a question
+here; answer it in this same terminal.
+
+```bash
+cd ~/workshop/demo4-hitl/exercise
+uv run python -m start_workflow "What's the weather like where I'm traveling to this weekend?"
 ```
 
 The agent stops and asks you a question. Answer it in terminal 2.
@@ -59,12 +74,27 @@ two queries let the starter poll. Suspended durably, not blocked.
 
 ## Demo 5 — Multi-agent orchestration
 
-`~/workshop/demo5-multi-agent/exercise` — needs **three** terminals.
+Needs **three** terminals. Same folder for all three.
+
+**Terminal 1 — personal assistant worker.**
 
 ```bash
-uv run python -m worker_pa                                                            # terminal 1
-uv run python -m worker_f1                                                            # terminal 2
-uv run python -m start_workflow "When is the next F1 race and what's the weather there right now?"   # terminal 3
+cd ~/workshop/demo5-multi-agent/exercise
+uv run python -m worker_pa
+```
+
+**Terminal 2 — F1 expert worker.** Its own task queue, hence its own process.
+
+```bash
+cd ~/workshop/demo5-multi-agent/exercise
+uv run python -m worker_f1
+```
+
+**Terminal 3 — start a workflow.**
+
+```bash
+cd ~/workshop/demo5-multi-agent/exercise
+uv run python -m start_workflow "When is the next F1 race and what's the weather there right now?"
 ```
 
 **Look at:** the parent's event history. The weather agent appears as
@@ -76,16 +106,37 @@ does not care which invocation pattern each one uses.
 
 ## Demo 6b — A specialist in another language
 
-`~/workshop/demo6b-different-languages/exercise` — needs **four** terminals.
+Needs **four** terminals. Note that terminal 1 is a *different* folder to the
+other three.
+
+**Terminal 1 — Java travel planner.** Slowest to boot; start it first and wait
+for Spring to report it has started before you run the starter.
 
 ```bash
-cd travel-planner-java && ./mvnw spring-boot:run                       # terminal 1 (Java, slowest to boot)
-uv run python -m worker_pa                                             # terminal 2
-uv run python -m worker_f1                                             # terminal 3
-uv run python -m start_workflow "What should I know about visiting Monaco?"   # terminal 4
+cd ~/workshop/demo6b-different-languages/exercise/travel-planner-java
+./mvnw spring-boot:run
 ```
 
-Wait for the Java worker to print that it has started before running the starter.
+**Terminal 2 — personal assistant worker.**
+
+```bash
+cd ~/workshop/demo6b-different-languages/exercise
+uv run python -m worker_pa
+```
+
+**Terminal 3 — F1 expert worker.**
+
+```bash
+cd ~/workshop/demo6b-different-languages/exercise
+uv run python -m worker_f1
+```
+
+**Terminal 4 — start a workflow.**
+
+```bash
+cd ~/workshop/demo6b-different-languages/exercise
+uv run python -m start_workflow "What should I know about visiting Monaco?"
+```
 
 **Look at:** the travel planner's own workflow, with per-step LLM and tool
 activities, driven from Python across a Nexus boundary. Diagram on port **8091**.
