@@ -255,9 +255,27 @@ track's checksum has drifted from `checksum:` in the local `track.yml`, push
 stops at `==> Checking deltas` with `There are remote changes for this track`
 and the remote is left untouched — verified 2026-07-31 by pulling straight
 afterwards and finding none of the local edits applied. Do not read that
-`[ERROR]` as "pushed anyway". Because the pipeline publishes without updating
-this repo, the local `checksum:` is almost always stale, so this is the
-*expected* outcome of a local push, not a problem to force through.
+`[ERROR]` as "pushed anyway".
+
+> [!WARNING]
+> **`checksum:` gates the pipeline too, and it is self-poisoning.** That field
+> is an optimistic-concurrency token recording the last *known* deployed state.
+> A successful publish changes the deployed checksum; if the new value is not
+> committed back here, every later publish — the pipeline's included, since it
+> does not appear to use `--force` — fails the delta check and silently leaves
+> the track on its old content. **The pipeline gets exactly one successful
+> publish per checksum sync.**
+>
+> That is what happened on 2026-08-01: #19's merge published fine and moved the
+> deployed checksum to a value nobody committed, so #20, #21 and #22 each built
+> an image (visible in ECR as `git-<sha>` tags) and then failed to publish. The
+> track sat on #19's content for three merges while the repo looked correct.
+>
+> So after any successful publish — yours or the pipeline's — run
+> `instruqt track pull` and commit the new `checksum:`. If you see the deployed
+> track lagging `main`, compare the two checksums first; that mismatch is the
+> likeliest cause, not the pipeline being broken. The real fix is for the
+> pipeline to force-push or to commit the checksum back itself.
 
 #### Does the deployed track match `main`?
 
