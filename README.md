@@ -93,7 +93,17 @@ ai-agents-workshop-v4/
 
 This repo is also the source for a hands-on Instruqt lab: four challenges that walk an attendee through demos 2, 4, 5, and 6b in a browser-based sandbox, no local setup required.
 
-Everything under `instruqt/_hidden/` is excluded from the track — currently demos 1, 3, and 6a plus the environment-setup prologue. Instruqt only treats numbered top-level directories as challenges, so the content stays in the repo without being published. Restoring one means moving it back out and renumbering the active directories so they stay sequential from `00`, which Instruqt requires.
+Everything under `instruqt/_hidden/` is excluded from the track — currently demos 1, 3, and 6a plus the environment-setup prologue. Instruqt only treats numbered top-level directories as challenges, so the content stays in the repo without being published. Restoring one means moving it back out and renumbering the active directories so they stay sequential, which Instruqt requires.
+
+> [!CAUTION]
+> **Number challenge directories from `01`, never `00`.** A challenge in a `00-`
+> directory is silently dropped on publish: `instruqt track validate` passes,
+> `instruqt track push` reports `Checking challenges OK`, and the challenge then
+> does not exist on the platform. Verified 2026-08-01 in the Instruqt UI, twice
+> over — this repo's original `00-environment-setup` had never been live despite
+> years of pushes, and a four-challenge layout numbered `00`–`03` published as
+> three. `validate` accepts a sequence starting at either `00` or `01`, so
+> nothing warns you.
 
 Dropping the environment-setup challenge means attendees no longer get its up-front Temporal-health and `OPENAI_API_KEY` check. Nothing depends on it — the track-level `setup-workshop` does the real work (starting services, minting the LiteLLM key), each challenge defines its own tabs, and every challenge's assignment already explains what an `OPENAI_API_KEY not set` failure means.
 
@@ -114,10 +124,10 @@ instruqt/
 │   ├── 01-agentic-loop/
 │   ├── 03-mcp-tools/
 │   └── 06-heterogeneous-agents-different-sdks/
-├── 00-openai-agents-sdk/                             # demo 2
-├── 01-human-in-the-loop/                             # demo 4
-├── 02-multi-agent/                                   # demo 5
-└── 03-heterogeneous-agents-different-languages/      # demo 6b
+├── 01-openai-agents-sdk/                             # demo 2 (numbering starts at 01, see above)
+├── 02-human-in-the-loop/                             # demo 4
+├── 03-multi-agent/                                   # demo 5
+└── 04-heterogeneous-agents-different-languages/      # demo 6b
     ├── assignment.md                                 # challenge instructions + tab definitions
     ├── setup-workshop                                 # stages that chapter's code, kills straggler processes
     ├── check-workshop                                 # verifies the attendee completed the challenge
@@ -231,24 +241,27 @@ There is no GitHub Actions pipeline; publishing is manual, and what you run depe
 > public.ecr.aws/s1u1b8l5/tmprl-dem-cld/ai-agents-workshop-v4/workshop:git-<sha>-<hash>
 > ```
 >
-> That `<sha>` **is** a commit in this repo — it has been a `main` commit each
-> time it has been checked (e.g. `64ddd0e`, the merge of #19). So the pipeline
-> builds from this repo's `main`. What triggers it is *not* established: on
-> 2026-08-01, two merges to `main` (#20 and #21) left the deployed tag still
-> pinned to #19's merge commit, so do not assume merging republishes the track.
-> Check, don't assume — see the snippet below. Two consequences:
+> That `<sha>` **is** a commit in this repo, and the pipeline builds one image
+> per merge to `main` — verified 2026-08-01 by listing the ECR tags and matching
+> each `<sha>` against `git merge-base --is-ancestor`. **But it only builds
+> images; it does not publish the track.** Merges to `main` on 2026-08-01 each
+> produced a `git-<sha>` image while the deployed track stayed on its old
+> content, and the four-challenge layout only went live when the track was
+> pushed by hand. The heading on this section is right: publishing is manual.
+>
+> Two consequences:
 >
 > - **Building and pushing the Docker Hub tag does not get sandbox-baked
 >   changes into the live track.** Confirm with `instruqt track pull` and diff
 >   `config.yml` against `config.yml.remote` before assuming a
 >   `docker buildx --push` had any effect.
-> - **The pipeline, not you, publishes the track.** It rewrites `config.yml`
->   to the ECR tag and pushes, so a local `instruqt track push --force` would
->   replace the pinned image with the Docker Hub tag above. Merge a PR and let
->   the pipeline run; if the live track doesn't reflect a merge, the pipeline
->   is what to chase, not the CLI. Note the CodeQL check going green is *not*
->   the pipeline — this repo's only workflows are CodeQL, Copilot review, and
->   Dependency Graph, none of which builds an image or publishes a track.
+> - **When you publish, pin `config.yml` to the deployed ECR tag first.** The
+>   repo commits the Docker Hub tag, so an as-is push repoints the live track
+>   at it. Read the deployed tag, set `containers[0].image` to that value
+>   locally, push, then revert the file without committing. Note the CodeQL
+>   check going green is *not* an image build — this repo's own workflows are
+>   CodeQL, Copilot review, and Dependency Graph, none of which builds an image
+>   or publishes a track.
 
 `instruqt track test` runs the track's *local* files against the deployed image, so it's the way to verify a change before pushing.
 
@@ -260,53 +273,53 @@ afterwards and finding none of the local edits applied. Do not read that
 `[ERROR]` as "pushed anyway".
 
 > [!WARNING]
-> **`checksum:` gates the pipeline too, and it is self-poisoning.** That field
+> **`checksum:` is self-poisoning — commit it after every publish.** That field
 > is an optimistic-concurrency token recording the last *known* deployed state.
-> A successful publish changes the deployed checksum; if the new value is not
-> committed back here, every later publish — the pipeline's included, since it
-> does not appear to use `--force` — fails the delta check and silently leaves
-> the track on its old content. **The pipeline gets exactly one successful
-> publish per checksum sync.**
+> A successful publish changes the deployed checksum and writes the new value
+> into your local `track.yml`; if you don't commit it, the next person's push
+> fails the delta check until they resync by hand.
 >
-> That is what happened on 2026-08-01: #19's merge published fine and moved the
-> deployed checksum to a value nobody committed, so #20, #21 and #22 each built
-> an image (visible in ECR as `git-<sha>` tags) and then failed to publish. The
-> track sat on #19's content for three merges while the repo looked correct.
+> That is what happened on 2026-08-01: a publish had moved the deployed checksum
+> to a value nobody committed, so pushes failed for anyone working from `main`
+> until the deployed value was committed in #23. Two hours went into diagnosing
+> a one-line staleness.
 >
-> So after any successful publish — yours or the pipeline's — run
-> `instruqt track pull` and commit the new `checksum:`. If you see the deployed
-> track lagging `main`, compare the two checksums first; that mismatch is the
-> likeliest cause, not the pipeline being broken. The real fix is for the
-> pipeline to force-push or to commit the checksum back itself.
+> So after any successful publish, commit the `checksum:` the CLI just wrote
+> back. If the deployed track lags `main`, compare the two checksums first —
+> that mismatch is the likeliest cause.
 
 #### Does the deployed track match `main`?
 
-Read-only, and safe to run any time. It pulls into a temp copy, so the working
-tree is untouched and there are no `*.remote` leftovers to clean up. Run it from
-the repo root:
+Read-only, and safe to run any time. Pull **by slug into an empty directory** so
+the result is the deployed track and nothing else — no working-tree churn, no
+`*.remote` leftovers, and no local files left over to confuse the reading:
 
 ```bash
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
-cp -r instruqt/. "$tmp"/
-(cd "$tmp" && instruqt track pull >/dev/null)
+(cd "$tmp" && instruqt track pull temporal/temporal-ai-agents-python-v4 >/dev/null)
+t="$tmp/temporal-ai-agents-python-v4"
 
-printf 'deployed image pinned to: %s\n' \
-  "$(awk '/image:/ {print $2; exit}' "$tmp/config.yml.remote")"
-printf 'main HEAD:                %s\n' "$(git rev-parse HEAD)"
+printf 'deployed image:    %s\n' "$(awk '/image:/ {print $2; exit}' "$t/config.yml")"
+printf 'deployed checksum: %s\n' "$(awk -F'"' '/^checksum:/ {print $2}' "$t/track.yml")"
+printf 'local checksum:    %s\n' "$(awk -F'"' '/^checksum:/ {print $2}' instruqt/track.yml)"
 printf 'deployed challenges:\n'
-(cd "$tmp" && find . -name 'assignment.md.remote' \
-  | sed 's|^\./||; s|/assignment.md.remote||' | sort | sed 's/^/  /')
+for d in "$t"/*/; do
+  [ -f "$d/assignment.md" ] || continue
+  printf '  %-44s %s\n' "$(basename "$d")" "$(awk '/^title:/ {sub(/^title: /,""); print; exit}' "$d/assignment.md")"
+done
 ```
 
-The `git-<sha>` in the image tag is the commit the pipeline last published.
-If it doesn't match `main HEAD`, the deployed track is behind and nothing you
-do with the CLI will change that — chase the pipeline. The challenge list is
-the other half of the answer: it is what attendees actually see in the sidebar,
-so it's the direct check on whether a challenge add/remove has gone live.
+This listing is trustworthy — it is the deployed set. When a `00-` numbered
+challenge is missing from it, that challenge really is absent from the platform
+(see the caution above), not merely absent from the pull. The Instruqt UI is
+the independent confirmation:
+https://play.instruqt.com/manage/temporal/tracks/temporal-ai-agents-python-v4
 
-Paths renamed locally (challenges moved into `instruqt/_hidden/`, or renumbered)
-appear under their old names in that listing, since it reflects the deployed
-track rather than the repo.
+Comparing the two checksums tells you whether a push will pass the delta check.
+The challenge list is what attendees see in the sidebar, so it's the direct check
+on whether a challenge add/remove went live — subject to the caveat above. Note
+that challenges renamed locally (moved into `instruqt/_hidden/`, or renumbered)
+appear under their deployed names, not the repo's.
 
 **Tab ids drift.** The repo's pinned `id:` values for service tabs have gone
 stale more than once (the track appears to get re-created periodically,
