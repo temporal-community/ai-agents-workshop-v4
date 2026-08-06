@@ -9,5 +9,5 @@ if [[ "${COMPLETED}" -lt 1 ]]; then
     echo "FAIL: No completed workflows on orchestrator-tq. Run a workflow and wait for it to finish."
     exit 1
 fi
-echo "OK: At least one demo5 orchestrator workflow completed."
+echo "OK: At least one multi-agent orchestrator workflow completed."
 exit 0

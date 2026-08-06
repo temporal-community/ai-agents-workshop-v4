@@ -1,7 +1,7 @@
 version: "3"
 containers:
 - name: workshop
-  image: nadvolod/ai-agents-workshop-v4-sandbox:latest
+  image: nadvolod/ai-agents-webinar-sandbox:latest
   shell: /bin/bash
   memory: 6144
   # Every port a challenge tab points at. Instruqt's proxy returns HTTP 572
@@ -9,10 +9,8 @@ containers:
   ports:
   - 5000   # Network Control Panel
   - 8080   # Editor (code-server)
-  - 8090   # Architecture, demo 5
-  - 8091   # Architecture, demo 6b
-  - 8092   # Architecture, demo 4
-  - 8093   # Architecture, demo 6a
+  - 8090   # Architecture, multi-agent module
+  - 8092   # Architecture, human-in-the-loop module
   - 8233   # Temporal UI
 secrets:
 - name: TEMPORAL_LITELLM_BROKER_SECRET

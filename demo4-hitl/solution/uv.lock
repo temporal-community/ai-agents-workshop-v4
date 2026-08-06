@@ -312,7 +312,7 @@ wheels = [
 ]
 
 [[package]]
-name = "demo4-hitl"
+name = "ai-agents-webinar-hitl"
 version = "0.1"
 source = { virtual = "." }
 dependencies = [

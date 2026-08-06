@@ -1,10 +1,10 @@
-# Demo 4 - Human in the Loop
+# Module 2 - Human in the Loop
 
-Extends demo3 by adding the ability for the agent to ask the user questions mid-execution. The LLM decides when it needs clarification and uses an `ask_user` tool to pause the workflow, get input from the user, and continue.
+This module adds the ability for the agent to ask the user questions mid-execution. The LLM decides when it needs clarification and uses an `ask_user` tool to pause the workflow, get input from the user, and continue.
 
-## What's different from demo3
+## What this module adds
 
-Demo3's agent runs to completion without any user interaction after the initial goal. Demo4 adds a human-in-the-loop pattern: the agent can pause, ask the user a question, wait for their response, and continue with that information.
+The introductory agent runs to completion without any user interaction after the initial goal. This module adds a human-in-the-loop pattern: the agent can pause, ask the user a question, wait for their response, and continue with that information. It also adds an F1 MCP data source so the agent can combine race and weather information.
 
 ### How it works
 
@@ -38,7 +38,7 @@ uv run python -m start_workflow --workflow-id hitl-agent-<uuid>
 
 ### Tools
 
-Same tools as demo3 (4 weather activities + 8 F1 MCP tools), **plus** one new in-workflow tool:
+The agent has 4 weather activities, 8 F1 MCP tools, and one new in-workflow tool:
 
 | Tool | Kind | Purpose |
 |------|------|---------|
@@ -50,7 +50,7 @@ Same tools as demo3 (4 weather activities + 8 F1 MCP tools), **plus** one new in
 - **uv** — `brew install uv` (macOS) or see [uv docs](https://docs.astral.sh/uv/)
 - **Temporal CLI** — `brew install temporal` (macOS) or see [Temporal CLI docs](https://docs.temporal.io/cli)
 - **OpenAI API key** — set as `OPENAI_API_KEY` environment variable
-- **F1 MCP server** — installed locally and reachable via `F1_MCP_SERVER_HOME`. See [demo 3's install instructions](../demo3-mcp/README.md#install-the-f1-mcp-server) for the one-time setup; the same install is reused here.
+- **F1 MCP server** — installed locally and reachable via `F1_MCP_SERVER_HOME`. See the [shared installation instructions](../README.md#f1-mcp-server-modules-2-and-3).
 
 ## Running
 
@@ -68,7 +68,7 @@ export OPENAI_API_KEY=sk-...
 
 ### 3. Install dependencies
 
-From `demo4-hitl/`:
+From either `demo4-hitl/exercise/` or `demo4-hitl/solution/`:
 
 ```bash
 uv sync
@@ -84,7 +84,7 @@ Polls the `hitl-agent-python-task-queue` task queue. Leave this running.
 
 ### 5. Start a workflow
 
-In a second terminal (also from `demo4-hitl/`):
+In a second terminal from the same directory:
 
 ```bash
 uv run python -m start_workflow "Should I bring rain gear to the F1 race?"

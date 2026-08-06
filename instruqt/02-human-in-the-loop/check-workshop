@@ -9,5 +9,5 @@ if [[ "${COMPLETED}" -lt 1 ]]; then
     echo "FAIL: No completed HITL workflows yet. Complete a full interaction and wait for the workflow to finish."
     exit 1
 fi
-echo "OK: At least one demo4 HITL workflow completed."
+echo "OK: At least one human-in-the-loop workflow completed."
 exit 0

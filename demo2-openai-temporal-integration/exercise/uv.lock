@@ -312,7 +312,7 @@ wheels = [
 ]
 
 [[package]]
-name = "demo2-openai-temporal-integration"
+name = "ai-agents-webinar-intro"
 version = "0.1"
 source = { virtual = "." }
 dependencies = [

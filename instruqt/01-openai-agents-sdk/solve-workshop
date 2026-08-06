@@ -1,5 +1,5 @@
 #!/bin/bash
-# Drives demo2's solution to one completed workflow, non-interactively.
+# Drives the intro solution to one completed workflow, non-interactively.
 set -uo pipefail
 cd /root/workshop/demo2-openai-temporal-integration/solution || exit 0
 

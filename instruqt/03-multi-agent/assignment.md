@@ -1,8 +1,7 @@
 ---
 slug: multi-agent
-id: rxgcngqixygm
 type: challenge
-title: 'Demo 5: Multi-Agent Orchestration'
+title: 'Module 3: Multi-Agent Orchestration'
 teaser: Three agents, three workflows. A personal assistant delegates to specialists
   via child workflow and Nexus.
 notes:
@@ -10,7 +9,7 @@ notes:
   contents: |-
     # What if each specialist were its own workflow?
 
-    Demo 4 was one workflow, one agent. Demo 5 introduces agent-as-workflow:
+    The previous module was one workflow, one agent. This module introduces agent-as-workflow:
     each specialist is a real Temporal workflow execution, not an inline function.
 
     Two different invocation patterns. Two different visibility profiles in
@@ -30,39 +29,32 @@ notes:
     Same result from the orchestrator's point of view. Different shapes
     in the event history.
 tabs:
-- id: hx6jhpz5nbvh
-  title: Worker PA
+- title: Worker PA
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo5-multi-agent/exercise
-- id: g9ziyqybjjrj
-  title: Worker F1
+- title: Worker F1
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo5-multi-agent/exercise
-- id: yj5yjnquaygz
-  title: Starter
+- title: Starter
   type: terminal
   hostname: workshop
   workdir: /root/workshop/demo5-multi-agent/exercise
-- id: eh9k2exhtlvz
-  title: Temporal UI
+- title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- id: qerxtnbnpbg8
-  title: Network Control Panel
+- title: Network Control Panel
   type: service
   hostname: workshop
   port: 5000
-- id: uzhfldcmiky9
-  title: Editor
+- title: Editor
   type: service
   hostname: workshop
   path: /?folder=/root/workshop/demo5-multi-agent
   port: 8080
-- id: gscey9hjrzls
-  title: Architecture
+- title: Architecture
   type: service
   hostname: workshop
   path: /
@@ -72,7 +64,7 @@ timelimit: 1800
 enhanced_loading: null
 ---
 
-# Demo 5: Multi-Agent Orchestration
+# Module 3: Multi-Agent Orchestration
 
 ## See the Big Picture First
 

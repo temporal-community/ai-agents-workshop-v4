@@ -1,4 +1,4 @@
 #!/bin/bash
 set -euo pipefail
 pkill -f "python -m worker_pa\|python -m worker_f1" 2>/dev/null || true
-echo "Challenge 05 ready."
+echo "Module 3 ready."

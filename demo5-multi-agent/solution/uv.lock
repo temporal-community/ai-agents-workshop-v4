@@ -312,7 +312,7 @@ wheels = [
 ]
 
 [[package]]
-name = "demo5-multi-agent"
+name = "ai-agents-webinar-multi-agent"
 version = "0.1"
 source = { virtual = "." }
 dependencies = [

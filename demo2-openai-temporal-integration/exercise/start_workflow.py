@@ -1,4 +1,4 @@
-# ABOUTME: CLI starter for demo2 — submits a single ToolsWorkflow execution and prints the result.
+# ABOUTME: CLI starter for the webinar intro — submits a ToolsWorkflow and prints the result.
 
 import asyncio
 import sys

@@ -6,8 +6,8 @@ COMPLETED=$(temporal workflow list \
     --query 'TaskQueue="openai-agents-python-task-queue" AND ExecutionStatus="Completed"' \
     --limit 1 2>/dev/null | grep -c "Completed" || true)
 if [[ "${COMPLETED}" -lt 1 ]]; then
-    echo "FAIL: No completed workflows on demo2 task queue. Run a workflow and wait for it to finish."
+    echo "FAIL: No completed workflows for the intro module. Run a workflow and wait for it to finish."
     exit 1
 fi
-echo "OK: At least one demo2 workflow completed."
+echo "OK: At least one intro workflow completed."
 exit 0

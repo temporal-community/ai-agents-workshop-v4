@@ -1,4 +1,0 @@
-#!/bin/bash
-set -euo pipefail
-pkill -f "python -m worker_pa\|python -m worker_f1\|spring-boot:run" 2>/dev/null || true
-echo "Challenge 06b ready."

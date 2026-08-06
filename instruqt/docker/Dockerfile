@@ -1,10 +1,9 @@
-# ABOUTME: Sandbox image for Build AI Agents That Survive Failure.
-# Bakes in: Python 3.10 + uv, JDK 21 (Temurin), Node.js 20, Temporal CLI,
-# workshop source (main branch), all Python deps, Maven deps, F1 MCP server,
-# FastF1 cache warm, mitmproxy + CA cert, control panel, code-server.
+# ABOUTME: Sandbox image for the Durable AI Agents Webinar.
+# Bakes in: Python 3.10 + uv, Node.js 20, Temporal CLI, the three webinar
+# modules and their Python deps, F1 MCP server, FastF1 cache, mitmproxy,
+# the network control panel, and code-server.
 #
-# Build context must be repo root. GHA workflow checks out the companion code
-# repo at ./ai-agents-workshop-python/ alongside this Dockerfile.
+# Build context must be the ai-agents-webinar repository root.
 #
 # The lab-start setup-workshop script stages /opt/workshop -> /root/workshop,
 # starts background services, and injects the OPENAI_API_KEY secret.
@@ -40,62 +39,35 @@ RUN echo "deb http://us-central1.gce.archive.ubuntu.com/ubuntu jammy main restri
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# ── 2. JDK 21 (Temurin) ──────────────────────────────────────────────────────
-RUN curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public \
-        | gpg --dearmor -o /usr/share/keyrings/adoptium.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb jammy main" \
-        > /etc/apt/sources.list.d/adoptium.list \
-    && apt-get update \
-    && apt-get install -y temurin-21-jdk \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-ENV JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64
-ENV PATH="${PATH}:${JAVA_HOME}/bin"
-
-# ── 3. uv ─────────────────────────────────────────────────────────────────────
+# ── 2. uv ─────────────────────────────────────────────────────────────────────
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
-# ── 4. Node.js 20 ─────────────────────────────────────────────────────────────
+# ── 3. Node.js 20 ─────────────────────────────────────────────────────────────
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# ── 5. Temporal CLI ───────────────────────────────────────────────────────────
+# ── 4. Temporal CLI ───────────────────────────────────────────────────────────
 RUN curl -sSf https://temporal.download/cli.sh | sh \
     && ln -sf /root/.temporalio/bin/temporal /usr/local/bin/temporal
 
 ENV PATH="${PATH}:/root/.temporalio/bin"
 
-# ── 6. Workshop source ────────────────────────────────────────────────────────
-# Build context is this merged repo's root (ai-agents-workshop-v4/). Each demo
-# now has an exercise/ (learner writes code) and solution/ (reference) subfolder.
-COPY demo1-agentic-loop/ /opt/workshop/demo1-agentic-loop/
+# ── 5. Webinar source ─────────────────────────────────────────────────────────
+# Each module has an exercise/ and a completed solution/ subfolder.
 COPY demo2-openai-temporal-integration/ /opt/workshop/demo2-openai-temporal-integration/
-COPY demo3-mcp/ /opt/workshop/demo3-mcp/
 COPY demo4-hitl/ /opt/workshop/demo4-hitl/
 COPY demo5-multi-agent/ /opt/workshop/demo5-multi-agent/
-COPY demo6a-different-sdks/ /opt/workshop/demo6a-different-sdks/
-COPY demo6b-different-languages/ /opt/workshop/demo6b-different-languages/
 
-# ── 7. Python deps for all demos (exercise/ and solution/ each need their own) ─
-RUN for demo in demo1-agentic-loop demo2-openai-temporal-integration demo3-mcp \
-        demo4-hitl demo5-multi-agent demo6a-different-sdks demo6b-different-languages; do \
+# ── 6. Python deps (exercise/ and solution/ each need their own) ───────────────
+RUN for demo in demo2-openai-temporal-integration demo4-hitl demo5-multi-agent; do \
         for variant in exercise solution; do \
             (cd "/opt/workshop/${demo}/${variant}" && uv sync); \
         done; \
     done
 
-# ── 8. Maven deps for demo6b (Java Spring AI travel planner) ──────────────────
-# Java code is byte-identical in both variants - the exercise is Python-side only.
-RUN for variant in exercise solution; do \
-        chmod +x "/opt/workshop/demo6b-different-languages/${variant}/travel-planner-java/mvnw" \
-        && cd "/opt/workshop/demo6b-different-languages/${variant}/travel-planner-java" \
-        && ./mvnw -q dependency:go-offline --no-transfer-progress || true; \
-    done
-
-# ── 9. F1 MCP server (pinned commit) ──────────────────────────────────────────
+# ── 7. F1 MCP server (pinned commit) ──────────────────────────────────────────
 # COMMIT PIN: Update this SHA before each workshop by running:
 #   git ls-remote https://github.com/rakeshgangwar/f1-mcp-server HEAD
 ARG F1_MCP_COMMIT=73b95ecf75fcabbd25c68c3a57e784e529beb421
@@ -112,12 +84,12 @@ RUN git clone https://github.com/rakeshgangwar/f1-mcp-server.git "${F1_MCP_HOME}
 
 ENV F1_MCP_SERVER_HOME=/opt/f1-mcp-server
 
-# ── 10. Pre-warm FastF1 cache ─────────────────────────────────────────────────
+# ── 8. Pre-warm FastF1 cache ──────────────────────────────────────────────────
 COPY instruqt/docker/warmup_f1_cache.py /tmp/warmup_f1_cache.py
 RUN mkdir -p "${F1_MCP_HOME}/cache" \
     && "${F1_MCP_HOME}/.venv/bin/python" /tmp/warmup_f1_cache.py || echo "FastF1 cache warm failed (non-fatal)"
 
-# ── 11. mitmproxy + CA cert ───────────────────────────────────────────────────
+# ── 9. mitmproxy + CA cert ────────────────────────────────────────────────────
 RUN python3 -m venv /opt/mitmproxy-venv \
     && /opt/mitmproxy-venv/bin/pip install --upgrade pip \
     && /opt/mitmproxy-venv/bin/pip install mitmproxy flask \
@@ -130,27 +102,27 @@ RUN mitmdump --listen-port 8889 --set block_global=false & \
        /usr/local/share/ca-certificates/mitmproxy-ca.crt \
     && update-ca-certificates \
     && MITM_CA=/root/.mitmproxy/mitmproxy-ca-cert.pem; \
-    for demo in demo1-agentic-loop demo2-openai-temporal-integration demo3-mcp demo4-hitl demo5-multi-agent demo6a-different-sdks demo6b-different-languages; do \
+    for demo in demo2-openai-temporal-integration demo4-hitl demo5-multi-agent; do \
         for variant in exercise solution; do \
             bundle="/opt/workshop/${demo}/${variant}/.venv/lib/python3.10/site-packages/certifi/cacert.pem"; \
             [ -f "$bundle" ] && cat "$MITM_CA" >> "$bundle" && echo "Patched certifi in ${demo}/${variant}"; \
         done; \
     done
 
-# ── 12. Network control panel ─────────────────────────────────────────────────
+# ── 10. Network control panel ─────────────────────────────────────────────────
 RUN mkdir -p /opt/proxy/static
 COPY instruqt/docker/proxy/toggle_addon.py /opt/proxy/toggle_addon.py
 COPY instruqt/docker/proxy/controlpanel.py /opt/proxy/controlpanel.py
 COPY instruqt/docker/proxy/state.json      /opt/proxy/state.json
 COPY instruqt/docker/proxy/static/         /opt/proxy/static/
 
-# ── 13. code-server ───────────────────────────────────────────────────────────
+# ── 11. code-server ───────────────────────────────────────────────────────────
 RUN curl -fsSL https://code-server.dev/install.sh | sh \
     && mkdir -p /root/.local/share/code-server/User \
     && printf '{\n    "workbench.colorTheme": "Default Dark+",\n    "workbench.startupEditor": "none",\n    "security.workspace.trust.enabled": false,\n    "editor.fontSize": 14,\n    "editor.tabSize": 4,\n    "workbench.activityBar.visible": false\n}\n' \
        > /root/.local/share/code-server/User/settings.json
 
-# ── 14. Shell environment ──────────────────────────────────────────────────────
+# ── 12. Shell environment ─────────────────────────────────────────────────────
 RUN echo '' >> /etc/bash.bashrc \
     && echo '# Workshop environment' >> /etc/bash.bashrc \
     && echo 'export PATH=$PATH:/root/.temporalio/bin:/usr/local/bin' >> /etc/bash.bashrc \

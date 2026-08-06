@@ -1,4 +1,4 @@
-# ABOUTME: CLI starter for demo5 — submits a single PersonalAssistantWorkflow execution.
+# ABOUTME: Multi-agent module starter — submits a PersonalAssistantWorkflow execution.
 # Targets the orchestrator task queue; the orchestrator fans out via child workflow + Nexus.
 
 import asyncio

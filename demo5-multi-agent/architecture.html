@@ -18,7 +18,7 @@
     --accent: #5457d6;   /* orchestrator / agent tool calls */
     --child: #c9791b;    /* child-workflow path (weather) */
     --nexus: #0f9d94;    /* nexus path (f1) */
-    /* Python/Java syntax colors for the node signature blocks - deliberately NOT
+    /* Python syntax colors for the node signature blocks - deliberately NOT
        --accent, so code text stops adding to the purple on screen. */
     --syn-kw: #0b4fbd;    /* class, def, async, await, public, interface... */
     --syn-deco: #795e26;  /* @decorators / @Annotations */
@@ -246,7 +246,7 @@
 
 <div class="wrap">
   <header class="masthead">
-    <p class="eyebrow">Demo 5 · Temporal × OpenAI Agents SDK</p>
+    <p class="eyebrow">Module 3 · Temporal × OpenAI Agents SDK</p>
     <h1>Multi-Agent Orchestration</h1>
     <p class="lede">A <code>PersonalAssistant</code> orchestrator delegates to two specialists: a weather forecaster reached by a <b>child workflow</b>, and an F1 expert reached across a <b>Nexus</b> boundary. The colored bands are the three <b>task queues</b>; the dashed outlines are the two <b>worker processes</b> that poll them. Click any box — or a lane, or a worker outline — to inspect it.</p>
   </header>
@@ -530,7 +530,7 @@ const NODES = [
   { id:"f1_mcp_server", x:886, y:1040, w:388, h:64, hue:"muted", type:"external · stdio",
     name:"F1 MCP server", sub:"node build/index.js → 8 tools",
     file:"worker_f1.py:31 (_f1_server_factory)", tq:"—",
-    desc:"External Node.js MCP server launched over stdio by worker_f1's StatelessMCPServerProvider. Exposes 8 F1 data tools (schedules, results, standings, telemetry). Same install reused from demo3.",
+    desc:"External Node.js MCP server launched over stdio by worker_f1's StatelessMCPServerProvider. Exposes 8 F1 data tools (schedules, results, standings, telemetry).",
     members:["MCPServerStdio(command=\"bash\", ...)", "$F1_MCP_SERVER_HOME/build/index.js", "8 F1 data tools"] },
 ];
 
@@ -717,7 +717,7 @@ function relItemHTML(r){
   return `<li><button data-goto="${r.id}"><span class="rel-arrow">${r.dir}</span>${n.name}<span class="rel-kind">${CAT_LABEL[r.cat]}</span></button></li>`;
 }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-/* Minimal Python/Java highlighter for the node signature blocks. Single pass with
+/* Minimal Python highlighter for the node signature blocks. Single pass with
    one regex and a callback - a chain of .replace() calls would re-scan the markup
    it just inserted and match the word "class" inside class="...".
    The regex is a literal rather than a shared const: hl() is called from the

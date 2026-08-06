@@ -1,4 +1,4 @@
-# Demo 5 - Multi-agent orchestration
+# Module 3 - Multi-agent orchestration
 
 Three OpenAI Agents SDK agents wired together through Temporal: a **personal-assistant** orchestrator delegates to two specialists — a **weather forecaster** and an **F1 expert**. Each specialist runs in its own Temporal workflow execution. The orchestrator invokes one via a **child workflow** and the other via **Nexus**, so the demo shows both cross-workflow primitives side by side.
 
@@ -26,11 +26,11 @@ Three OpenAI Agents SDK agents wired together through Temporal: a **personal-ass
             └──────────────────────────┘         └─────────────────────────┘
 ```
 
-All three Workers run in a single Python process via `asyncio.gather(...)`. They poll three distinct task queues, so the routing in the Temporal UI is explicit. Splitting them across processes (or even hosts) would be a one-line change — nothing else cares.
+The orchestrator and weather Workers share one Python process; the F1 Worker runs in a second process with its own plugin configuration. Together they poll three distinct task queues, so routing is explicit in the Temporal UI and each specialist can be deployed independently.
 
-## What's different from demo4
+## What this module adds
 
-Demo4 was one workflow with one agent. Demo5 introduces **agent-as-workflow-as-tool**: each specialist is a real Temporal workflow execution, not an inline function. That gets you durability, retries, and independent visibility per sub-agent.
+The previous module used one workflow with one agent. This module introduces **agent-as-workflow-as-tool**: each specialist is a real Temporal workflow execution, not an inline function. That gets you durability, retries, and independent visibility per sub-agent.
 
 The orchestrator uses two different patterns to call its specialists:
 
@@ -48,22 +48,13 @@ The orchestrator agent sees just two tools:
 
 Each specialist has its own internal toolkit (weather APIs / F1 MCP). The orchestrator only sees the high-level "ask the specialist" tool.
 
-### Planned next additions to the F1 expert
-
-These are user-approved, deferred from the initial implementation. Both are free, no signup, F1-relevant:
-
-- **Wikipedia REST** (`https://en.wikipedia.org/api/rest_v1/page/summary/{title}`) — circuit history, driver bios, championship summaries.
-- **REST Countries** (`https://restcountries.com/v3.1/name/{name}`) — country background for race-host locations.
-
-Both would be added as `@activity.defn` activities and wired via `activity_as_tool(...)` on the F1 expert agent.
-
 ## Prerequisites
 
 - **Python 3.10+**
 - **uv** — `brew install uv` on macOS
 - **Temporal CLI** — `brew install temporal` on macOS
 - **OpenAI API key** — `export OPENAI_API_KEY=sk-...`
-- **F1 MCP server** — installed locally and reachable via `F1_MCP_SERVER_HOME`. See [demo 3's install instructions](../demo3-mcp/README.md#install-the-f1-mcp-server) for the one-time setup; the same install is reused here.
+- **F1 MCP server** — installed locally and reachable via `F1_MCP_SERVER_HOME`. See the [shared installation instructions](../README.md#f1-mcp-server-modules-2-and-3).
 
 ## Running
 
@@ -92,7 +83,7 @@ export OPENAI_API_KEY=sk-...
 
 ### 4. Install dependencies
 
-From `demo5-multi-agent/`:
+From either `demo5-multi-agent/exercise/` or `demo5-multi-agent/solution/`:
 
 ```bash
 uv sync
@@ -100,7 +91,7 @@ uv sync
 
 ### 5. Start the workers (two processes)
 
-The personal-assistant team and the F1 expert team run their own workers with their own plugin configurations. From `demo5-multi-agent/`, in two separate terminals:
+The personal-assistant team and the F1 expert team run their own workers with their own plugin configurations. From the selected `exercise/` or `solution/` directory, run these in two terminals:
 
 ```bash
 # terminal A — PA + weather
@@ -114,7 +105,7 @@ uv run python -m worker_f1
 
 ### 6. Start a workflow
 
-In a third terminal (also from `demo5-multi-agent/`):
+In a third terminal from the same directory:
 
 ```bash
 uv run python -m start_workflow "What's the weather at the next F1 race?"
@@ -162,7 +153,7 @@ This per-worker tuning is a real benefit of running two separate worker processe
 
 ## Known limitations
 
-- **Trace context across Nexus is not propagated** by the current `temporalio.contrib.openai_agents` interceptor (verified — `OpenAIAgentsContextPropagationInterceptor` has a `start_child_workflow` method but no Nexus equivalent). Effect: the F1 expert produces its own top-level trace in OpenAI's dashboard rather than nesting under the orchestrator's trace. Workflow history in Temporal still links the two via the `NexusOperationScheduled` event. Captured as Issue 1 (and the related Issue 2 on `nexus_operation_as_tool` schema) in `docs/research/openai-agents-plugin-starter-trace-requirement.md`.
+- **Trace context across Nexus is not propagated** by the current `temporalio.contrib.openai_agents` interceptor. The F1 expert therefore produces its own top-level trace in OpenAI's dashboard rather than nesting under the orchestrator trace. Workflow history in Temporal still links the two via the `NexusOperationScheduled` event.
 
 ## Production split
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Drives demo4's solution through a full ask_user interaction, non-interactively.
+# Drives the HITL solution through a full ask_user interaction, non-interactively.
 # `yes` supplies the same canned answer to every question the agent asks -
 # start_workflow.py reads answers from stdin one line at a time.
 set -uo pipefail

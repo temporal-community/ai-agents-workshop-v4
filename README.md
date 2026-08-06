@@ -1,338 +1,144 @@
-# AI Agents Python Workshop
+# AI Agents Webinar
 
-A series of progressive demos that build an AI agent in Python using the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) and [Temporal](https://temporal.io/) for durable execution. Each demo builds on the previous one, adding a single new capability so you can see what each Temporal primitive buys you.
+A focused, hands-on course for building durable AI agents in Python with the
+[OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) and
+[Temporal](https://temporal.io/). The webinar keeps three progressive modules:
 
-## Author 
-
-## 🚀 Nikolay Advolodkin
-
-🤖 **AI Agents & Distributed Systems** specializing in durable execution, Temporal workflows, and AI-powered applications
-
-🎓 **Educator** | Trained **150,000+ engineers** across **190 countries**
-
-🎤 **International Speaker** | Presented at Agentic AI Summit, SauceCon, Productivity Conf, DeveloperWeek, Selenium Conference & more.
-
-📚 **Content Creator** | [LinkedIn](https://www.linkedin.com/in/nikolayadvolodkin/) | [YouTube](https://www.youtube.com/ultimateqa?sub_confirmation=1) | [Blog](https://ultimateqa.com/blog) 
-
-## Inspiration
-
-This workshop was inspired by [Cornelia Davis'](https://www.linkedin.com/in/corneliadavis/) original [AI Agents Workshop](https://github.com/temporal-community/ai-agents-workshop-python).
-
-## Demos
-
-| Demo | What's new | Read this first |
+| Module | Topic | Code |
 |---|---|---|
-| [`demo1-agentic-loop`](demo1-agentic-loop/) | A hand-written agentic loop as a Temporal workflow. Calls OpenAI's Responses API from an activity, dispatches tools via a dynamic activity, loops until the model stops asking for tool calls. | [`demo1-agentic-loop/README.md`](demo1-agentic-loop/README.md) |
-| [`demo2-openai-temporal-integration`](demo2-openai-temporal-integration/) | Same agent, reimplemented with the OpenAI Agents SDK and Temporal's `temporalio.contrib.openai_agents` plugin. The SDK's `Runner` drives the loop; Temporal makes every LLM call and tool call an activity automatically. Workflow becomes one-line. | [`demo2-openai-temporal-integration/README.md`](demo2-openai-temporal-integration/README.md) |
-| [`demo3-mcp`](demo3-mcp/) | Adds an MCP (Model Context Protocol) tool server for Formula 1 race data. MCP operations are dispatched as Temporal activities via `StatelessMCPServerProvider`. The agent now chains F1 tools with weather tools. | [`demo3-mcp/README.md`](demo3-mcp/README.md) |
-| [`demo4-hitl`](demo4-hitl/) | Human-in-the-loop. The agent can pause mid-execution to ask the user a question via an in-workflow `ask_user` tool, a Temporal signal for the response, and queries for the starter to poll. | [`demo4-hitl/README.md`](demo4-hitl/README.md) |
-| [`demo5-multi-agent`](demo5-multi-agent/) | Multi-agent orchestration. A personal-assistant agent delegates to two specialist sub-agents (weather, F1 expert), invoking one via Temporal child workflow and the other via Nexus. | [`demo5-multi-agent/README.md`](demo5-multi-agent/README.md) |
-| [`demo6a-different-sdks`](demo6a-different-sdks/) | Heterogeneity axis 1 — **different frameworks**. Adds a third specialist (travel planner) built with the Strands Agents SDK alongside demo5's OpenAI Agents SDK specialists. Two frameworks (both Python) behind one orchestrator, and a deliberate contrast between per-step durability (with Temporal's framework contrib) and coarse-grained, single-activity durability (without). | [`demo6a-different-sdks/README.md`](demo6a-different-sdks/README.md) |
-| [`demo6b-different-languages`](demo6b-different-languages/) | Heterogeneity axis 2 — **a different language**. The travel planner is reimplemented in **Java with Spring AI**, invoked from the Python orchestrator over the same Nexus boundary the F1 expert uses. Shows that the orchestration is language-agnostic, and that a cross-language specialist can still get per-step durability via Temporal's Spring AI integration. | [`demo6b-different-languages/README.md`](demo6b-different-languages/README.md) |
+| 1 | Introduction: make the Agents SDK loop durable with Temporal activities | [`demo2-openai-temporal-integration`](demo2-openai-temporal-integration/) |
+| 2 | Human-in-the-loop: pause an agent, collect input, and resume with Signals and Queries | [`demo4-hitl`](demo4-hitl/) |
+| 3 | Multi-agent orchestration: delegate to specialists with child workflows and Nexus | [`demo5-multi-agent`](demo5-multi-agent/) |
 
-## How to work through the workshop
+Each module contains an `exercise/` directory for attendees and a `solution/`
+directory with the completed reference implementation.
 
-Each demo's README is a self-contained walkthrough. The rough shape every time:
-
-1. Start a Temporal dev server once (`temporal server start-dev`). All demos connect to `localhost:7233`.
-2. Set `OPENAI_API_KEY` in your shell.
-3. `cd demo<N>-…/exercise && uv sync` (or `solution/` to run the finished reference directly)
-4. Fill in the TODOs in `exercise/` (see that demo's README for what's missing)
-5. Run the worker in one terminal: `uv run python -m worker`
-6. Run a workflow in another: `uv run python -m start_workflow "<your prompt>"`
-
-Every demo uses a distinct Temporal task queue, so workers can run side-by-side without interfering with each other.
+The accompanying webinar deck is available at
+[`assets/Replay 2026_ Production-ready Agents with OpenAI Agents SDK and Temporal.pdf`](assets/Replay%202026_%20Production-ready%20Agents%20with%20OpenAI%20Agents%20SDK%20and%20Temporal.pdf).
 
 ## Prerequisites
 
-- **Python 3.10+**
-- **[uv](https://docs.astral.sh/uv/)** — `brew install uv` on macOS.
-- **[Temporal CLI](https://docs.temporal.io/cli)** — `brew install temporal` on macOS.
-- **OpenAI API key** — set as `OPENAI_API_KEY`.
-- **F1 MCP server** (demos 3–6) — a Node.js + Python hybrid that wraps [FastF1](https://docs.fastf1.dev/). Expected at `~/Projects/Temporal/AI/MCP/f1-mcp-server/`; override with `F1_MCP_SERVER_HOME`. See each demo's README for details.
-- **JDK 21+ and Maven** (demo6b only) — the travel planner is a Java + Spring AI worker. A Maven wrapper (`./mvnw`) is included, so a system Maven is optional.
+- Python 3.10+
+- [`uv`](https://docs.astral.sh/uv/)
+- [Temporal CLI](https://docs.temporal.io/cli)
+- An OpenAI API key exposed as `OPENAI_API_KEY`
+- Node.js 18+ and the F1 MCP server for modules 2 and 3
 
-## Observing what Temporal gives you
+## Run a module locally
 
-All demos are Temporal workflows, so you can watch them in the Temporal Web UI at http://localhost:8233. The comparisons between demos are most interesting in that UI — demo2's tool calls appear as activities automatically, demo3 adds MCP listTools/callTool activities, demo4 shows a workflow that suspends durably on `wait_condition` and later receives a signal, and demo6a puts per-step (OpenAI Agents) and single-activity (Strands) durability side by side. demo6b goes further: the Java travel planner runs as its own workflow with per-step LLM/tool activities, all driven by a Python orchestrator across a Nexus boundary.
+Start the Temporal development server once:
 
-Demos 2–6 also send traces to OpenAI's trace dashboard at https://platform.openai.com/traces, so you can see the agent's reasoning alongside the Temporal-side history.
-
-## Project layout
-
-```
-ai-agents-workshop-v4/
-├── README.md                                  # this file
-├── instruqt/                                  # Instruqt track definition (assignment.md per challenge, Dockerfile, etc.)
-├── demo1-agentic-loop/
-│   ├── exercise/                              # TODOs for you to fill in
-│   └── solution/                              # finished reference
-├── demo2-openai-temporal-integration/
-│   ├── exercise/
-│   └── solution/
-├── demo3-mcp/
-│   ├── exercise/
-│   └── solution/
-├── demo4-hitl/
-│   ├── exercise/
-│   └── solution/
-├── demo5-multi-agent/
-│   ├── exercise/
-│   └── solution/
-├── demo6a-different-sdks/                      # heterogeneity axis 1: different frameworks
-│   ├── exercise/
-│   └── solution/
-└── demo6b-different-languages/                 # heterogeneity axis 2: different language (Java/Spring AI)
-    ├── exercise/
-    │   └── travel-planner-java/                # Java + Spring AI travel-planner worker (Nexus)
-    └── solution/
-        └── travel-planner-java/
+```bash
+temporal server start-dev
 ```
 
-## Instruqt track
+In another terminal, choose a module and either its exercise or solution:
 
-This repo is also the source for a hands-on Instruqt lab: four challenges that walk an attendee through demos 2, 4, 5, and 6b in a browser-based sandbox, no local setup required.
-
-Everything under `instruqt/_hidden/` is excluded from the track — currently demos 1, 3, and 6a plus the environment-setup prologue. Instruqt only treats numbered top-level directories as challenges, so the content stays in the repo without being published. Restoring one means moving it back out and renumbering the active directories so they stay sequential, which Instruqt requires.
-
-> [!CAUTION]
-> **Number challenge directories from `01`, never `00`.** A challenge in a `00-`
-> directory is silently dropped on publish: `instruqt track validate` passes,
-> `instruqt track push` reports `Checking challenges OK`, and the challenge then
-> does not exist on the platform. Verified 2026-08-01 in the Instruqt UI, twice
-> over — this repo's original `00-environment-setup` had never been live despite
-> years of pushes, and a four-challenge layout numbered `00`–`03` published as
-> three. `validate` accepts a sequence starting at either `00` or `01`, so
-> nothing warns you.
-
-Dropping the environment-setup challenge means attendees no longer get its up-front Temporal-health and `OPENAI_API_KEY` check. Nothing depends on it — the track-level `setup-workshop` does the real work (starting services, minting the LiteLLM key), each challenge defines its own tabs, and every challenge's assignment already explains what an `OPENAI_API_KEY not set` failure means.
-
+```bash
+cd demo2-openai-temporal-integration/exercise
+uv sync
+export OPENAI_API_KEY=sk-...
+uv run python -m worker
 ```
+
+Then start a workflow from a second terminal in the same directory:
+
+```bash
+uv run python -m start_workflow "What is the weather in Tokyo?"
+```
+
+The module READMEs contain their exact worker layout, prompts, and setup steps.
+Open the Temporal Web UI at [http://localhost:8233](http://localhost:8233) to
+inspect workflow histories while the examples run.
+
+## F1 MCP server (modules 2 and 3)
+
+The human-in-the-loop and multi-agent modules use the
+[`f1-mcp-server`](https://github.com/rakeshgangwar/f1-mcp-server) as a local
+subprocess. Install it once:
+
+```bash
+git clone https://github.com/rakeshgangwar/f1-mcp-server.git
+cd f1-mcp-server
+npm install
+npm run build
+uv venv
+source .venv/bin/activate
+uv pip install fastf1 pandas numpy
+deactivate
+export F1_MCP_SERVER_HOME="$PWD"
+```
+
+Persist `F1_MCP_SERVER_HOME` in your shell profile if you plan to run the
+modules repeatedly.
+
+## Instruqt course
+
+The `instruqt/` directory defines a three-challenge browser-based course:
+
+```text
 instruqt/
-├── track.yml                                        # track metadata, lab_config, loading messages
-├── config.yml                                        # sandbox container reference + secrets
-├── justfile                                          # create/push/pull/validate/test recipes
-├── track_scripts/
-│   ├── setup-workshop                                # track-level: starts services, injects secrets, warms caches
-│   └── cleanup-workshop
+├── 01-openai-agents-sdk/
+├── 02-human-in-the-loop/
+├── 03-multi-agent/
 ├── docker/
-│   ├── Dockerfile                                    # sandbox image
-│   ├── warmup_f1_cache.py                            # pre-warms FastF1 data at build time
-│   └── proxy/                                        # mitmproxy addon + Flask control panel
-├── _hidden/                                          # excluded from the track
-│   ├── 00-environment-setup/
-│   ├── 01-agentic-loop/
-│   ├── 03-mcp-tools/
-│   └── 06-heterogeneous-agents-different-sdks/
-├── 01-openai-agents-sdk/                             # demo 2 (numbering starts at 01, see above)
-├── 02-human-in-the-loop/                             # demo 4
-├── 03-multi-agent/                                   # demo 5
-└── 04-heterogeneous-agents-different-languages/      # demo 6b
-    ├── assignment.md                                 # challenge instructions + tab definitions
-    ├── setup-workshop                                 # stages that chapter's code, kills straggler processes
-    ├── check-workshop                                 # verifies the attendee completed the challenge
-    ├── solve-workshop                                 # simulates a learner for `instruqt track test`
-    └── cleanup-workshop
+├── track_scripts/
+├── config.yml
+└── track.yml
 ```
 
-### What the sandbox image bakes in
-
-- Python 3.10 + `uv`, JDK 21 (Temurin), Node.js 20, the Temporal CLI
-- All seven demos' `exercise/` and `solution/` dependencies, pre-synced with `uv sync`
-- A pinned clone of the [F1 MCP server](https://github.com/rakeshgangwar/f1-mcp-server) with a pre-warmed FastF1 cache for the current season
-- `mitmproxy` with a trusted CA cert, used by the network control panel to fault-inject external calls during demos
-- Maven dependencies for demo6b's Java + Spring AI travel planner
-- `code-server` (VS Code in the browser), pre-configured with a dark theme and no workspace-trust prompt
-
-### Tab inventory per challenge
-
-Every challenge has a **Temporal UI** tab (port 8233) and a **Network Control Panel** tab (port 5000, a Flask app that toggles the mitmproxy addon per external service). Coding challenges add a **Worker** terminal, a **Starter** terminal, and an **Editor** tab (`type: service` on port 8080, deep-linked into `code-server` via `?folder=` to that demo's directory). `code-server` is used instead of the native `type: code` tab so attendees get real syntax highlighting and cross-file navigation (go-to-definition, symbol search) while editing.
-
-### LLM access (per-attendee keys via the LiteLLM secret broker)
-
-Attendees never supply an API key, and there is no shared key. Every attendee gets their own short-lived, budget-capped key to a managed LiteLLM gateway, minted at lab start. This section explains how it works end to end and how to debug it, because the setup is easy to get wrong and its failures show up as an unhelpful "Failed to start track" error.
-
-#### The one secret you need
-
-The track declares exactly one secret in `config.yml`:
-
-```yaml
-secrets:
-- name: TEMPORAL_LITELLM_BROKER_SECRET
-```
-
-`TEMPORAL_LITELLM_BROKER_SECRET` is **not an OpenAI key**. It's an HMAC signing secret the broker uses to authenticate the sandbox's request. It is **team-scoped** in Instruqt (Team Settings > Secrets), so it already exists and is shared across all of Temporal's tracks. You do not set a per-track value, and there is no OpenAI key to rotate per workshop. It must be present, or setup aborts immediately with `TEMPORAL_LITELLM_BROKER_SECRET is not set`.
-
-#### What happens at lab start
-
-`track_scripts/setup-workshop` does this (see `mint_litellm_token`):
-
-1. Downloads the `secret-broker` CLI installer from S3 (`SECRET_BROKER_BASE_URL`) and installs it. `curl` retries up to 10 times, so a transient network blip self-heals.
-2. Runs `secret-broker litellm --duration=1d --budget=5`. The CLI signs a request with `TEMPORAL_LITELLM_BROKER_SECRET`, calls the broker, and the broker mints a **per-attendee LiteLLM virtual key** scoped to this track, valid for 1 day, capped at $5 of spend.
-3. Writes OpenAI-compatible env vars (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, plus the `SPRING_AI_*` equivalents for demo6b's Java worker) to `/root/.litellm-env`, which every attendee terminal inherits.
-
-The workshop code is unchanged: it uses the OpenAI SDK normally. The trick is `OPENAI_BASE_URL`, which points at the LiteLLM gateway (`litellm-instruqt.tmprl-demo.cloud`) instead of `api.openai.com`. The gateway holds the real upstream OpenAI credentials centrally; they never touch a sandbox. `setup-workshop` also patches the network control panel (`patch_runtime_proxy_config`) so the "OpenAI" fault-injection toggle disrupts the gateway host.
-
-#### Configuration knobs (all have defaults, override via track env vars)
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `SECRET_BROKER_BASE_URL` | S3 bucket URL | Where the `secret-broker` installer is fetched from |
-| `SECRET_BROKER_VERSION` | `main` | Installer version/channel |
-| `LITELLM_KEY_DURATION` | `1d` | TTL of each minted key |
-| `LITELLM_MAX_BUDGET` | `5` | Per-key spend cap in USD |
-| `INSTRUQT_LITELLM_TRACK_ID` | the track slug (`INSTRUQT_TRACK_SLUG`) | Track id sent to the broker |
-| `OPENAI_MODEL` | `gpt-4o` | Model the demos request through the gateway |
-| `LITELLM_PROXY_HOST` | `litellm-instruqt.tmprl-demo.cloud` | Gateway host the proxy panel toggles |
-
-#### Why per-attendee keys (not one shared OpenAI key)
-
-For a small, trusted run (~10 people) a single shared `OPENAI_API_KEY` secret works. At scale (say 250 people) it does not: one shared key hits OpenAI's per-org rate limits under synchronized load, and the key is readable in every attendee's sandbox, so it is a leak and abuse liability. Per-attendee keys fix both: each key has its own budget and rate scope, one attendee cannot starve or bill the others, and a leaked key is capped at $5 and expires in a day. That is why this track uses the broker rather than a shared key, and it matches the sibling `temporal-python-ai-agents-v3` track.
-
-#### Troubleshooting (lessons learned the hard way)
-
-- **"Failed to start track" / "Could not start track: expected status 'started', but got 'stopped'."** The mint runs under `set -e`, so *any* failure in `setup-workshop` aborts the entire lab start. To see the real cause, run `instruqt track test` from the `instruqt/` directory: on failure it prints the setup log, including the exact `curl`/broker error. (On success it prints nothing, which is why you only see detail when it breaks.)
-- **`instruqt track test` runs your LOCAL track files, not the deployed track.** You can validate a `setup-workshop` change before pushing. Handy, but also means a green local test does not prove the *deployed* track is fixed until you push.
-- **No allowlist registration is required.** The current `secret-broker` CLI mints against the track's own slug (`INSTRUQT_LITELLM_TRACK_ID` defaults to `INSTRUQT_TRACK_SLUG`). Earlier broker versions required each track id to be pre-registered on the broker; symptoms of that era were **HTTP 404** (track id not on the allowlist) and **HTTP 422** (request rejected, e.g. a stale/borrowed track id or an exhausted per-track key quota). If you see those, you are likely on an old setup script or pointing at a track id the broker does not accept. Do **not** work around it by borrowing another track's id (we tried; it 422'd once quota was hit). Fix the setup script instead.
-- **The image is not involved.** The `secret-broker` installer is fetched from S3 at runtime, and `setup-workshop` is part of the track definition. Changing any of this needs only `instruqt track push`, never a sandbox image rebuild.
-- **Do not silently fall back to a shared `OPENAI_API_KEY`** for anything beyond a tiny internal test. If the broker is down, prefer fixing the broker path over shipping a shared key to a large audience (see the scaling note above).
-
-### Network control panel
-
-The control panel toggles four external services on and off mid-demo so attendees can watch Temporal retry a failing activity and resume once the service comes back: OpenAI, the F1 MCP server, IP geolocation, and weather. It's driven by `docker/proxy/controlpanel.py` and `docker/proxy/toggle_addon.py`, both started by `track_scripts/setup-workshop`.
-
-### Instruqt CLI workflow
+The fork uses the new `ai-agents-webinar` track slug and intentionally contains
+no inherited Instruqt IDs or checksum. This keeps the first publish isolated
+from the source workshop. Register and initialize the new track from the
+Instruqt directory:
 
 ```bash
-just validate       # instruqt track validate
-just push           # instruqt track push
-just pull           # instruqt track pull (populates server-assigned ids)
-just test           # instruqt track test (runs check/solve scripts end to end)
+cd instruqt
+just create
+just init
 ```
 
-First-time track creation:
+After Instruqt assigns the track, challenge, and tab IDs, pull and commit them:
 
 ```bash
-just create                      # registers the slug server-side, once
-cd instruqt && instruqt track push --force
-cd - && just pull
-git add instruqt/ && git commit -m "Pin Instruqt track and tab ids"
+just pull
+git add .
+git commit -m "Pin Instruqt webinar IDs"
 ```
 
-### Publishing (manual, no CI)
-
-There is no GitHub Actions pipeline; publishing is manual, and what you run depends on what changed:
-
-- **Changed an `assignment.md`, lifecycle script, `track.yml`, or `config.yml`** (anything under `instruqt/`): run `instruqt track push`. No image rebuild.
-- **Changed exercise/solution code, the `Dockerfile`, or anything else baked into the sandbox** (`demo*/`, `instruqt/docker/`): rebuild and push the image, then launch a fresh sandbox to pick it up:
-  ```bash
-  docker buildx build --platform linux/amd64 \
-    -f instruqt/docker/Dockerfile \
-    -t docker.io/nadvolod/ai-agents-workshop-v4-sandbox:latest --push .
-  ```
-
-> [!IMPORTANT]
-> **The Docker Hub tag above is not what the deployed track runs.** Local
-> `instruqt/config.yml` pins `nadvolod/ai-agents-workshop-v4-sandbox:latest`,
-> but the *deployed* track's `config.yml` pins an ECR image built by
-> Temporal's internal `tmprl-dem-cld` pipeline:
->
-> ```
-> public.ecr.aws/s1u1b8l5/tmprl-dem-cld/ai-agents-workshop-v4/workshop:git-<sha>-<hash>
-> ```
->
-> That `<sha>` **is** a commit in this repo, and the pipeline builds one image
-> per merge to `main` — verified 2026-08-01 by listing the ECR tags and matching
-> each `<sha>` against `git merge-base --is-ancestor`. **But it only builds
-> images; it does not publish the track.** Merges to `main` on 2026-08-01 each
-> produced a `git-<sha>` image while the deployed track stayed on its old
-> content, and the four-challenge layout only went live when the track was
-> pushed by hand. The heading on this section is right: publishing is manual.
->
-> Two consequences:
->
-> - **Building and pushing the Docker Hub tag does not get sandbox-baked
->   changes into the live track.** Confirm with `instruqt track pull` and diff
->   `config.yml` against `config.yml.remote` before assuming a
->   `docker buildx --push` had any effect.
-> - **When you publish, pin `config.yml` to the deployed ECR tag first.** The
->   repo commits the Docker Hub tag, so an as-is push repoints the live track
->   at it. Read the deployed tag, set `containers[0].image` to that value
->   locally, push, then revert the file without committing. Note the CodeQL
->   check going green is *not* an image build — this repo's own workflows are
->   CodeQL, Copilot review, and Dependency Graph, none of which builds an image
->   or publishes a track.
-
-`instruqt track test` runs the track's *local* files against the deployed image, so it's the way to verify a change before pushing.
-
-**A push that fails the delta check applies nothing.** When the deployed
-track's checksum has drifted from `checksum:` in the local `track.yml`, push
-stops at `==> Checking deltas` with `There are remote changes for this track`
-and the remote is left untouched — verified 2026-07-31 by pulling straight
-afterwards and finding none of the local edits applied. Do not read that
-`[ERROR]` as "pushed anyway".
-
-> [!WARNING]
-> **`checksum:` is self-poisoning — commit it after every publish.** That field
-> is an optimistic-concurrency token recording the last *known* deployed state.
-> A successful publish changes the deployed checksum and writes the new value
-> into your local `track.yml`; if you don't commit it, the next person's push
-> fails the delta check until they resync by hand.
->
-> That is what happened on 2026-08-01: a publish had moved the deployed checksum
-> to a value nobody committed, so pushes failed for anyone working from `main`
-> until the deployed value was committed in #23. Two hours went into diagnosing
-> a one-line staleness.
->
-> So after any successful publish, commit the `checksum:` the CLI just wrote
-> back. If the deployed track lags `main`, compare the two checksums first —
-> that mismatch is the likeliest cause.
-
-#### Does the deployed track match `main`?
-
-Read-only, and safe to run any time. Pull **by slug into an empty directory** so
-the result is the deployed track and nothing else — no working-tree churn, no
-`*.remote` leftovers, and no local files left over to confuse the reading:
+For later updates:
 
 ```bash
-tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
-(cd "$tmp" && instruqt track pull temporal/temporal-ai-agents-python-v4 >/dev/null)
-t="$tmp/temporal-ai-agents-python-v4"
-
-printf 'deployed image:    %s\n' "$(awk '/image:/ {print $2; exit}' "$t/config.yml")"
-printf 'deployed checksum: %s\n' "$(awk -F'"' '/^checksum:/ {print $2}' "$t/track.yml")"
-printf 'local checksum:    %s\n' "$(awk -F'"' '/^checksum:/ {print $2}' instruqt/track.yml)"
-printf 'deployed challenges:\n'
-for d in "$t"/*/; do
-  [ -f "$d/assignment.md" ] || continue
-  printf '  %-44s %s\n' "$(basename "$d")" "$(awk '/^title:/ {sub(/^title: /,""); print; exit}' "$d/assignment.md")"
-done
+just validate
+just test
+just push
 ```
 
-This listing is trustworthy — it is the deployed set. When a `00-` numbered
-challenge is missing from it, that challenge really is absent from the platform
-(see the caution above), not merely absent from the pull. The Instruqt UI is
-the independent confirmation:
-https://play.instruqt.com/manage/temporal/tracks/temporal-ai-agents-python-v4
+The sandbox image contains only the three webinar modules. Build it from the
+repository root:
 
-Comparing the two checksums tells you whether a push will pass the delta check.
-The challenge list is what attendees see in the sidebar, so it's the direct check
-on whether a challenge add/remove went live — subject to the caveat above. Note
-that challenges renamed locally (moved into `instruqt/_hidden/`, or renumbered)
-appear under their deployed names, not the repo's.
+```bash
+cd ..
+docker buildx build --platform linux/amd64 \
+  -f instruqt/docker/Dockerfile \
+  -t docker.io/nadvolod/ai-agents-webinar-sandbox:latest --push .
+```
 
-**Tab ids drift.** The repo's pinned `id:` values for service tabs have gone
-stale more than once (the track appears to get re-created periodically,
-regenerating them). After any push, run `instruqt track pull`, re-pin the
-ids from the `*.remote` files, and delete the leftovers (`just clean-remote`).
+## Push this fork
 
-### Known issues
+The checked-out branch is intended for a new repository named
+`ai-agents-webinar`. Once that empty repository exists, keep the source project
+as `upstream` and push this branch to the new `origin`:
 
-- **F1 MCP server commit pin.** `docker/Dockerfile` clones `rakeshgangwar/f1-mcp-server` at a pinned commit (`F1_MCP_COMMIT` build arg). Refresh it periodically with `git ls-remote https://github.com/rakeshgangwar/f1-mcp-server HEAD`.
-- **Local `F1_MCP_SERVER_HOME` path.** The top-level README's prerequisites list a local path (`~/Projects/Temporal/AI/MCP/f1-mcp-server/`) for running demos outside Instruqt. Inside the sandbox this is overwritten to `/opt/f1-mcp-server` — don't assume the checked-in demo READMEs describe the sandbox path.
-- **Undocumented `track.yml` fields.** `lab_config.override_challenge_layout`, `default_layout`, and `default_layout_sidebar_size` work in production but aren't part of Instruqt's published schema; they're carried over from prior tracks.
-- **`code-server` runs with `--auth none`.** It's reachable only through Instruqt's per-attendee sandbox proxy (not directly from the internet), so this is the accepted tradeoff for a disposable, single-attendee workshop VM — but it's worth knowing it's an unauthenticated VS Code instance if anything about the sandbox's network exposure model changes.
+```bash
+git remote rename origin upstream
+git remote add origin git@github.com:<owner>/ai-agents-webinar.git
+git push -u origin codex/ai-agents-webinar
+```
 
-## Related
+Replace `<owner>` with the target GitHub account or organization.
 
-This workshop has a [Java / Spring AI sibling](https://github.com/temporal-community/springio-agents-springai-temporal) that covers the same progression using Spring AI instead of the OpenAI Agents SDK. The two implementations diverge in interesting ways where the frameworks differ — see `docs/research/tool-execution-strategies-java-vs-python.md` for one such comparison.
+## Author and inspiration
+
+Created by [Nikolay Advolodkin](https://www.linkedin.com/in/nikolayadvolodkin/),
+with inspiration from [Cornelia Davis' original AI Agents Workshop](https://github.com/temporal-community/ai-agents-workshop-python).

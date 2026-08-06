@@ -1,5 +1,5 @@
 [project]
-name = "demo4-hitl"
+name = "ai-agents-webinar-hitl"
 version = "0.1"
 description = "OpenAI Agents SDK + Temporal demo with human-in-the-loop + F1 MCP"
 authors = [{ name = "Temporal Technologies Inc", email = "sdk@temporal.io" }]

@@ -42,7 +42,7 @@ Three independent channels. Don't let them borrow each other's hues.
 |---|---|---|
 | **edge color** | call category (child workflow, Nexus, agent tool, setup, external) | line color + the legend |
 | **file dot** | which source file the box lives in | small dot on the footer row |
-| **syntax color** | Python/Java tokens | text inside the code block |
+| **syntax color** | Python tokens | text inside the code block |
 
 - `--accent` means **one** thing: the agent tool-call category, plus selection
   affordances (active ring, focus outline). It is not for lane bands, headings, or

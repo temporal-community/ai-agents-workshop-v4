@@ -1,5 +1,5 @@
 [project]
-name = "demo5-multi-agent"
+name = "ai-agents-webinar-multi-agent"
 version = "0.1"
 description = "Multi-agent orchestration with Temporal child workflows + Nexus"
 authors = [{ name = "Temporal Technologies Inc", email = "sdk@temporal.io" }]

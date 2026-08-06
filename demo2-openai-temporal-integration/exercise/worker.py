@@ -1,4 +1,4 @@
-# ABOUTME: Worker process for demo2 — registers the ToolsWorkflow and tool activities.
+# ABOUTME: Intro module worker — registers the ToolsWorkflow and tool activities.
 # Uses the OpenAIAgentsPlugin so the Agents SDK can run durably inside the workflow.
 
 import asyncio
