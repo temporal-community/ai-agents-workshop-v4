@@ -219,12 +219,14 @@ cd - && just pull
 git add instruqt/ && git commit -m "Pin Instruqt track and tab ids"
 ```
 
-### Publishing (manual, no CI)
+### Publishing
 
-There is no GitHub Actions pipeline; publishing is manual, and what you run depends on what changed:
+Publishing runs through Temporal's internal `tmprl-dem-cld` pipeline, not
+through this repo's GitHub Actions. On merge to `main` that pipeline builds a
+sandbox image and pushes the track. What you do by hand depends on what changed:
 
-- **Changed an `assignment.md`, lifecycle script, `track.yml`, or `config.yml`** (anything under `instruqt/`): run `instruqt track push`. No image rebuild.
-- **Changed exercise/solution code, the `Dockerfile`, or anything else baked into the sandbox** (`demo*/`, `instruqt/docker/`): rebuild and push the image, then launch a fresh sandbox to pick it up:
+- **Changed anything under `instruqt/`** (`assignment.md`, a lifecycle script, `track.yml`, `config.yml`): merge to `main` and let the pipeline push. Reach for `instruqt track push` only to iterate before merging, and read the hazard below first.
+- **Changed exercise/solution code, the `Dockerfile`, or anything else baked into the sandbox** (`demo*/`, `instruqt/docker/`): the pipeline rebuilds the image on merge. To exercise a sandbox change before merging, build the Docker Hub tag and run it yourself:
   ```bash
   docker buildx build --platform linux/amd64 \
     -f instruqt/docker/Dockerfile \
@@ -232,36 +234,60 @@ There is no GitHub Actions pipeline; publishing is manual, and what you run depe
   ```
 
 > [!IMPORTANT]
-> **The Docker Hub tag above is not what the deployed track runs.** Local
-> `instruqt/config.yml` pins `nadvolod/ai-agents-workshop-v4-sandbox:latest`,
-> but the *deployed* track's `config.yml` pins an ECR image built by
-> Temporal's internal `tmprl-dem-cld` pipeline:
+> **The pipeline publishes the track, and it owns the image pin.** An earlier
+> version of this section claimed the pipeline "only builds images; it does not
+> publish the track." That was wrong. The pipeline is a Temporal Workflow, and
+> reading its Event History on 2026-08-01 shows one reconcile cycle per merge,
+> in this order:
+>
+> ```
+> reconcile_instruqt_course_ecr_repositories
+> resolve_instruqt_course_image_build_plan
+> start_instruqt_course_image_build
+> wait_for_instruqt_course_image_build
+> push_instruqt_course_track          <- this publishes the track
+> record_instruqt_course_status
+> ```
+>
+> The deployed `config.yml` pins the image that cycle built:
 >
 > ```
 > public.ecr.aws/s1u1b8l5/tmprl-dem-cld/ai-agents-workshop-v4/workshop:git-<sha>-<hash>
 > ```
 >
-> That `<sha>` **is** a commit in this repo, and the pipeline builds one image
-> per merge to `main` — verified 2026-08-01 by listing the ECR tags and matching
-> each `<sha>` against `git merge-base --is-ancestor`. **But it only builds
-> images; it does not publish the track.** Merges to `main` on 2026-08-01 each
-> produced a `git-<sha>` image while the deployed track stayed on its old
-> content, and the four-challenge layout only went live when the track was
-> pushed by hand. The heading on this section is right: publishing is manual.
+> That `<sha>` is a commit in this repo, verified 2026-08-01 by listing the ECR
+> tags and matching each `<sha>` with `git merge-base --is-ancestor`. The repo
+> commits the Docker Hub tag instead, so local and deployed `config.yml` have
+> never matched, and they are not meant to.
 >
-> Two consequences:
+> Three consequences:
 >
-> - **Building and pushing the Docker Hub tag does not get sandbox-baked
->   changes into the live track.** Confirm with `instruqt track pull` and diff
->   `config.yml` against `config.yml.remote` before assuming a
->   `docker buildx --push` had any effect.
-> - **When you publish, pin `config.yml` to the deployed ECR tag first.** The
->   repo commits the Docker Hub tag, so an as-is push repoints the live track
->   at it. Read the deployed tag, set `containers[0].image` to that value
->   locally, push, then revert the file without committing. Note the CodeQL
->   check going green is *not* an image build — this repo's own workflows are
->   CodeQL, Copilot review, and Dependency Graph, none of which builds an image
->   or publishes a track.
+> - **Publishing is not instant. It waits on the image build.** At 06:51 PDT on
+>   2026-08-01 the cycle for `main` was still in
+>   `wait_for_instruqt_course_image_build` (Attempt 1/5), no ECR image existed
+>   for the newly merged commits, and the deployed track still served the old
+>   content. Before concluding a publish failed, check whether the image landed:
+>   list the ECR tags and look for your `git-<sha>`.
+> - **`instruqt track push` from a working copy fights the pipeline.** Push
+>   sends `config.yml`, so it repoints the live track at the Docker Hub tag this
+>   repo commits, and it moves the deployed checksum out from under the
+>   pipeline. If you must hand-push, set `containers[0].image` to the deployed
+>   ECR tag first, push, then revert the file without committing. Prefer merging
+>   and waiting.
+> - **Building and pushing the Docker Hub tag does not change the live track.**
+>   Confirm with `instruqt track pull` and diff `config.yml` against
+>   `config.yml.remote` before assuming a `docker buildx --push` had any effect.
+>   CodeQL going green is not an image build either: this repo's own workflows
+>   are CodeQL, Copilot review, and Dependency Graph, none of which builds an
+>   image or publishes a track.
+
+**Unconfirmed, and worth settling.** The deployed track lagged `main` for most
+of 2026-08-01 even though the pipeline pushes it. The likeliest explanation is
+the delta check described below, with `push_instruqt_course_track` failing
+because the deployed checksum had drifted from the `checksum:` committed in
+`track.yml`. #26 committed the deployed value, so the next cycle's push should
+land. If a cycle completes and the deployed content still lags `main`, that
+theory is wrong and the pipeline's push step is failing for some other reason.
 
 `instruqt track test` runs the track's *local* files against the deployed image, so it's the way to verify a change before pushing.
 
@@ -283,6 +309,11 @@ afterwards and finding none of the local edits applied. Do not read that
 > to a value nobody committed, so pushes failed for anyone working from `main`
 > until the deployed value was committed in #23. Two hours went into diagnosing
 > a one-line staleness.
+>
+> Note who the publisher usually is. The `tmprl-dem-cld` pipeline pushes the
+> track on merge, so most checksum moves have no human behind them to commit the
+> new value. Treat the deployed checksum as the source of truth, read it with the
+> check below, and commit it whenever it has moved.
 >
 > So after any successful publish, commit the `checksum:` the CLI just wrote
 > back. If the deployed track lags `main`, compare the two checksums first —
