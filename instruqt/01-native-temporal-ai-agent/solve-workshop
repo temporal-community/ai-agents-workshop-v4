@@ -1,0 +1,16 @@
+#!/bin/bash
+# Drives the native Temporal AI agent solution to completion, non-interactively.
+set -uo pipefail
+cd /root/workshop/demo1-agentic-loop/solution || exit 0
+
+pkill -f "worker\.py\|python -m worker" 2>/dev/null || true
+sleep 1
+
+nohup uv run python -m worker > /tmp/solve-01-worker.log 2>&1 &
+WORKER_PID=$!
+sleep 10
+
+timeout 90 uv run python -m start_workflow "What is the weather in Barcelona?"
+
+kill "$WORKER_PID" 2>/dev/null || true
+exit 0

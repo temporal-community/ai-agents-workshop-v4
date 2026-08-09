@@ -1,14 +1,14 @@
 slug: ai-agents-webinar
 title: Durable AI Agents Webinar
-teaser: Three focused modules covering durable agent loops, human input, and
+teaser: Three focused modules covering native durable agents, human input, and
   multi-agent orchestration with OpenAI and Temporal.
 description: |-
   A focused webinar showing how to build production-grade AI agents
-  with the OpenAI Agents SDK and Temporal for durable execution.
+  with OpenAI and Temporal for durable execution.
 
-  Start with the OpenAI Agents SDK integration, add human-in-the-loop
-  Signals and Queries, then compose specialist agents with child workflows
-  and Nexus.
+  Start by implementing the agentic loop natively as a Temporal Workflow,
+  add human-in-the-loop Signals and Queries, then compose specialist agents
+  with child workflows and Nexus.
 
   Each module adds one capability so you can see before and after
   in the Temporal Web UI.

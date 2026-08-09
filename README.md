@@ -1,12 +1,13 @@
 # AI Agents Webinar
 
-A focused, hands-on course for building durable AI agents in Python with the
-[OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) and
-[Temporal](https://temporal.io/). The webinar keeps three progressive modules:
+A focused, hands-on course for building durable AI agents in Python with
+[OpenAI](https://platform.openai.com/docs/api-reference/responses), the
+[OpenAI Agents SDK](https://openai.github.io/openai-agents-python/), and
+[Temporal](https://temporal.io/). The webinar contains three progressive modules:
 
 | Module | Topic | Code |
 |---|---|---|
-| 1 | Introduction: make the Agents SDK loop durable with Temporal activities | [`demo2-openai-temporal-integration`](demo2-openai-temporal-integration/) |
+| 1 | Native Temporal AI Agent: implement the agentic loop directly as a durable workflow | [`demo1-agentic-loop`](demo1-agentic-loop/) |
 | 2 | Human-in-the-loop: pause an agent, collect input, and resume with Signals and Queries | [`demo4-hitl`](demo4-hitl/) |
 | 3 | Multi-agent orchestration: delegate to specialists with child workflows and Nexus | [`demo5-multi-agent`](demo5-multi-agent/) |
 
@@ -35,7 +36,7 @@ temporal server start-dev
 In another terminal, choose a module and either its exercise or solution:
 
 ```bash
-cd demo2-openai-temporal-integration/exercise
+cd demo1-agentic-loop/exercise
 uv sync
 export OPENAI_API_KEY=sk-...
 uv run python -m worker
@@ -78,7 +79,7 @@ The `instruqt/` directory defines a three-challenge browser-based course:
 
 ```text
 instruqt/
-├── 01-openai-agents-sdk/
+├── 01-native-temporal-ai-agent/
 ├── 02-human-in-the-loop/
 ├── 03-multi-agent/
 ├── docker/

@@ -1,0 +1,14 @@
+[project]
+name = "ai-agents-webinar-native-temporal-agent"
+version = "0.1"
+description = "Native Temporal AI agent with a hand-written durable agentic loop"
+authors = [{ name = "Temporal Technologies Inc", email = "sdk@temporal.io" }]
+requires-python = ">=3.10"
+readme = "README.md"
+license = "MIT"
+dependencies = [
+    "temporalio>=1.15.0,<2",
+    "openai>=1.40.0",
+    "numpy>=1.26",
+    "requests>=2.32.3",
+]

@@ -56,12 +56,12 @@ ENV PATH="${PATH}:/root/.temporalio/bin"
 
 # ── 5. Webinar source ─────────────────────────────────────────────────────────
 # Each module has an exercise/ and a completed solution/ subfolder.
-COPY demo2-openai-temporal-integration/ /opt/workshop/demo2-openai-temporal-integration/
+COPY demo1-agentic-loop/ /opt/workshop/demo1-agentic-loop/
 COPY demo4-hitl/ /opt/workshop/demo4-hitl/
 COPY demo5-multi-agent/ /opt/workshop/demo5-multi-agent/
 
 # ── 6. Python deps (exercise/ and solution/ each need their own) ───────────────
-RUN for demo in demo2-openai-temporal-integration demo4-hitl demo5-multi-agent; do \
+RUN for demo in demo1-agentic-loop demo4-hitl demo5-multi-agent; do \
         for variant in exercise solution; do \
             (cd "/opt/workshop/${demo}/${variant}" && uv sync); \
         done; \
@@ -102,7 +102,7 @@ RUN mitmdump --listen-port 8889 --set block_global=false & \
        /usr/local/share/ca-certificates/mitmproxy-ca.crt \
     && update-ca-certificates \
     && MITM_CA=/root/.mitmproxy/mitmproxy-ca-cert.pem; \
-    for demo in demo2-openai-temporal-integration demo4-hitl demo5-multi-agent; do \
+    for demo in demo1-agentic-loop demo4-hitl demo5-multi-agent; do \
         for variant in exercise solution; do \
             bundle="/opt/workshop/${demo}/${variant}/.venv/lib/python3.10/site-packages/certifi/cacert.pem"; \
             [ -f "$bundle" ] && cat "$MITM_CA" >> "$bundle" && echo "Patched certifi in ${demo}/${variant}"; \

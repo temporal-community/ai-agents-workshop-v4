@@ -88,7 +88,7 @@ mint_litellm_token() {
 # The image contains only these three modules. Keep this list in sync with the
 # challenge directories and Dockerfile.
 STAGED_DEMOS=(
-    demo2-openai-temporal-integration
+    demo1-agentic-loop
     demo4-hitl
     demo5-multi-agent
 )
