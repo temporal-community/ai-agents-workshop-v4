@@ -36,12 +36,12 @@ export function childWorkflowAsTool(options: ChildWorkflowAsToolOptions): Tool {
       question: z.string().describe('The full question for the specialist, in plain English.'),
     }),
     execute: async ({ question }) => {
-      // TODO 8: Start the specialist with `wf.executeChild(options.workflow, …)`
+      // TODO 9: Start the specialist with `wf.executeChild(options.workflow, …)`
       // and return its result. Pass `args: [{ question, model: options.model }]`,
       // a `workflowId` built from `options.name` and `wf.uuid4()` (never
       // `Math.random()` — Workflow code must replay identically), plus
       // `taskQueue` and `workflowExecutionTimeout` from `options`.
-      throw new Error(`TODO 8: run ${options.workflow.name} as a Child Workflow (${question})`);
+      throw new Error(`TODO 9: run ${options.workflow.name} as a Child Workflow (${question})`);
     },
   });
 }

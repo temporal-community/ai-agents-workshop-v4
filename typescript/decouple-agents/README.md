@@ -18,7 +18,7 @@ decouple-agents/
 | # | Challenge | The move |
 |---|---|---|
 | 1 | **The OpenAI Agents SDK, made durable** | Swap the SDK's `Runner` for `TemporalOpenAIRunner`. LLM calls and tool calls become Temporal Activities. |
-| 2 | **Human in the loop** | The agent calls `askUser`, the Workflow parks on a `condition`, a human answers with a Workflow Update, the run resumes. |
+| 2 | **Human in the loop** | A tool marked `needsApproval` stops the agent run with an interruption. The Workflow waits for an `approve` Signal, then resumes the serialized `RunState` across `continueAsNew`. |
 | 3 | **Multi-agent** | A triage agent routes to two specialists — one over a Child Workflow, one over Nexus. Each is its own Workflow Execution on its own Task Queue. |
 | 4 | **Heterogeneous agents** | The travel specialist is now **Python** (Strands Agents SDK) behind the same Nexus Operation. The TypeScript orchestrator does not change. |
 
@@ -53,10 +53,10 @@ Every challenge is a Worker in one terminal and a client in another.
 npm run c1:worker
 npm run c1:client "What is the weather in Barcelona?"
 
-# Challenge 2 — answer the agent's question in the client terminal
+# Challenge 2 — approve the agent's booking in the client terminal
 npm run c2:worker
-npm run c2:client "Should I pack a raincoat for the next race?"
-npm run c2:client -- --workflow-id c2-hitl-xxxx     # reconnect to a waiting run
+npm run c2:client "Book me a trip to Barcelona on 2026-09-15."
+npm run c2:client -- --approve c2-approval-xxxx     # release a run parked earlier
 
 # Challenge 3 — the client registers the Nexus endpoint on first run
 npm run c3:worker
@@ -73,8 +73,11 @@ npm run c4:client "What should I know about visiting Monaco, and what is the wea
 - **Challenge 1** — one Workflow, and inside it one `InvokeModelActivity` per LLM turn plus one
   Activity per tool call. Kill the Worker mid-run and restart it: the conversation resumes from
   history and no completed step is paid for twice.
-- **Challenge 2** — while the agent waits for the human the Workflow is *Running* and costing
-  nothing. No Worker is holding it.
+- **Challenge 2** — two Executions under one Workflow ID. The first ends in
+  `WorkflowExecutionContinuedAsNew`, right after the `WorkflowExecutionSignaled` event carrying the
+  approval; while it waited it was *Running* and costing nothing, with no Worker holding it. The
+  second Execution starts with the `bookTrip` Activity — the tool the human approved, running once —
+  then one more model call for the final answer.
 - **Challenge 3** — `StartChildWorkflowExecution` for the weather specialist,
   `NexusOperationScheduled` for the travel specialist, and two more Workflow Executions on the
   specialist Task Queue.
@@ -98,7 +101,7 @@ solution/
     │   ├── travelTools.ts            those Activities, as agent tools
     │   └── childWorkflowAsTool.ts    a Child Workflow, as an agent tool
     ├── challenge1-durable-agent/     workflows.ts, worker.ts, client.ts
-    ├── challenge2-human-in-the-loop/ workflows.ts, worker.ts, client.ts
+    ├── challenge2-human-in-the-loop/ activities.ts, workflows.ts, worker.ts, client.ts
     ├── challenge3-multi-agent/       api.ts, handler.ts, workflows.ts, worker.ts, client.ts
     └── challenge4-heterogeneous-agents/ api.ts, workflows.ts, worker.ts, client.ts
 ```

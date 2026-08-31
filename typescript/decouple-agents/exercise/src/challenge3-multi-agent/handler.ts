@@ -8,7 +8,7 @@ import { travelPlannerService, type AskRequest, type AskResponse } from './api';
 import { travelSpecialistWorkflow } from './workflows';
 
 export const travelPlannerServiceHandler = nexus.serviceHandler(travelPlannerService, {
-  // TODO 9: Replace this stub with
+  // TODO 10: Replace this stub with
   // `new temporalNexus.WorkflowRunOperationHandler<AskRequest, AskResponse>(...)`
   // whose delegate calls `temporalNexus.startWorkflow(ctx, travelSpecialistWorkflow, …)`
   // with `args: [{ question: input.question, model: process.env.OPENAI_MODEL }]`
@@ -18,6 +18,6 @@ export const travelPlannerServiceHandler = nexus.serviceHandler(travelPlannerSer
   // NexusOperationCompleted pair. This delegate runs in the Worker process, not
   // a Workflow sandbox, so it may read the environment and use nanoid.
   askTravelPlanner: async (_ctx, _input: AskRequest): Promise<AskResponse> => {
-    throw new Error('TODO 9: start travelSpecialistWorkflow from this Nexus Operation.');
+    throw new Error('TODO 10: start travelSpecialistWorkflow from this Nexus Operation.');
   },
 });

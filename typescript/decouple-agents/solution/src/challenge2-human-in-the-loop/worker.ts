@@ -1,9 +1,10 @@
-// ABOUTME: Challenge 2 Worker — same wiring as challenge 1; the human-in-the-loop state lives in the Workflow.
-// Nothing extra is registered for the pause: askUser is an inline tool, not an Activity.
+// ABOUTME: Challenge 2 Worker — the weather Activities plus the approval-gated bookTrip Activity.
+// Nothing here knows about the pause: the approval mechanism lives entirely in the Workflow.
 
 import { NativeConnection, Worker } from '@temporalio/worker';
-import * as activities from '../shared/weatherActivities';
+import * as weatherActivities from '../shared/weatherActivities';
 import { agentsBundlerOptions, openAIAgentsPlugin } from '../shared/workerOptions';
+import * as bookingActivities from './activities';
 import { TASK_QUEUE } from './workflows';
 
 async function run(): Promise<void> {
@@ -14,7 +15,7 @@ async function run(): Promise<void> {
       connection,
       taskQueue: TASK_QUEUE,
       workflowsPath: require.resolve('./workflows'),
-      activities,
+      activities: { ...weatherActivities, ...bookingActivities },
       plugins: [openAIAgentsPlugin()],
       bundlerOptions: agentsBundlerOptions,
     });

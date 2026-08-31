@@ -13,14 +13,14 @@ import { ORCHESTRATOR_TASK_QUEUE, triageAgentWorkflow } from './workflows';
  */
 async function ensureEndpoint(connection: Connection, namespace: string): Promise<void> {
   try {
-    // TODO 14: Call `connection.operatorService.createNexusEndpoint({ spec: {
+    // TODO 15: Call `connection.operatorService.createNexusEndpoint({ spec: {
     //   name: TRAVEL_PLANNER_ENDPOINT,
     //   target: { worker: { namespace, taskQueue: PYTHON_TRAVEL_PLANNER_TASK_QUEUE } },
     // } })`.
     // This one line is the entire language boundary: the endpoint the Workflow
     // addresses now resolves to the Task Queue the Python Worker polls. No
     // Workflow code changes.
-    console.log(`TODO 14: point ${TRAVEL_PLANNER_ENDPOINT} at ${PYTHON_TRAVEL_PLANNER_TASK_QUEUE}`);
+    console.log(`TODO 15: point ${TRAVEL_PLANNER_ENDPOINT} at ${PYTHON_TRAVEL_PLANNER_TASK_QUEUE}`);
   } catch (err) {
     if (!String((err as { message?: string }).message).includes('already')) throw err;
   }

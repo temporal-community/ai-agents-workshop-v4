@@ -1,105 +1,95 @@
-// ABOUTME: Challenge 2 — the agent stops mid-run to ask a human, then resumes where it left off.
-// The pause is a Workflow condition; the human's answer arrives as a Workflow Update.
+// ABOUTME: Challenge 2 — the agent proposes an irreversible action and stops until a human approves.
+// The pause is an approval interruption; the approval is a Signal; the resume is continueAsNew.
 
-import { Agent, tool } from '@openai/agents-core';
+import { Agent, RunState, tool } from '@openai/agents-core';
 import { TemporalOpenAIRunner } from '@temporalio/openai-agents/workflow';
-import * as wf from '@temporalio/workflow';
+import { condition, continueAsNew, defineSignal, proxyActivities, setHandler } from '@temporalio/workflow';
 import z from 'zod';
 import { weatherTools } from '../shared/weatherTools';
 import type { AgentRequest } from '../shared/types';
+import type * as activities from './activities';
 
 /** Task Queue this challenge's Worker polls and its client targets. */
 export const TASK_QUEUE = 'c2-human-in-the-loop-tq';
 
-/** Read-only peek at what the agent is waiting to be told. `null` when it is working. */
-export const pendingQuestionQuery = wf.defineQuery<string | null>('pendingQuestion');
+/** The human's verdict. A Signal is the right shape: it is a fact, not a question. */
+export const approveSignal = defineSignal('approve');
 
-/**
- * Delivers the human's answer.
- *
- * An Update rather than a Signal because the caller wants an answer to
- * "did that land?": a Signal is fire-and-forget and would silently vanish if
- * the agent were not actually waiting.
- */
-export const provideUserInputUpdate = wf.defineUpdate<void, [string]>('provideUserInput');
+/** What the Workflow takes. `resumeFromRunState` is set only by continueAsNew. */
+export interface ApprovalInput extends AgentRequest {
+  /** A serialized `RunState`, handed from the run that was interrupted to the run that resumes it. */
+  resumeFromRunState?: string;
+}
+
+const { bookTrip } = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' });
 
 const INSTRUCTIONS = `
-You are a helpful travel and weather assistant. Use the provided tools whenever
-they would help you answer accurately.
-
-If the request is ambiguous — an unqualified city name, a trip with no
-destination, "the race" with no race named — call the askUser tool with a
-single, specific question rather than guessing. Ask at most one question at a
-time.
-
-When you have enough information, answer in plain text. Today is {date}.
+You are a travel assistant. Use the weather tools to check conditions at the
+destination, then call bookTrip to reserve the trip. Never claim a trip is
+booked unless the bookTrip tool has returned a confirmation.
+Answer in plain text.
 `.trim();
 
-export async function humanInTheLoopWorkflow(request: AgentRequest): Promise<string> {
-  // Human-in-the-loop state, owned by the Workflow and therefore durable.
-  let pendingQuestion: string | null = null;
-  let answer: string | null = null;
-
-  /**
-   * An inline tool, not an Activity. The Agents SDK awaits an inline tool's
-   * `execute` in the caller's context — which here is the Workflow — so this
-   * function may use Workflow APIs. An Activity could not: it runs in a Worker
-   * thread with no access to Workflow state.
-   */
-  const askUser = tool({
-    name: 'askUser',
-    description: 'Ask the human a clarifying question and wait for their answer before continuing.',
+function buildAgent(): Agent {
+  const bookTripTool = tool({
+    name: 'bookTrip',
+    description: 'Reserve a trip. Spends the user money, so it requires human approval.',
     parameters: z.object({
-      question: z.string().describe('One specific question for the human.'),
+      destination: z.string().describe('City to travel to.'),
+      departureDate: z.string().describe('Departure date as YYYY-MM-DD.'),
     }),
-    execute: async ({ question }) => {
-      pendingQuestion = question;
-      wf.log.info('Waiting for a human answer', { question });
-
-      // The Workflow parks here. The Workflow Task completes, the Worker moves
-      // on to other work, and the state lives on the Temporal server. Nothing
-      // is polling and nothing is being paid for; the Worker could be replaced
-      // entirely and the run would resume from history when the answer lands.
-      await wf.condition(() => answer !== null);
-
-      const received = answer as string;
-      pendingQuestion = null;
-      answer = null;
-      return received;
-    },
+    // The one line that makes this human-in-the-loop. When the model asks for
+    // this tool, the Agents SDK does not run it: the run stops and hands back
+    // an interruption instead.
+    needsApproval: true,
+    execute: async ({ destination, departureDate }) => await bookTrip({ destination, departureDate }),
   });
 
-  wf.setHandler(pendingQuestionQuery, () => pendingQuestion);
+  return new Agent({
+    name: 'TripAssistant',
+    instructions: INSTRUCTIONS,
+    tools: [...weatherTools(), bookTripTool],
+  });
+}
 
-  wf.setHandler(
-    provideUserInputUpdate,
-    (userInput: string) => {
-      answer = userInput;
-    },
-    {
-      // The validator takes the SAME arguments as the handler. Give it a
-      // different arity and TypeScript infers `Args = []`, silently selects the
-      // wrong `setHandler` overload, and the handler stops typechecking.
-      validator: (userInput: string) => {
-        if (pendingQuestion === null) {
-          throw new Error('The agent is not waiting for input right now.');
-        }
-        if (userInput.trim().length === 0) {
-          throw new Error('Answer must not be empty.');
-        }
-      },
-    },
-  );
+export async function tripApprovalWorkflow(input: ApprovalInput): Promise<string> {
+  const agent = buildAgent();
+  const runner = new TemporalOpenAIRunner();
 
-  const agent = new Agent({
-    name: 'AssistantWithHuman',
-    instructions: INSTRUCTIONS.replace('{date}', wf.workflowInfo().startTime.toISOString().slice(0, 10)),
-    tools: [...weatherTools(), askUser],
+  // Second Execution: a human already approved, and the paused run arrived as a
+  // string. Rehydrate it, mark every pending approval granted, and let the loop
+  // carry on from exactly where it stopped — the earlier turns are not repeated
+  // and not paid for again.
+  if (input.resumeFromRunState !== undefined) {
+    const state = await RunState.fromString(agent, input.resumeFromRunState);
+    for (const interruption of state.getInterruptions()) {
+      state.approve(interruption);
+    }
+    const resumed = await runner.run(agent, state, { runConfig: { model: input.model } });
+    return resumed.finalOutput ?? '';
+  }
+
+  let approved = false;
+  setHandler(approveSignal, () => {
+    approved = true;
   });
 
-  const result = await new TemporalOpenAIRunner().run(agent, request.question, {
-    runConfig: { model: request.model },
-  });
+  const result = await runner.run(agent, input.question, { runConfig: { model: input.model } });
 
-  return result.finalOutput ?? '';
+  // Nothing needed approval — the agent answered without proposing a booking.
+  if (result.interruptions.length === 0) {
+    return result.finalOutput ?? '';
+  }
+
+  // The Workflow parks here. The Workflow Task completes, the Worker moves on
+  // to other work, and the state lives on the Temporal server. Nothing polls
+  // and nothing is paid for; the Worker could be replaced entirely and the run
+  // would still resume when the Signal lands.
+  await condition(() => approved);
+
+  // Hand the paused run to a fresh Execution with a fresh, short history.
+  // `result.state.toString()` is the whole agent conversation, serialized —
+  // which is why the resumed run can pick up mid-tool-call.
+  await continueAsNew<typeof tripApprovalWorkflow>({ ...input, resumeFromRunState: result.state.toString() });
+  throw new Error('unreachable');
 }

@@ -25,7 +25,7 @@ export interface AskResponse {
  *   response field  answer                  <-> AskResponse.answer
  */
 export const travelPlannerService = nexus.service('TravelPlannerService', {
-  // TODO 12: Declare the operation:
+  // TODO 13: Declare the operation:
   //   askTravelPlanner: nexus.operation<AskRequest, AskResponse>({ name: 'ask_travel_planner' })
   // The property name is yours; `name` is the wire contract and must match the
   // Python attribute exactly. Get it wrong and the call fails at the endpoint,

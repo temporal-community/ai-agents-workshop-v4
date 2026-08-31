@@ -20,7 +20,7 @@ async function run(): Promise<void> {
       bundlerOptions: agentsBundlerOptions,
     });
 
-    // TODO 11: Create a second Worker on `SPECIALIST_TASK_QUEUE` with the same
+    // TODO 12: Create a second Worker on `SPECIALIST_TASK_QUEUE` with the same
     // `workflowsPath`, `plugins` and `bundlerOptions`, plus
     // `activities: { ...weatherActivities, ...travelActivities }` and
     // `nexusServices: [travelPlannerServiceHandler]`. Then run both Workers with

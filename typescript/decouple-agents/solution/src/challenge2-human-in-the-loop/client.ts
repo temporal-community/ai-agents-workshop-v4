@@ -1,72 +1,58 @@
-// ABOUTME: Challenge 2 starter — relays the agent's questions to a terminal and its answers back.
-// Poll the Query for a pending question; deliver the answer with an Update.
+// ABOUTME: Challenge 2 starter — starts a trip request, then approves it from a human's keyboard.
+// `--approve <workflowId>` releases a run that is already parked, from a fresh terminal.
 
 import { Client, Connection, type WorkflowHandle } from '@temporalio/client';
 import { nanoid } from 'nanoid';
 import * as readline from 'node:readline/promises';
 import { modelName } from '../shared/modelProvider';
 import { openAIAgentsPlugin } from '../shared/workerOptions';
-import { humanInTheLoopWorkflow, pendingQuestionQuery, provideUserInputUpdate, TASK_QUEUE } from './workflows';
+import { approveSignal, TASK_QUEUE, tripApprovalWorkflow } from './workflows';
 
-const POLL_INTERVAL_MS = 2000;
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * Poll for questions while the run is in flight.
- *
- * The Workflow may sit here for as long as the human takes. It is not running
- * during that time — closing this terminal and reconnecting later with
- * `--workflow-id <id>` picks the conversation up exactly where it stopped.
- */
-async function converse(handle: WorkflowHandle<typeof humanInTheLoopWorkflow>): Promise<string> {
+async function approve(handle: WorkflowHandle): Promise<boolean> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const finished = handle.result();
-  let done = false;
-  finished.catch(() => undefined).finally(() => (done = true));
-
   try {
-    console.log('Agent is working...');
-    while (!done) {
-      const question = await handle.query(pendingQuestionQuery).catch(() => null);
-      if (question !== null) {
-        const answer = await rl.question(`\nAgent asks: ${question}\nYour answer: `);
-        // executeUpdate waits for the handler to run, so a rejected answer —
-        // one the validator refuses — comes back as an error here rather than
-        // disappearing the way a Signal would.
-        await handle.executeUpdate(provideUserInputUpdate, { args: [answer] });
-        console.log('Agent is working...');
-      }
-      await Promise.race([finished.catch(() => undefined), sleep(POLL_INTERVAL_MS)]);
+    console.log('\nThe agent may propose a booking. Until you answer, the Workflow is parked:');
+    console.log('open http://localhost:8233 and note it is Running while no Worker holds it.\n');
+    const reply = await rl.question('Approve the booking? [y/N] ');
+    if (!reply.trim().toLowerCase().startsWith('y')) {
+      console.log(`Not approved. The Workflow stays parked; release it later with:`);
+      console.log(`  npm run c2:client -- --approve ${handle.workflowId}`);
+      return false;
     }
-    return await finished;
   } finally {
     rl.close();
   }
+
+  // A Signal, not an Update: the human is stating a fact, not asking a question,
+  // and does not need to wait for the agent to finish reacting to it.
+  await handle.signal(approveSignal);
+  console.log('Approved. Resuming the agent run...');
+  return true;
 }
 
 async function run(): Promise<void> {
   const args = process.argv.slice(2);
-  const reconnectIndex = args.indexOf('--workflow-id');
-  const workflowId = reconnectIndex >= 0 ? args[reconnectIndex + 1] : undefined;
-  const question = reconnectIndex >= 0 ? undefined : (args[0] ?? 'Should I pack a raincoat for the next race?');
+  const approveIndex = args.indexOf('--approve');
+  const existingId = approveIndex >= 0 ? args[approveIndex + 1] : undefined;
+  const question = args[0] && approveIndex < 0 ? args[0] : 'Book me a trip to Barcelona on 2026-09-15.';
 
   const connection = await Connection.connect({ address: process.env.TEMPORAL_ADDRESS ?? 'localhost:7233' });
   const client = new Client({ connection, plugins: [openAIAgentsPlugin()] });
 
   const handle =
-    workflowId !== undefined
-      ? client.workflow.getHandle<typeof humanInTheLoopWorkflow>(workflowId)
-      : await client.workflow.start(humanInTheLoopWorkflow, {
+    existingId !== undefined
+      ? client.workflow.getHandle<typeof tripApprovalWorkflow>(existingId)
+      : await client.workflow.start(tripApprovalWorkflow, {
           taskQueue: TASK_QUEUE,
-          workflowId: `c2-hitl-${nanoid()}`,
-          args: [{ question: question as string, model: modelName() }],
+          workflowId: `c2-approval-${nanoid()}`,
+          args: [{ question, model: modelName() }],
         });
 
   console.log(`Workflow: ${handle.workflowId}`);
-  console.log(await converse(handle));
+
+  if (await approve(handle)) {
+    console.log(await handle.result());
+  }
   await connection.close();
 }
 

@@ -69,7 +69,7 @@ export async function triageAgentWorkflow(request: AgentRequest): Promise<string
     workflowExecutionTimeout: '5 minutes',
   });
 
-  // TODO 10: Build this tool with `nexusOperationAsTool(...)` instead:
+  // TODO 11: Build this tool with `nexusOperationAsTool(...)` instead:
   //   operation  travelPlannerService.operations.askTravelPlanner
   //   definition same name/description, `parameters` a JSON schema with a
   //              required string `question`
@@ -84,7 +84,7 @@ export async function triageAgentWorkflow(request: AgentRequest): Promise<string
       'Delegate a destination or country question to the travel specialist. Pass the full question in plain English.',
     parameters: z.object({ question: z.string().describe('The travel question, in plain English') }),
     execute: async ({ question }) => {
-      throw new Error(`TODO 10: reach the travel specialist over Nexus (${question})`);
+      throw new Error(`TODO 11: reach the travel specialist over Nexus (${question})`);
     },
   });
 
