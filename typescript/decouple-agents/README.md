@@ -3,10 +3,6 @@
 Four challenges that take an OpenAI Agents SDK agent from "a script that dies with its process"
 to "a fleet of specialists, in two languages, that survive anything".
 
-This is the TypeScript port of the Python workshop in the repository root
-(`demo2-openai-temporal-integration`, `demo4-hitl`, `demo5-multi-agent`, `demo6a-different-sdks`,
-`demo6b-different-languages`). It is a rewrite, not a transliteration.
-
 ```
 decouple-agents/
 ├── exercise/    <- you work here; the teaching moments are numbered TODOs

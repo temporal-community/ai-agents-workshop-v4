@@ -1,7 +1,6 @@
 # Python travel planner
 
-A [Strands Agents SDK](https://strandsagents.com/) travel planner, lifted unchanged from the
-Python workshop (`demo6a-different-sdks/exercise/travel_planner.py`) and put behind a Temporal
+A [Strands Agents SDK](https://strandsagents.com/) travel planner, put behind a Temporal
 **Nexus Operation** so the TypeScript orchestrator in challenge 4 can call it.
 
 | File | What it is |

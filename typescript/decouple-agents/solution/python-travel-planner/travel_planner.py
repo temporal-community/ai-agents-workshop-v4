@@ -1,5 +1,5 @@
 # ABOUTME: Strands-built travel planning agent. Self-contained, no Temporal awareness.
-# Lifted unchanged from the Python workshop: another team's agent, imported as-is.
+# Another team's agent, imported as-is and not modified.
 
 import os
 from urllib.parse import quote
