@@ -1,0 +1,5 @@
+#!/bin/bash
+# ABOUTME: Challenge 1 cleanup. Leaves the Temporal server and code-server up;
+# they belong to the track, not to this challenge.
+pkill -f "challenge1-durable-agent/worker.ts" 2>/dev/null || true
+echo "Challenge 1 cleanup: OK"

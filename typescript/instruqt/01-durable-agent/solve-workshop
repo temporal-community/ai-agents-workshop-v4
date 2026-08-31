@@ -1,0 +1,20 @@
+#!/bin/bash
+# ABOUTME: Drives challenge 1 to one completed Workflow, non-interactively.
+#
+# Runs the SOLUTION tree, never the attendee's exercise/ tree - so `instruqt
+# track test` can prove the whole track end to end without destroying anyone's
+# work in a live lab.
+set -uo pipefail
+
+cd /root/workshop/decouple-agents/solution || exit 0
+
+pkill -f "challenge1-durable-agent/worker.ts" 2>/dev/null || true
+sleep 1
+
+nohup npm run c1:worker > /tmp/solve-c1-worker.log 2>&1 &
+sleep 15
+
+timeout 120 npm run c1:client -- "What is the weather in Barcelona?"
+
+pkill -f "challenge1-durable-agent/worker.ts" 2>/dev/null || true
+exit 0
