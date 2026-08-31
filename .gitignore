@@ -114,3 +114,6 @@ prompt.md
 review.md
 
 
+
+# Agent worktrees; never commit them.
+.worktrees/
