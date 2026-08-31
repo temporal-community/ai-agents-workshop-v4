@@ -1,5 +1,6 @@
 ---
 slug: human-in-the-loop
+id: 1eonlaedlzyk
 type: challenge
 title: Human in the Loop
 teaser: The agent proposes something irreversible and stops. A Signal from a human
@@ -30,25 +31,30 @@ notes:
     Then `continueAsNew` starts a fresh Execution carrying the serialized
     run, so a Workflow that waited a week does not carry a week of history.
 tabs:
-- title: Worker
+- id: 79teay6xp67f
+  title: Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Client
+- id: sbnvx0iw4ki3
+  title: Client
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Temporal UI
+- id: mbxffxqxlp55
+  title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- title: Editor
+- id: ja5cowsdiwy8
+  title: Editor
   type: service
   hostname: workshop
   path: /?folder=/root/workshop/decouple-agents
   port: 8080
 difficulty: basic
 timelimit: 2400
+enhanced_loading: null
 ---
 
 # Human in the Loop

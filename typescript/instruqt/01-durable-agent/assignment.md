@@ -1,5 +1,6 @@
 ---
 slug: durable-agent
+id: kcdfmejszpg3
 type: challenge
 title: The OpenAI Agents SDK, Made Durable
 teaser: An ordinary Agents SDK agent, running inside a Temporal Workflow. Every LLM
@@ -28,25 +29,30 @@ notes:
     The agent code does not learn about Temporal. It just stops being
     something you can lose.
 tabs:
-- title: Worker
+- id: gjiod4xysslv
+  title: Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Client
+- id: huc8alyr2mxc
+  title: Client
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Temporal UI
+- id: gqigsnf1fxvn
+  title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- title: Editor
+- id: yl47rw6yx2lb
+  title: Editor
   type: service
   hostname: workshop
   path: /?folder=/root/workshop/decouple-agents
   port: 8080
 difficulty: basic
 timelimit: 2400
+enhanced_loading: null
 ---
 
 # The OpenAI Agents SDK, Made Durable

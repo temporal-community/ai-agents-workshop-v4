@@ -1,5 +1,6 @@
 ---
 slug: multi-agent
+id: fk69ywly5ycb
 type: challenge
 title: Multi-Agent
 teaser: A triage agent that answers nothing itself. Two specialists, two Workflow
@@ -28,25 +29,30 @@ notes:
     the Workflow type, the Namespace, the Task Queue - or, as the next
     challenge shows, the language.
 tabs:
-- title: Workers
+- id: lxcqp1ccxxrd
+  title: Workers
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Client
+- id: dbztfullzag3
+  title: Client
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Temporal UI
+- id: 3hsvxygi5hq9
+  title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- title: Editor
+- id: aggzjypkipwx
+  title: Editor
   type: service
   hostname: workshop
   path: /?folder=/root/workshop/decouple-agents
   port: 8080
 difficulty: basic
 timelimit: 2400
+enhanced_loading: null
 ---
 
 # Multi-Agent

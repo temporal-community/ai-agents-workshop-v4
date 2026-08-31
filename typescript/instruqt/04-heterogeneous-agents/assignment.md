@@ -1,5 +1,6 @@
 ---
 slug: heterogeneous-agents
+id: ohstkyyulwxz
 type: challenge
 title: Heterogeneous Agents
 teaser: The travel specialist is now Python, built with a different agent framework,
@@ -27,29 +28,35 @@ notes:
     and nothing checks that agreement at compile time, because no compiler
     can see both sides.
 tabs:
-- title: TypeScript Workers
+- id: om9e2dknxpqi
+  title: TypeScript Workers
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Python Worker
+- id: ziyz2wiwbj9c
+  title: Python Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise/python-travel-planner
-- title: Client
+- id: x8o1ssjhxxq0
+  title: Client
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Temporal UI
+- id: wzpenbbi6ndu
+  title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- title: Editor
+- id: 9jhapvgtuy0a
+  title: Editor
   type: service
   hostname: workshop
   path: /?folder=/root/workshop/decouple-agents
   port: 8080
 difficulty: basic
 timelimit: 2400
+enhanced_loading: null
 ---
 
 # Heterogeneous Agents

@@ -1,4 +1,5 @@
 slug: temporal-ai-agents-typescript
+id: ykzlffwaudu2
 title: Build AI Agents That Survive Failure (TypeScript)
 teaser: Take an OpenAI Agents SDK agent from a script that dies with its process to
   a fleet of specialists, in two languages, that survive anything.
@@ -16,14 +17,15 @@ description: |-
   infrastructure to provision and no API key to bring.
 icon: ""
 tags:
-- typescript
-- ai-agents
 - openai
+- ai-agents
 - nexus
 - temporal
+- typescript
 owner: temporal
 developers:
 - nikolay.advolodkin@temporal.io
+maintenance: true
 skipping_enabled: true
 idle_timeout: 1800
 timelimit: 10800
@@ -47,4 +49,5 @@ lab_config:
   hideStopButton: false
   default_layout: AssignmentLeft
   default_layout_sidebar_size: 35
+checksum: "10271899965016877232"
 enhanced_loading: false
