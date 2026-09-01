@@ -29,18 +29,18 @@ export INSTRUQT_BROKER_KEY_ID="${INSTRUQT_BROKER_KEY_ID:-v1}"
 # The broker mints against this track id. It defaults to this track's own slug,
 # `temporal-ai-agents-typescript`.
 #
-# HEADS UP: that slug is new. The current secret-broker CLI mints against the
-# track's own slug without any pre-registration, but older broker deployments
-# kept an allowlist. If this slug is not accepted you will see the failure only
-# at RUNTIME, as "Failed to start track" - because the mint runs under `set -e`
-# and aborts the whole lab start. The broker's own error (HTTP 404 = track id
-# not on the allowlist, HTTP 422 = request rejected) is visible by running
-# `instruqt track test` from the `instruqt/` directory, which prints the setup
-# log on failure.
+# No pre-registration is needed. The broker mints against whatever slug it is
+# given and uses it to attribute spend; a new slug works on first use. Confirmed
+# by the broker's owner, Michael Jones, in Slack on 2026-08-24: the whole setup
+# is the team-scoped secret plus this function.
 #
-# If that happens, get `temporal-ai-agents-typescript` registered with the
-# broker. Do NOT borrow another track's id as a workaround: per-track key
-# quotas are real and the borrowed id starts returning 422 once exhausted.
+# Do NOT borrow another track's id to "reuse" a working one - it merges this
+# lab's spend into that track's budget.
+#
+# The mint runs under `set -e`, so if it ever does fail the lab start aborts and
+# a learner sees only "Failed to start track". The broker's own error is visible
+# by running `instruqt track test` from the `instruqt/` directory, which prints
+# the setup log on failure.
 export INSTRUQT_LITELLM_TRACK_ID="${INSTRUQT_LITELLM_TRACK_ID:-${INSTRUQT_TRACK_SLUG:-temporal-ai-agents-typescript}}"
 
 # Model every challenge asks the gateway for. The TypeScript clients read
