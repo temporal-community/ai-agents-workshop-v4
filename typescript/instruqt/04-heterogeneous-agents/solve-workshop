@@ -3,9 +3,9 @@
 # Three processes: the TypeScript Workers, the Python travel-planner Worker, and
 # the client (which creates the Nexus endpoint pointing at the Python queue).
 # Runs the SOLUTION tree, never the attendee's exercise/.
-set -uo pipefail
+set -euxo pipefail
 
-cd /root/workshop/decouple-agents/solution || exit 0
+cd /root/workshop/decouple-agents/solution
 
 pkill -f "challenge4-heterogeneous-agents/worker.ts" 2>/dev/null || true
 pkill -f "python-travel-planner" 2>/dev/null || true
@@ -21,4 +21,3 @@ timeout 240 npm run c4:client -- "What should I know about visiting Monaco, and 
 
 pkill -f "challenge4-heterogeneous-agents/worker.ts" 2>/dev/null || true
 pkill -f "python-travel-planner" 2>/dev/null || true
-exit 0

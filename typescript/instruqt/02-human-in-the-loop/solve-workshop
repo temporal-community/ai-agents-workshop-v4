@@ -4,9 +4,9 @@
 #
 # `yes y` answers the client's `Approve the booking? [y/N]` prompt, which it
 # reads from stdin one line at a time.
-set -uo pipefail
+set -euxo pipefail
 
-cd /root/workshop/decouple-agents/solution || exit 0
+cd /root/workshop/decouple-agents/solution
 
 pkill -f "challenge2-human-in-the-loop/worker.ts" 2>/dev/null || true
 sleep 1
@@ -17,4 +17,3 @@ sleep 15
 yes y | timeout 180 npm run c2:client -- "Book me a trip to Barcelona on 2026-09-15."
 
 pkill -f "challenge2-human-in-the-loop/worker.ts" 2>/dev/null || true
-exit 0

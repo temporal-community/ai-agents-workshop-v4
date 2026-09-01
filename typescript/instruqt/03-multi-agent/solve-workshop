@@ -4,9 +4,9 @@
 #
 # The client creates the c3-travel-planner Nexus endpoint itself on first run,
 # so there is nothing to register here.
-set -uo pipefail
+set -euxo pipefail
 
-cd /root/workshop/decouple-agents/solution || exit 0
+cd /root/workshop/decouple-agents/solution
 
 pkill -f "challenge3-multi-agent/worker.ts" 2>/dev/null || true
 sleep 1
@@ -17,4 +17,3 @@ sleep 20
 timeout 180 npm run c3:client -- "What's the weather in Monaco, and what should I know about visiting?"
 
 pkill -f "challenge3-multi-agent/worker.ts" 2>/dev/null || true
-exit 0
