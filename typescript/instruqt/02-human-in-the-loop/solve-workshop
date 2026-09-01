@@ -14,6 +14,10 @@ sleep 1
 nohup npm run c2:worker > /tmp/solve-c2-worker.log 2>&1 &
 sleep 15
 
-yes y | timeout 180 npm run c2:client -- "Book me a trip to Barcelona on 2026-09-15."
+# Feed approvals by redirect, NOT `yes y | ...`. Under `set -o pipefail` a pipe
+# is a guaranteed status 141: `yes` outlives the client and dies of SIGPIPE, and
+# pipefail promotes that to a script failure even though the client exited 0.
+# Process substitution keeps `yes` out of the foreground pipeline.
+timeout 180 npm run c2:client -- "Book me a trip to Barcelona on 2026-09-15." < <(yes y)
 
 pkill -f "challenge2-human-in-the-loop/worker.ts" 2>/dev/null || true
