@@ -48,7 +48,8 @@ export async function triageAgentWorkflow(request: AgentRequest): Promise<string
     workflowExecutionTimeout: '5 minutes',
   });
 
-  // TODO 14: Build this with `nexusOperationAsTool(...)` against
+  // TODO 14: Build this with `nexusOperationAsTool(...)` — add it to the
+  // `@temporalio/openai-agents/workflow` import at the top — against
   // `travelPlannerService.operations.askTravelPlanner` and
   // `TRAVEL_PLANNER_ENDPOINT` — the same call you wrote in challenge 3.
   // Nothing about it says "Python". The handler behind this endpoint is a

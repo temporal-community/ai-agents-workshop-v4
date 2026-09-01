@@ -69,7 +69,8 @@ export async function triageAgentWorkflow(request: AgentRequest): Promise<string
     workflowExecutionTimeout: '5 minutes',
   });
 
-  // TODO 11: Build this tool with `nexusOperationAsTool(...)` instead:
+  // TODO 11: Build this tool with `nexusOperationAsTool(...)` instead — add it
+  // to the `@temporalio/openai-agents/workflow` import already at the top:
   //   operation  travelPlannerService.operations.askTravelPlanner
   //   definition same name/description, `parameters` a JSON schema with a
   //              required string `question`

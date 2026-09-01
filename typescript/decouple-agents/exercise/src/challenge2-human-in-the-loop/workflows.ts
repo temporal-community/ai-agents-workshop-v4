@@ -88,6 +88,10 @@ export async function tripApprovalWorkflow(input: ApprovalInput): Promise<string
   // history: `await continueAsNew<typeof tripApprovalWorkflow>({ ...input,
   // resumeFromRunState: result.state.toString() })`. That string is the whole
   // agent conversation, serialized — which is why the resumed run can pick up
-  // mid-tool-call. Nothing after continueAsNew ever runs.
+  // mid-tool-call.
+  //
+  // Nothing after continueAsNew ever runs, but TypeScript cannot see that, so
+  // finish the function with `throw new Error('unreachable')` or you get
+  // "Function lacks ending return statement" (TS2366).
   throw new Error('TODO 7b and 7c: wait for the approve Signal, then continue as new.');
 }

@@ -26,6 +26,9 @@ async function approve(handle: WorkflowHandle): Promise<boolean> {
   // TODO 8: Deliver the verdict with `await handle.signal(approveSignal)`.
   // A Signal, not an Update: the human is stating a fact, not asking a question,
   // and does not need to wait for the agent to finish reacting to it.
+  // Then log something and `return true` — this function is typed
+  // `Promise<boolean>` and the caller uses the verdict to decide whether to
+  // wait for the resumed answer. Without the return: TS2366.
   throw new Error('TODO 8: send the approve Signal to release the parked run.');
 }
 
