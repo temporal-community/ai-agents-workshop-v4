@@ -25,7 +25,6 @@ tags:
 owner: temporal
 developers:
 - nikolay.advolodkin@temporal.io
-maintenance: true
 skipping_enabled: true
 idle_timeout: 1800
 timelimit: 10800
@@ -49,5 +48,5 @@ lab_config:
   hideStopButton: false
   default_layout: AssignmentLeft
   default_layout_sidebar_size: 35
-checksum: "10271899965016877232"
+checksum: "8690135550864115943"
 enhanced_loading: false
