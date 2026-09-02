@@ -1,0 +1,34 @@
+{
+  "name": "decouple-agents-exercise",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Temporal + OpenAI Agents SDK workshop (TypeScript) \u2014 exercise",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "c1:worker": "ts-node src/challenge1-durable-agent/worker.ts",
+    "c1:client": "ts-node src/challenge1-durable-agent/client.ts",
+    "c2:worker": "ts-node src/challenge2-human-in-the-loop/worker.ts",
+    "c2:client": "ts-node src/challenge2-human-in-the-loop/client.ts",
+    "c3:worker": "ts-node src/challenge3-multi-agent/worker.ts",
+    "c3:client": "ts-node src/challenge3-multi-agent/client.ts",
+    "c4:worker": "ts-node src/challenge4-heterogeneous-agents/worker.ts",
+    "c4:client": "ts-node src/challenge4-heterogeneous-agents/client.ts"
+  },
+  "dependencies": {
+    "@openai/agents-core": "^0.11.6",
+    "@openai/agents-openai": "^0.11.6",
+    "@temporalio/activity": "^1.23.0",
+    "@temporalio/client": "^1.23.0",
+    "@temporalio/common": "^1.23.0",
+    "@temporalio/openai-agents": "^1.23.0",
+    "@temporalio/worker": "^1.23.0",
+    "@temporalio/workflow": "^1.23.0",
+    "nanoid": "3.x",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}

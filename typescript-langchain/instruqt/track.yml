@@ -1,0 +1,51 @@
+slug: temporal-ai-agents-langchain-typescript
+title: Build AI Agents That Survive Failure (TypeScript + LangChain)
+teaser: Take an OpenAI Agents SDK agent from a script that dies with its process to
+  a fleet of specialists, in two languages, that survive anything.
+description: |-
+  A hands-on workshop in TypeScript. You start with an ordinary OpenAI Agents
+  SDK agent and, over four challenges, make it durable, pause it for a human,
+  split it into independently deployable specialists that run in parallel, and
+  finally reach across a language boundary to a Python LangChain Deep Agent -
+  without the orchestrator ever knowing.
+
+  Each challenge adds exactly one capability, and each one ends in the Temporal
+  Web UI so you can see the shape of what you just built in the Event History.
+
+  Everything runs against one local Temporal dev server. There is no
+  infrastructure to provision and no API key to bring.
+icon: ""
+tags:
+- openai
+- ai-agents
+- langchain
+- deepagents
+- temporal
+- typescript
+owner: temporal
+developers:
+- nikolay.advolodkin@temporal.io
+skipping_enabled: true
+idle_timeout: 1800
+timelimit: 10800
+lab_config:
+  extend_ttl: 900
+  sidebar_enabled: true
+  feedback_recap_enabled: true
+  feedback_tab_enabled: true
+  loadingMessages:
+  - Ziggy is rehydrating after a 30-year nap...
+  - Ziggy is curling into a tun to ride out the cold start...
+  - Tardigrades are durable. Temporal Workflows are durable. Loading both...
+  - Ziggy is in cryptobiosis while the Namespaces come up...
+  - Ziggy is npm installing with all eight legs...
+  - Ziggy has outlived five mass extinctions. Your Worker will start any moment now...
+  - Ziggy is squinting at your Event History through tiny tardigrade eyes...
+  - Ziggy says Replay is for the durable, sleep is for the desiccated...
+  theme:
+    name: modern-dark
+  override_challenge_layout: true
+  hideStopButton: false
+  default_layout: AssignmentLeft
+  default_layout_sidebar_size: 35
+enhanced_loading: false
