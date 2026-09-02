@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from temporalio import workflow
+from temporalio.common import RetryPolicy
 from temporalio.contrib.deepagents import create_temporal_deep_agent, tool_as_activity
 
 # Imported at module scope with no workflow.unsafe.imports_passed_through() guard.
@@ -55,10 +56,23 @@ class TravelPlannerAgentWorkflow:
             model=f"openai:{request.model}",
             system_prompt=travel_planner.SYSTEM_PROMPT,
             tools=[
-                tool_as_activity(t, start_to_close_timeout=timedelta(seconds=30))
+                tool_as_activity(
+                    t,
+                    start_to_close_timeout=timedelta(seconds=30),
+                    # The retry policy goes INSIDE activity_options; there is no
+                    # top-level retry_policy kwarg on this helper.
+                    activity_options={"retry_policy": RetryPolicy(maximum_attempts=3)},
+                )
                 for t in travel_planner.TOOLS
             ],
-            activity_options={"start_to_close_timeout": timedelta(minutes=2)},
+            # Bounded retries, deliberately. Temporal's default is unlimited, which
+            # is usually right in production and wrong in a lab: a bad key or a
+            # rejected model retries forever, and the learner sees a client that
+            # hangs rather than an error that says what went wrong.
+            activity_options={
+                "start_to_close_timeout": timedelta(minutes=2),
+                "retry_policy": RetryPolicy(maximum_attempts=3),
+            },
         )
 
         result = await agent.ainvoke(
