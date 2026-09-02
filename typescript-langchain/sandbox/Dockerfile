@@ -3,12 +3,12 @@
 # workshop tree, and every dependency both trees need - so the first command an
 # attendee runs in the lab is fast rather than a five-minute install.
 #
-# BUILD CONTEXT IS `typescript/`, NOT THE REPO ROOT.
+# BUILD CONTEXT IS `typescript-langchain/`, NOT THE REPO ROOT.
 # The ignore file that keeps node_modules and .venv out of the context is
-# `typescript/.dockerignore`; a .dockerignore only applies at the root of the
+# `typescript-langchain/.dockerignore`; a .dockerignore only applies at the root of the
 # build context, which is why it lives there and not next to this file.
 #
-#   cd typescript
+#   cd typescript-langchain
 #   docker build --platform linux/amd64 \
 #       -f sandbox/Dockerfile \
 #       -t nadvolod/ai-agents-workshop-v4-ts-sandbox:latest .
