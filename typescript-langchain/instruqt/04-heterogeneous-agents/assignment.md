@@ -1,9 +1,10 @@
 ---
 slug: heterogeneous-agents
+id: hbvlhahqx95v
 type: challenge
 title: Heterogeneous Agents
-teaser: The travel specialist is now Python, built on LangChain Deep Agents,
-  started as an ordinary Child Workflow. The orchestrator never finds out.
+teaser: The travel specialist is now Python, built on LangChain Deep Agents, started
+  as an ordinary Child Workflow. The orchestrator never finds out.
 notes:
 - type: text
   contents: |-
@@ -26,23 +27,28 @@ notes:
     They agree on four names - and nothing checks that agreement at
     compile time, because no compiler can see both sides.
 tabs:
-- title: TypeScript Workers
+- id: lyg7xtyj7s9n
+  title: TypeScript Workers
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Python Worker
+- id: 2oek5mifudyr
+  title: Python Worker
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise/python-travel-planner
-- title: Client
+- id: 4rh8fnmted3r
+  title: Client
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Temporal UI
+- id: 9oyhpe62yhvx
+  title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- title: Editor
+- id: aebbhajceiw0
+  title: Editor
   type: service
   hostname: workshop
   path: /?folder=/root/workshop/decouple-agents

@@ -1,5 +1,6 @@
 ---
 slug: multi-agent
+id: jrablxnbyyfu
 type: challenge
 title: Multi-Agent
 teaser: A triage agent that answers nothing itself. Two specialists, two Workflow
@@ -31,19 +32,23 @@ notes:
     identical in the code and in the Event History. You only find it in the
     latency graph.
 tabs:
-- title: Workers
+- id: hkonrpgtl7am
+  title: Workers
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Client
+- id: loeezxd7lqzv
+  title: Client
   type: terminal
   hostname: workshop
   workdir: /root/workshop/decouple-agents/exercise
-- title: Temporal UI
+- id: xhstnrejlu7v
+  title: Temporal UI
   type: service
   hostname: workshop
   port: 8233
-- title: Editor
+- id: ra3sdajvyge2
+  title: Editor
   type: service
   hostname: workshop
   path: /?folder=/root/workshop/decouple-agents

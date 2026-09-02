@@ -1,4 +1,5 @@
 slug: temporal-ai-agents-langchain-typescript
+id: xrrtzzqsfe3o
 title: Build AI Agents That Survive Failure (TypeScript + LangChain)
 teaser: Take an OpenAI Agents SDK agent from a script that dies with its process to
   a fleet of specialists, in two languages, that survive anything.
@@ -16,12 +17,12 @@ description: |-
   infrastructure to provision and no API key to bring.
 icon: ""
 tags:
+- deepagents
 - openai
 - ai-agents
-- langchain
-- deepagents
 - temporal
 - typescript
+- langchain
 owner: temporal
 developers:
 - nikolay.advolodkin@temporal.io
@@ -48,4 +49,5 @@ lab_config:
   hideStopButton: false
   default_layout: AssignmentLeft
   default_layout_sidebar_size: 35
+checksum: "9385817609014992912"
 enhanced_loading: false
