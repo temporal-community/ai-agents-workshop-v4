@@ -1,6 +1,0 @@
-#!/bin/bash
-# ABOUTME: Challenge 0 cleanup. Leaves the Temporal server and code-server up;
-# they belong to the track, not to this challenge. The only thing this
-# challenge can leave behind is a loop still mid-conversation.
-pkill -f "challenge0-the-loop/agent-loop.ts" 2>/dev/null || true
-echo "Challenge 0 cleanup: OK"

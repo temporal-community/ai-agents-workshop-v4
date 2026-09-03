@@ -76,6 +76,80 @@ The editor saves as you type, so there is no save step. There is also nothing to
 > [!WARNING]
 > Both trees are visible in the file tree and their files have identical names. Check the path in the editor's title bar before you type. Editing `solution/` teaches you nothing and leaves `exercise/` broken.
 
+## First, watch it break
+
+Before you fix anything, see what you are fixing. There is a plain agent in the
+tree with no Temporal in it at all - one file, the `openai` client, and two
+functions that fetch coordinates and weather.
+
+Open `exercise/src/challenge0-the-loop/agent-loop.ts` in the
+[button label="Editor" background="#444CE7"](tab-3) tab and find this near the
+bottom:
+
+```ts,nocopy
+while (!done) {
+  const response = await callModel(messages);           // network I/O
+  if (response.toolCalls) {
+    const results = await runTools(response.toolCalls); // network I/O
+    messages.push(...results);
+  } else {
+    done = true;
+  }
+}
+```
+
+Two `await`s. They are the only lines in the file that touch anything outside
+this process. Everything else is bookkeeping: `messages` is an array, `done` is a
+boolean, the counters are numbers. All of it lives in one Node process's heap for
+exactly as long as that process is alive.
+
+**The conversation is a local variable.** Hold onto that.
+
+Run it in the [button label="Worker" background="#444CE7"](tab-0) terminal:
+
+```bash,run
+npm run c0:loop
+```
+
+It compares three cities, so it takes several turns. Each turn prints its token
+usage and a running total. It pauses a few seconds between turns - that pause is
+artificial, and it is there only so you have a window to interrupt.
+
+Now run it again and press **Ctrl+C** once the running total reaches three or
+four model calls:
+
+```bash,run
+npm run c0:loop
+```
+
+You get a receipt:
+
+```text,nocopy
+  model calls paid for and lost   3
+  tool calls already executed     3
+  tokens billed, then discarded   2016
+```
+
+Three different kinds of loss. The model calls completed and will be invoiced.
+The tool calls here were reads, so repeating them is merely wasteful - swap the
+weather lookup for something that charges a card and "already executed" stops
+being a rounding error. And the prompt tokens climb every turn, because turn four
+re-sends turns one through three, so dying late costs more than dying early.
+
+Run it a third time and watch it start from turn one. The turns you already paid
+for buy you nothing, because the new process has never heard of them.
+
+> **Where did the conversation go?** Nowhere. It was `messages`, a local in
+> `main()`. When the process exited, the heap went with it. That is not a bug in
+> the script - it is what "in memory" means, and it is true of every agent loop
+> that has not been given somewhere else to keep its state.
+
+Check the [button label="Temporal UI" background="#444CE7"](tab-2) tab: empty.
+Nothing you just ran left a trace outside a process that no longer exists.
+
+The rest of this challenge changes that, and it changes it by moving the loop -
+not the I/O - somewhere that survives.
+
 ## The two TODOs
 
 Both sit on the exact line they change. `exercise/README.md` has the index.
