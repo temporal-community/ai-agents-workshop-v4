@@ -86,7 +86,7 @@ Build the OpenAI-compatible provider from the environment. Nothing in this works
 
 **TODO 2** - `exercise/src/shared/weatherTools.ts`
 
-Two of the four weather Activities are already presented to the model as tools. Wrap the other two. Look at what `activityAsTool` is doing to the two that are already there: the model sees a tool, but the thing that actually runs is a Temporal Activity, scheduled by the Workflow and executed by the Worker.
+Three of the four weather Activities are already presented to the model as tools. Wrap the last one. Look at what `activityAsTool` is doing to the three above it: the model sees a tool, but the thing that actually runs is a Temporal Activity, scheduled by the Workflow and executed by the Worker.
 
 **TODO 3** - `exercise/src/challenge1-durable-agent/workflows.ts`
 
@@ -124,7 +124,7 @@ npm run c1:client -- "What is the weather in Barcelona?"
 
 A few seconds later you get Barcelona's current conditions in plain text.
 
-> **If the agent says it cannot look up weather:** TODO 2 is still open. It found your location happily - those two tools were already wired - but it has no way to geocode a city or fetch a forecast.
+> **If the agent finds the city but cannot say what the weather is:** TODO 2 is still open. It can locate a place happily - those three tools are already wired - but it has no way to fetch a forecast.
 
 ## Read the Event History
 
