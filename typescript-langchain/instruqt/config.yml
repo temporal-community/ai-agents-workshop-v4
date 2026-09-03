@@ -23,7 +23,7 @@ containers:
   # Apple Silicon machine) fails on Instruqt with an empty container log.
   #
   # Paste the printed digest below, keeping the `@sha256:` form.
-  image: nadvolod/ai-agents-workshop-v4-ts-sandbox-langchain@sha256:45f7d08ba449bedccd6265535168385d894e4d59c2e08a096bf4da0f95b9e448
+  image: nadvolod/ai-agents-workshop-v4-ts-sandbox-langchain@sha256:96a8af32608bdccba791a6c713d3f5923ad75c693562916ebde46a07e7c5d687
   shell: /bin/bash
   memory: 6144
   # Every port any challenge tab points at MUST be listed here. Instruqt's tab
