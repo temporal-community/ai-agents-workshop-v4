@@ -69,7 +69,6 @@ enhanced_loading: null
 > [!WARNING]
 > You work in `exercise/`. `solution/` is the finished copy and is right next to it in the file tree with all the same filenames - check the editor's title bar before you type.
 
-This challenge needs **TODO 1** (`exercise/src/shared/modelProvider.ts`) and **TODO 2** (`exercise/src/shared/weatherTools.ts`) from the previous challenge. Those two files are shared by all four. If you skipped the previous challenge, do them now.
 
 ## First, watch it misbehave
 
@@ -95,23 +94,23 @@ You said no. It booked the trip anyway. The prompt was theatre - the client aske
 
 ## The five TODOs
 
-**TODO 6** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
+**TODO 3** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
 
 One property on the `bookTrip` tool definition. It is the difference between the two behaviours you are comparing: with it, the Agents SDK refuses to execute the tool, ends the run early, and hands back an interruption describing what the model wanted to do.
 
-**TODO 7a** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
+**TODO 4a** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
 
 The resume branch, which runs in the *second* Execution: rehydrate the serialized run, mark the interruptions approved, and let the loop carry on. Note what does not happen here - the earlier turns are not replayed to the model. The conversation resumes mid-tool-call.
 
-**TODO 7b** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
+**TODO 4b** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
 
 Park the Workflow until the approval arrives. This is the line worth staring at: the Workflow Task completes and the Worker walks away. Nothing polls, nothing is scheduled, and the state lives on the Temporal server. You could delete every Worker in the fleet and the parked run would be waiting when new ones came up.
 
-**TODO 7c** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
+**TODO 4c** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
 
 Hand the paused run to a fresh Execution. `continueAsNew` closes the current Execution and starts a new one under the same Workflow ID with a short new history - the reason a Workflow that waited three days is no more expensive to resume than one that waited three seconds.
 
-**TODO 8** - `exercise/src/challenge2-human-in-the-loop/client.ts`
+**TODO 5** - `exercise/src/challenge2-human-in-the-loop/client.ts`
 
 Deliver the verdict as a Signal. The choice of primitive is the lesson: a Signal is one-way and does not wait for a reply, which is exactly the shape of "I approve this" - a fact, not a question.
 

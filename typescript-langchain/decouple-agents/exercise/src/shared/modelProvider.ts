@@ -23,11 +23,19 @@ export function modelName(): string {
  * and never commit one.
  */
 export function createModelProvider(): ModelProvider {
-  // TODO 1: Return `new OpenAIProvider({ apiKey, baseURL, useResponses: false })`
-  // built from `process.env.OPENAI_API_KEY` and the optional
-  // `process.env.OPENAI_BASE_URL`, throwing if the key is missing.
-  // Read them here and nowhere else: a hardcoded key would be committed, and
-  // the lab injects a different one at runtime. `useResponses: false` keeps the
-  // provider on Chat Completions, which every OpenAI-compatible gateway speaks.
-  throw new Error('TODO 1: build the OpenAIProvider from the environment.');
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not set. The lab injects it at runtime; export it before starting.');
+  }
+
+  // Optional: when unset the provider talks to api.openai.com.
+  const baseURL = process.env.OPENAI_BASE_URL;
+
+  return new OpenAIProvider({
+    apiKey,
+    baseURL,
+    // Chat Completions is the lowest common denominator across
+    // OpenAI-compatible gateways; the Responses API is not.
+    useResponses: false,
+  });
 }

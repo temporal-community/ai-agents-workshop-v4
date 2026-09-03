@@ -76,31 +76,33 @@ The editor saves as you type, so there is no save step. There is also nothing to
 > [!WARNING]
 > Both trees are visible in the file tree and their files have identical names. Check the path in the editor's title bar before you type. Editing `solution/` teaches you nothing and leaves `exercise/` broken.
 
-## The five TODOs
+## The two TODOs
 
-Work through them in order. They are numbered across the whole tree, and each sits on the exact line it changes. `exercise/README.md` has the index.
+Both sit on the exact line they change. `exercise/README.md` has the index.
 
-**TODO 1** - `exercise/src/shared/modelProvider.ts`
+The provider and the tool wrappers are already written for you. They are plumbing
+- reading a key from the environment, describing a function to a model - and
+neither is what this challenge is about.
 
-Build the OpenAI-compatible provider from the environment. Nothing in this workshop runs until this one is done, because every challenge routes its model calls through it. The lab has already injected a per-attendee key and gateway URL into your terminals; the reason it is read here, and only here, is that a hardcoded key gets committed and the lab's key is different every time anyway.
+**TODO 1** - `exercise/src/challenge1-durable-agent/workflows.ts`
 
-**TODO 2** - `exercise/src/shared/weatherTools.ts`
+The line that matters, and the one the loop you just broke has been waiting for.
+Replace the SDK's own `Runner` with `TemporalOpenAIRunner`. Same agent object,
+same loop, same tools - but the loop now runs inside a Workflow and every model
+call is dispatched out to an Activity.
 
-Three of the four weather Activities are already presented to the model as tools. Wrap the last one. Look at what `activityAsTool` is doing to the three above it: the model sees a tool, but the thing that actually runs is a Temporal Activity, scheduled by the Workflow and executed by the Worker.
+That is the whole integration: the bookkeeping moves across the boundary, the
+network I/O stays on the other side of it.
 
-**TODO 3** - `exercise/src/challenge1-durable-agent/workflows.ts`
+**TODO 2a** and **TODO 2b** - `worker.ts`, then `client.ts`
 
-The line that matters. Replace the SDK's own `Runner` with `TemporalOpenAIRunner`. Same agent object, same loop - but now each model call leaves history behind it.
+Register the plugin, in two places. On the Worker it installs the Activity that
+model calls are dispatched *to* - without it the Workflow has somewhere to send
+LLM calls and nothing listening. On the Client it carries the run configuration
+and trace context into the Workflow through a header set at start time, which the
+Worker's copy cannot do on the Workflow's behalf.
 
-**TODO 4** - `exercise/src/challenge1-durable-agent/worker.ts`
-
-Register the plugin on the Worker. It installs the Activity that model calls are dispatched *to*. Without it the Workflow has somewhere to send LLM calls and nothing listening.
-
-**TODO 5** - `exercise/src/challenge1-durable-agent/client.ts`
-
-Register the plugin on the Client too. It is not redundant: the Client is what carries the run configuration and trace context into the Workflow, through a header set at start time. The Worker's copy cannot do that on the Workflow's behalf.
-
-> Stuck on any of them? The same file under `solution/` is the answer.
+> Stuck? The same file under `solution/` is the answer.
 
 ## Start the Worker
 
@@ -112,7 +114,7 @@ npm run c1:worker
 
 It prints `Challenge 1 Worker polling c1-durable-agent-tq` and then sits there. That is correct - it is polling. Leave it and move on.
 
-> **If it exits instead:** read the error. `TODO 1: build the OpenAIProvider from the environment` means TODO 1 is still open. A TypeScript error means an edit did not compile - the file path in the message tells you which one.
+> **If it exits instead:** read the error. A TypeScript error means an edit did not compile, and the file path in the message tells you which one.
 
 ## Run it
 
@@ -124,7 +126,13 @@ npm run c1:client -- "What is the weather in Barcelona?"
 
 A few seconds later you get Barcelona's current conditions in plain text.
 
-> **If the agent finds the city but cannot say what the weather is:** TODO 2 is still open. It can locate a place happily - those three tools are already wired - but it has no way to fetch a forecast.
+> **If the run fails inside the Workflow before any model call:** TODO 1 is still
+> open. The SDK's own `Runner` reaches for the network from inside the Workflow
+> sandbox, which is exactly what a Workflow is not allowed to do.
+
+> **If the Workflow starts and then nothing happens:** TODO 2a is still open. The
+> Workflow is dispatching model calls to an Activity that no Worker has
+> registered, so they sit there unclaimed.
 
 ## Read the Event History
 

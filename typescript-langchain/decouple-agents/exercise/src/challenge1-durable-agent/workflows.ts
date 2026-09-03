@@ -23,7 +23,7 @@ export async function weatherAgentWorkflow(request: AgentRequest): Promise<strin
     tools: weatherTools(),
   });
 
-  // TODO 3: This is the Agents SDK's own Runner — the whole conversation lives
+  // TODO 1: This is the Agents SDK's own Runner — the whole conversation lives
   // in this process and dies with it. Swap it for `TemporalOpenAIRunner` from
   // `@temporalio/openai-agents/workflow`, passing the model as
   // `{ runConfig: { model: request.model } }` on `run(...)`. Same loop, same

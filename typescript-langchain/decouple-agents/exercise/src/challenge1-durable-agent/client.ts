@@ -11,7 +11,7 @@ async function run(): Promise<void> {
 
   const connection = await Connection.connect({ address: process.env.TEMPORAL_ADDRESS ?? 'localhost:7233' });
 
-  // TODO 5: Register `openAIAgentsPlugin()` here too. On the Client the plugin
+  // TODO 2b: Register `openAIAgentsPlugin()` here too. On the Client the plugin
   // propagates the model Activity configuration and the agent trace context
   // into the Workflow through a Workflow start header — the Worker's copy
   // cannot do that for it.

@@ -72,7 +72,7 @@ export async function triageAgentWorkflow(request: AgentRequest): Promise<string
     workflowExecutionTimeout: '5 minutes',
   });
 
-  // TODO 10: Replace this stub with a `childWorkflowAsTool({ ... })` call, the
+  // TODO 7: Replace this stub with a `childWorkflowAsTool({ ... })` call, the
   // same shape as `weatherTool` above but pointing at `travelSpecialistWorkflow`.
   // Keep the name and description below — the model routes on them.
   // Both specialists then run on SPECIALIST_TASK_QUEUE, as one deployment owned
@@ -83,11 +83,11 @@ export async function triageAgentWorkflow(request: AgentRequest): Promise<string
       'Delegate a destination or country question to the travel specialist. Pass the full question in plain English.',
     parameters: z.object({ question: z.string().describe('The travel question, in plain English') }),
     execute: async ({ question }) => {
-      throw new Error(`TODO 10: reach the travel specialist as a Child Workflow (${question})`);
+      throw new Error(`TODO 7: reach the travel specialist as a Child Workflow (${question})`);
     },
   });
 
-  // TODO 11: Make this fan out. Start one Child Workflow per city and run them
+  // TODO 8: Make this fan out. Start one Child Workflow per city and run them
   // all at once with `Promise.all(cities.map(...))`, then return one line per
   // city as `${city}: ${answer}`.
   //
@@ -106,7 +106,7 @@ export async function triageAgentWorkflow(request: AgentRequest): Promise<string
       cities: z.array(z.string()).describe('The cities to compare, e.g. ["Barcelona", "Tokyo"]'),
     }),
     execute: async ({ cities }) => {
-      throw new Error(`TODO 11: fan out across ${cities.length} cities with Promise.all`);
+      throw new Error(`TODO 8: fan out across ${cities.length} cities with Promise.all`);
     },
   });
 

@@ -52,12 +52,22 @@ export function weatherTools(): Tool[] {
       },
       { startToCloseTimeout },
     ),
-    // TODO 2: The agent can locate a city but still cannot say what the weather
-    // is there. Wrap the last Activity, `getWeather`, the same way the three
-    // above are wrapped.
-    //
-    // It takes two parameters, `latitude` and `longitude`, both numbers. The
-    // `parameters` schema is the only thing the model sees, so describe each
-    // field - a field the model cannot understand is a field it will guess at.
+    activityAsTool<typeof activities.getWeather>(
+      {
+        name: 'getWeather',
+        description:
+          'Get the current temperature in Fahrenheit, weather code and wind speed for a latitude/longitude pair.',
+        parameters: {
+          type: 'object',
+          properties: {
+            latitude: { type: 'number', description: 'Latitude of the location' },
+            longitude: { type: 'number', description: 'Longitude of the location' },
+          },
+          required: ['latitude', 'longitude'],
+          additionalProperties: false,
+        },
+      },
+      { startToCloseTimeout },
+    ),
   ];
 }

@@ -15,7 +15,7 @@ async function run(): Promise<void> {
       taskQueue: TASK_QUEUE,
       workflowsPath: require.resolve('./workflows'),
       activities,
-      // TODO 4: Add `openAIAgentsPlugin()` to this list. It registers the model
+      // TODO 2a: Add `openAIAgentsPlugin()` to this list. It registers the model
       // Activity that TemporalOpenAIRunner dispatches to; without it the
       // Workflow has nothing to send LLM calls to.
       plugins: [],

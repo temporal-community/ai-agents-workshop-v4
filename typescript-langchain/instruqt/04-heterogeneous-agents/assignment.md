@@ -71,7 +71,7 @@ enhanced_loading: null
 > [!WARNING]
 > You work in `exercise/`. `solution/` sits beside it with identical filenames - check the editor's title bar before you type.
 
-This challenge needs **TODO 1** (`exercise/src/shared/modelProvider.ts`), **TODO 2** (`exercise/src/shared/weatherTools.ts`) and **TODO 9** (`exercise/src/shared/childWorkflowAsTool.ts`) from the earlier challenges.
+This challenge needs **TODO 6** (`exercise/src/shared/childWorkflowAsTool.ts`) from challenge 3.
 
 ## What changed since the last challenge
 
@@ -102,7 +102,7 @@ Two things in there are worth your attention before you write any TypeScript.
 
 ## The one TODO
 
-**TODO 13** - `exercise/src/challenge4-heterogeneous-agents/workflows.ts`
+**TODO 10** - `exercise/src/challenge4-heterogeneous-agents/workflows.ts`
 
 Reach the Python specialist.
 

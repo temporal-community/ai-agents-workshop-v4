@@ -38,7 +38,7 @@ function buildAgent(): Agent {
       destination: z.string().describe('City to travel to.'),
       departureDate: z.string().describe('Departure date as YYYY-MM-DD.'),
     }),
-    // TODO 6: Add `needsApproval: true` here. It is the one line that makes
+    // TODO 3: Add `needsApproval: true` here. It is the one line that makes
     // this human-in-the-loop: when the model asks for this tool the Agents SDK
     // does not run it, it stops the run and hands back an interruption.
     // Run the challenge before you add it and watch the agent book unsupervised.
@@ -57,14 +57,14 @@ export async function tripApprovalWorkflow(input: ApprovalInput): Promise<string
   const runner = new TemporalOpenAIRunner();
 
   if (input.resumeFromRunState !== undefined) {
-    // TODO 7a: This is the second Execution: a human approved and the paused run
+    // TODO 4a: This is the second Execution: a human approved and the paused run
     // arrived as a string. Rehydrate it with
     // `await RunState.fromString(agent, input.resumeFromRunState)`, call
     // `state.approve(interruption)` for each `state.getInterruptions()`, then
     // `await runner.run(agent, state, { runConfig: { model: input.model } })`
     // and return its `finalOutput`. The earlier turns are not repeated — the
     // loop carries on from exactly where it stopped.
-    throw new Error('TODO 7a: rehydrate the run from input.resumeFromRunState.');
+    throw new Error('TODO 4a: rehydrate the run from input.resumeFromRunState.');
   }
 
   let approved = false;
@@ -79,12 +79,12 @@ export async function tripApprovalWorkflow(input: ApprovalInput): Promise<string
     return result.finalOutput ?? '';
   }
 
-  // TODO 7b: Park until the human approves: `await condition(() => approved)`.
+  // TODO 4b: Park until the human approves: `await condition(() => approved)`.
   // The Workflow Task completes, the Worker moves on to other work, and the
   // state lives on the Temporal server. Nothing polls and nothing is paid for;
   // the Worker could be replaced entirely and the run would still resume.
 
-  // TODO 7c: Then hand the paused run to a fresh Execution with a fresh, short
+  // TODO 4c: Then hand the paused run to a fresh Execution with a fresh, short
   // history: `await continueAsNew<typeof tripApprovalWorkflow>({ ...input,
   // resumeFromRunState: result.state.toString() })`. That string is the whole
   // agent conversation, serialized — which is why the resumed run can pick up
@@ -93,5 +93,5 @@ export async function tripApprovalWorkflow(input: ApprovalInput): Promise<string
   // Nothing after continueAsNew ever runs, but TypeScript cannot see that, so
   // finish the function with `throw new Error('unreachable')` or you get
   // "Function lacks ending return statement" (TS2366).
-  throw new Error('TODO 7b and 7c: wait for the approve Signal, then continue as new.');
+  throw new Error('TODO 4b and 7c: wait for the approve Signal, then continue as new.');
 }
