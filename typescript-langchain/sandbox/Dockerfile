@@ -87,6 +87,12 @@ RUN curl -sSf https://temporal.download/cli.sh | sh \
 
 ENV PATH="${PATH}:/root/.temporalio/bin"
 
+# ── 4b. Architecture diagram ──────────────────────────────────────────────────
+# Kept outside the challenge folders on purpose: Instruqt parses every file
+# inside a challenge directory as a lifecycle script.
+COPY diagrams/ /opt/diagrams/
+COPY sandbox/serve-diagrams.mjs /opt/serve-diagrams.mjs
+
 # ── 5. Workshop source ────────────────────────────────────────────────────────
 # Both trees: exercise/ (the attendee's) and solution/ (the reference). One
 # editor tab opens the parent directory, so both must be present.

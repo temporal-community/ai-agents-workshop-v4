@@ -113,6 +113,15 @@ nohup code-server \
     "${WORKSHOP_DIR}" \
     > /tmp/code-server.log 2>&1 &
 
+# 1b. Serve the parked-workflow diagram on 8090.
+#
+# The port MUST also be listed under `ports:` in config.yml, or Instruqt's proxy
+# cannot reach it and the tab shows "Please wait" forever.
+if ! curl -sf -o /dev/null "http://127.0.0.1:8090/" 2>/dev/null; then
+    nohup node /opt/serve-diagrams.mjs > /tmp/diagrams.log 2>&1 &
+    disown || true
+fi
+
 # 2. Wait for Temporal health.
 for _ in $(seq 1 60); do
     if temporal operator cluster health --address 127.0.0.1:7233 >/dev/null 2>&1; then

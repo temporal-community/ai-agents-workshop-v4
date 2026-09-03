@@ -1,0 +1,1143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Challenge 2 · What "Running" Means While Parked</title>
+<style>
+  /* Every custom property is declared in all four scopes: the bare :root
+     default, the prefers-color-scheme dark block, and both explicit
+     :root[data-theme=...] overrides, which must win in either direction. */
+  :root {
+    --bg: #eef1f5;
+    --bg-grid: #e2e7ee;
+    --panel: #ffffff;
+    --panel-2: #f7f9fc;
+    --ink: #18202e;
+    --muted: #5b6676;
+    --faint: #626d7d;
+    --line: #d3dae3;
+    --line-strong: #b9c2ce;
+    /* Exactly three hues carry meaning. Each one names an actor lane, and the
+       edges an actor drives take that same hue. Nothing else is colored. */
+    --accent: #5457d6;      /* worker fleet · work in flight · selection ring */
+    --accent-ink: #4548c2;  /* the same channel, at text weight */
+    --hitl: #c9791b;        /* human / client */
+    --hitl-ink: #8a4f06;
+    --srv: #0f9d94;         /* temporal server · durable state */
+    --srv-ink: #0a6f69;
+    --lane-tq: #54708c;     /* neutral lane furniture, never a category */
+    --on-accent: #ffffff;
+    --warn-bg: #8a4f06;
+    --warn-ink: #ffffff;
+    /* Syntax palette, independent of the diagram hues. */
+    --syn-kw: #0b4fbd;
+    --syn-fn: #795e26;
+    --syn-str: #a31515;
+    --syn-num: #0a6e48;
+    --syn-com: #008000;
+    --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
+    --radius: 13px;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
+      --ink: #e6ebf2; --muted: #93a0b1; --faint: #8593a5;
+      --line: #29323f; --line-strong: #3d4757;
+      --accent: #8b8ff5; --accent-ink: #8b8ff5;
+      --hitl: #f0a848; --hitl-ink: #f0a848;
+      --srv: #3ad6ce; --srv-ink: #3ad6ce;
+      --lane-tq: #8ba3bd; --on-accent: #141922;
+      --warn-bg: #f0a848; --warn-ink: #141922;
+      --syn-kw: #569cd6; --syn-fn: #dcdcaa; --syn-str: #ce9178;
+      --syn-num: #b5cea8; --syn-com: #6a9955;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+      --radius: 13px;
+      --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #eef1f5; --bg-grid: #e2e7ee; --panel: #ffffff; --panel-2: #f7f9fc;
+    --ink: #18202e; --muted: #5b6676; --faint: #626d7d;
+    --line: #d3dae3; --line-strong: #b9c2ce;
+    --accent: #5457d6; --accent-ink: #4548c2;
+    --hitl: #c9791b; --hitl-ink: #8a4f06;
+    --srv: #0f9d94; --srv-ink: #0a6f69;
+    --lane-tq: #54708c; --on-accent: #ffffff;
+    --warn-bg: #8a4f06; --warn-ink: #ffffff;
+    --syn-kw: #0b4fbd; --syn-fn: #795e26; --syn-str: #a31515;
+    --syn-num: #0a6e48; --syn-com: #008000;
+    --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
+    --radius: 13px;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117; --bg-grid: #131a24; --panel: #161d28; --panel-2: #1b2432;
+    --ink: #e6ebf2; --muted: #93a0b1; --faint: #8593a5;
+    --line: #29323f; --line-strong: #3d4757;
+    --accent: #8b8ff5; --accent-ink: #8b8ff5;
+    --hitl: #f0a848; --hitl-ink: #f0a848;
+    --srv: #3ad6ce; --srv-ink: #3ad6ce;
+    --lane-tq: #8ba3bd; --on-accent: #141922;
+    --warn-bg: #f0a848; --warn-ink: #141922;
+    --syn-kw: #569cd6; --syn-fn: #dcdcaa; --syn-str: #ce9178;
+    --syn-num: #b5cea8; --syn-com: #6a9955;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+    --radius: 13px;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 1px 1px, var(--bg-grid) 1px, transparent 0) 0 0 / 26px 26px,
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1560px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  header.masthead { margin-bottom: 22px; }
+  .eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin: 0 0 8px; }
+  h1 { font-size: clamp(26px, 4vw, 40px); line-height: 1.08; margin: 0; letter-spacing: -.02em; text-wrap: balance; font-weight: 700; }
+  .standfirst { margin: 12px 0 0; max-width: 74ch; font-size: 15px; color: var(--muted); }
+  .standfirst b { color: var(--ink); font-weight: 600; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 20px 0 16px; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .controls .clabel { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+  .legItem { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: var(--ink); padding: 5px 11px 5px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); user-select: none; font-family: var(--sans); transition: opacity .15s, border-color .15s; }
+  .legItem:hover { border-color: var(--line-strong); }
+  .legItem.off { opacity: .38; }
+  .legItem .swatch { width: 22px; height: 0; border-top-width: 3px; border-top-style: solid; border-radius: 3px; }
+  .legItem.dashed .swatch { border-top-style: dashed; }
+  .legItem[data-cat="work"]  .swatch { border-color: var(--accent); }
+  .legItem[data-cat="human"] .swatch { border-color: var(--hitl); }
+  .legItem[data-cat="state"] .swatch { border-color: var(--srv); }
+  .legItem[data-cat="poll"]  .swatch { border-color: var(--line-strong); }
+  .spacer { flex: 1 1 auto; }
+  .btn { font-family: var(--sans); font-size: 12.5px; font-weight: 500; cursor: pointer; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); padding: 6px 13px; border-radius: 8px; transition: border-color .15s; }
+  .btn:hover { border-color: var(--line-strong); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn:focus-visible, .legItem:focus-visible, .node:focus-visible, .lane:focus-visible, .stepchip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .stage { display: grid; grid-template-columns: minmax(0,1fr) 352px; gap: 20px; align-items: start; }
+  /* Below this width the side-by-side split starves the canvas, so the detail
+     panel drops underneath and the diagram gets the full pane width. */
+  @media (max-width: 1560px) {
+    .stage { grid-template-columns: minmax(0,1fr); }
+    aside.detail { position: static; }
+  }
+
+  .canvasScroll { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: auto; position: relative; }
+  .canvasViewport { position: relative; margin: 0 auto; }
+  .canvas { position: relative; width: 1160px; height: 1195px; transform-origin: top left; }
+
+  .zoomgrp { display: inline-flex; align-items: center; gap: 6px; }
+  .zoomlabel { font-family: var(--mono); font-size: 11.5px; color: var(--muted); min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
+  .btn.zoombtn { min-width: 30px; padding: 5px 9px; font-size: 14px; line-height: 1; }
+
+  svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
+  svg.edges path { fill: none; transition: opacity .18s, stroke-width .18s; }
+  svg.edges .elabel { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; transition: opacity .18s; }
+  .edge-work  { stroke: var(--accent); }
+  .edge-human { stroke: var(--hitl); }
+  .edge-state { stroke: var(--srv); }
+  .edge-poll  { stroke: var(--line-strong); stroke-dasharray: 5 5; }
+  path.dim, text.dim { opacity: .1 !important; }
+  path.hot { stroke-width: 3.2px !important; }
+
+  /* actor lanes */
+  .lane { position: absolute; z-index: 1; border-radius: 14px; cursor: pointer; overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--lane-color) 30%, var(--line));
+    background: color-mix(in srgb, var(--lane-color) 5%, var(--panel));
+    transition: box-shadow .15s; }
+  .lane:hover { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lane-color) 45%, transparent); }
+  .lane.lit { box-shadow: inset 0 0 0 2.5px var(--lane-color); }
+  .lane-head { display: flex; align-items: center; gap: 9px; padding: 8px 14px; background: var(--panel-2); border-bottom: 1px solid var(--line); pointer-events: none; }
+  .lane-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--lane-color); flex: none; }
+  .lane-kicker { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 700; }
+  .lane-name { font-family: var(--mono); font-size: 14.5px; font-weight: 700; color: var(--ink); }
+  .lane-tag { font-size: 11px; color: var(--muted); margin-left: auto; font-family: var(--mono); text-align: right; }
+
+  /* step ribbon inside the canvas: the "over time" axis */
+  .stepchip { position: absolute; z-index: 3; cursor: pointer; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 13px; font-family: var(--sans); box-shadow: var(--shadow); transition: border-color .15s, box-shadow .15s, opacity .18s; }
+  .stepchip .sn { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); font-weight: 700; }
+  .stepchip .st { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink); margin-top: 1px; }
+  .stepchip .sd { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stepchip.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+  .stepchip.key .sn { color: var(--hitl-ink); }
+  .stepaxis { position: absolute; z-index: 1; height: 0; border-top: 1px dashed var(--line-strong); }
+  .axiscap { position: absolute; z-index: 1; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+
+  /* nodes */
+  .node { position: absolute; z-index: 3; cursor: pointer; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-left-width: 4px; border-radius: 10px; padding: 9px 12px; box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s, opacity .18s, border-color .15s; font-family: var(--sans); }
+  .node:hover { transform: translateY(-2px); }
+  .node .ntype { font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .node .nname { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--ink); margin-top: 2px; word-break: break-word; }
+  .node .nsub { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: var(--mono); white-space: pre; }
+  .node .nnote { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+
+  /* code blocks: authored line breaks, rendered pre, never reflowed */
+  .node .ncode { font-family: var(--mono); font-size: 10.5px; line-height: 1.6; white-space: pre; color: var(--muted); margin-top: 4px; }
+  .ncode .ck { color: var(--syn-kw); }
+  .ncode .cf { color: var(--syn-fn); }
+  .ncode .cs { color: var(--syn-str); }
+  .ncode .cm { color: var(--syn-com); font-style: italic; }
+  .ncode .cnum { color: var(--syn-num); }
+
+  /* event history list */
+  .hlist { margin-top: 5px; font-family: var(--mono); font-size: 10.5px; line-height: 1.62; }
+  .hev { display: flex; gap: 8px; color: var(--muted); transition: opacity .2s; }
+  .hev .hi { color: var(--faint); min-width: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+  .hev .hx { color: var(--faint); }
+  .hev.off { opacity: .16; }
+  .hev.park { color: var(--hitl-ink); font-weight: 700; }
+  .hev.sig  { color: var(--hitl-ink); font-weight: 700; }
+
+  /* cost tally */
+  .stats { margin-top: 6px; display: grid; grid-template-columns: 44px 1fr; gap: 2px 10px; font-family: var(--mono); font-size: 11.5px; }
+  .stats .sv { font-weight: 700; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+  .stats .sk { color: var(--muted); }
+  .stats .sv.zero { color: var(--srv-ink); }
+  .costline { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--ink); line-height: 1.5; }
+
+  /* group row: colored dot carries identity, label stays in muted ink */
+  .node .ngroup { display: flex; align-items: center; gap: 5px; margin-top: 7px; font-family: var(--mono); font-size: 9.5px; color: var(--faint); }
+  .gdot { width: 7px; height: 7px; border-radius: 50%; background: var(--gc, var(--line-strong)); flex: none; }
+  .node[data-group="human"]  { --gc: var(--hitl); }
+  .node[data-group="server"] { --gc: var(--srv); }
+  .node[data-group="worker"] { --gc: var(--accent); }
+  .node[data-group="note"]   { --gc: var(--line-strong); }
+  .legItem[data-group="human"]  .gdot { background: var(--hitl); }
+  .legItem[data-group="server"] .gdot { background: var(--srv); }
+  .legItem[data-group="worker"] .gdot { background: var(--accent); }
+  .legItem[data-group="note"]   .gdot { background: var(--line-strong); }
+  .legItem .gdot { width: 9px; height: 9px; }
+  .legItem.on { border-color: var(--line-strong); background: var(--panel); box-shadow: inset 0 0 0 1px var(--line-strong); font-weight: 600; }
+
+  .node[data-hue="human"]  { border-left-color: var(--hitl); }
+  .node[data-hue="server"] { border-left-color: var(--srv); }
+  .node[data-hue="worker"] { border-left-color: var(--accent); }
+  .node[data-hue="muted"]  { border-left-color: var(--line-strong); }
+  .node.dim { opacity: .2; }
+  .node.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+  .node.neighbor { box-shadow: 0 0 0 1.5px var(--line-strong), var(--shadow); }
+  .node.groupLit { box-shadow: 0 0 0 2px var(--gc), var(--shadow); }
+
+  /* flow states */
+  .node.flow-on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); z-index: 4; }
+  .node.flow-soft { opacity: .62; border-style: dashed; }
+  /* the parked frame: worker boxes are emptied, not merely dimmed */
+  .node.flow-empty { opacity: .3; border-style: dashed; border-left-color: var(--line-strong); box-shadow: none; }
+  .node.flow-empty .nname, .node.flow-empty .nsub, .node.flow-empty .nnote { filter: grayscale(1); }
+  .node .emptied { display: none; }
+  .node.flow-empty .emptied { display: block; margin-top: 6px; font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+  .node.flow-empty .liveonly { visibility: hidden; }
+
+  .stepbadge { position: absolute; z-index: 6; background: var(--accent); color: var(--on-accent); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; box-shadow: var(--shadow); white-space: nowrap; font-family: var(--sans); }
+  .stepbadge.warn { background: var(--warn-bg); color: var(--warn-ink); }
+
+  @keyframes flowdash { to { stroke-dashoffset: -26; } }
+  @keyframes flowdashrev { to { stroke-dashoffset: 26; } }
+  svg.edges path.flowing { opacity: 1 !important; stroke-width: 3.4px !important; stroke-dasharray: 7 6; animation: flowdash .85s linear infinite; }
+  svg.edges path.flowing.rev { animation: flowdashrev .85s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { svg.edges path.flowing { animation: none; } }
+
+  /* detail panel */
+  aside.detail { position: sticky; top: 20px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; min-height: 300px; }
+  .detail .placeholder { color: var(--muted); font-size: 14px; }
+  .detail .placeholder strong { color: var(--ink); }
+  .detail .placeholder .q { display: block; margin: 12px 0; padding-left: 12px; border-left: 3px solid var(--hitl); color: var(--ink); font-size: 14px; }
+  .badge { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; }
+  .badge.human  { background: color-mix(in srgb, var(--hitl) 18%, var(--panel)); color: var(--hitl-ink); }
+  .badge.server { background: color-mix(in srgb, var(--srv) 18%, var(--panel)); color: var(--srv-ink); }
+  .badge.worker { background: color-mix(in srgb, var(--accent) 16%, var(--panel)); color: var(--accent-ink); }
+  .badge.muted  { background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); }
+  .detail h2 { font-family: var(--mono); font-size: 17px; margin: 12px 0 3px; letter-spacing: -.01em; word-break: break-word; }
+  .detail .file { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-bottom: 14px; }
+  .detail .file b { color: var(--muted); }
+  .detail p.desc { font-size: 13.5px; color: var(--ink); margin: 0 0 15px; }
+  .detail .sec { font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin: 16px 0 7px; }
+  .members, .rellist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  .members li { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 5px 9px; }
+  .rellist button { all: unset; cursor: pointer; display: flex; align-items: center; gap: 7px; width: 100%; font-family: var(--mono); font-size: 12px; color: var(--ink); padding: 5px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel-2); box-sizing: border-box; }
+  .rellist button:hover { border-color: var(--line-strong); }
+  .rellist button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .rellist .rel-arrow { font-size: 13px; opacity: .8; }
+  .rellist .rel-kind { margin-left: auto; font-family: var(--sans); font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); white-space: nowrap; }
+  .snippet { font-family: var(--mono); font-size: 11.5px; line-height: 1.6; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 11px 12px; overflow-x: auto; white-space: pre; margin-top: 4px; }
+  .snippet .ck { color: var(--syn-kw); }
+  .snippet .cf { color: var(--syn-fn); }
+  .snippet .cs { color: var(--syn-str); }
+  .snippet .cm { color: var(--syn-com); font-style: italic; }
+  .snippet .cnum { color: var(--syn-num); }
+
+  /* step player */
+  .flowbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 16px; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.06); border-color: var(--accent); }
+  .flowbtn { min-width: 38px; text-align: center; font-size: 14px; padding: 6px 10px; }
+  .flowstep { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .flownarr { flex: 1 1 340px; min-width: 250px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .flowphase { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-ink); background: color-mix(in srgb, var(--accent) 14%, var(--panel)); padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .flowcap { font-size: 13px; color: var(--ink); }
+  .flowpayload { font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; }
+  .flowbar.idle .flowphase, .flowbar.idle .flowpayload { display: none; }
+  .flowbar.idle .flowcap { color: var(--muted); }
+
+  footer { margin-top: 26px; font-size: 12px; color: var(--faint); text-align: center; }
+  footer code { font-family: var(--mono); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">Challenge 2 · Human in the loop</p>
+    <h1>What "Running" means while the Workflow is parked</h1>
+    <p class="standfirst">The Temporal UI says <b>Running</b>. No process holds the conversation and no timer counts down. What is actually running is a <b>row on the Temporal server</b> and the <b>history</b> that produced it. Step through the four frames below and watch the Worker lane empty out.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Diagram controls">
+    <span class="clabel">Edges</span>
+    <div class="legend" id="legend">
+      <button class="legItem" data-cat="work"  type="button" aria-pressed="true"><span class="swatch"></span>Workflow Task</button>
+      <button class="legItem" data-cat="human" type="button" aria-pressed="true"><span class="swatch"></span>Human &amp; Signal</button>
+      <button class="legItem" data-cat="state" type="button" aria-pressed="true"><span class="swatch"></span>Durable state</button>
+      <button class="legItem dashed" data-cat="poll" type="button" aria-pressed="true"><span class="swatch"></span>Idle long-poll</button>
+    </div>
+    <span class="clabel">Lanes</span>
+    <div class="legend" id="groupLegend">
+      <button class="legItem" data-group="human"  type="button"><span class="gdot"></span>Human / Client</button>
+      <button class="legItem" data-group="server" type="button"><span class="gdot"></span>Temporal Server</button>
+      <button class="legItem" data-group="worker" type="button"><span class="gdot"></span>Worker fleet</button>
+      <button class="legItem" data-group="note"   type="button"><span class="gdot"></span>Source &amp; tally</button>
+    </div>
+    <span class="spacer"></span>
+    <span class="zoomgrp" role="group" aria-label="Zoom">
+      <button class="btn zoombtn" id="zoomOut" type="button" aria-label="Zoom out">&minus;</button>
+      <span class="zoomlabel" id="zoomLabel">100%</span>
+      <button class="btn zoombtn" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+      <button class="btn" id="zoomFit" type="button">Fit</button>
+    </span>
+    <button class="btn" id="resetBtn" type="button">Reset view</button>
+  </div>
+
+  <div class="flowbar idle" id="flowbar" role="group" aria-label="Step player">
+    <button class="btn primary flowbtn" id="flowPlay" type="button">&#9654; Play</button>
+    <button class="btn flowbtn" id="flowPrev" type="button" aria-label="Previous step" disabled>&#9664;</button>
+    <span class="flowstep" id="flowStep">step &mdash; / &mdash;</span>
+    <button class="btn flowbtn" id="flowNext" type="button" aria-label="Next step">&#9654;</button>
+    <div class="flownarr">
+      <span class="flowphase" id="flowPhase"></span>
+      <span class="flowcap" id="flowCap">Four frames of one run: <b>Running</b>, <b>Parked</b>, <b>Signal arrives</b>, <b>Resumed</b>. Step 2 is the one to look at.</span>
+      <code class="flowpayload" id="flowPayload"></code>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="canvasScroll">
+      <div class="canvasViewport" id="viewport">
+        <div class="canvas" id="canvas">
+          <svg class="edges" id="edges" viewBox="0 0 1160 1195" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <!-- lanes, steps and nodes injected here -->
+        </div>
+      </div>
+    </div>
+
+    <aside class="detail" id="detail" aria-live="polite">
+      <div class="placeholder">
+        <p><strong>Select any box</strong> to inspect it, or press Play to walk the four frames.</p>
+        <span class="q">You parked a Workflow on a human approval and the UI marks it Running. Nothing holds the conversation and nothing counts down. What exactly is running?</span>
+        <p>The answer is on the middle lane. Everything on the bottom lane is gone the moment the Workflow Task completes.</p>
+      </div>
+    </aside>
+  </div>
+
+  <footer>Reflects <code>decouple-agents/solution/src/challenge2-human-in-the-loop/</code> · one Task Queue: <code>c2-human-in-the-loop-tq</code>.</footer>
+</div>
+
+<script>
+"use strict";
+
+const canvas = document.getElementById("canvas");
+const svg = document.getElementById("edges");
+const SVGNS = "http://www.w3.org/2000/svg";
+
+/* One fixed coordinate space. Every position below is authored in it; the whole
+   canvas is scaled to fit the pane instead of reflowing. */
+const CANVAS_W = 1160, CANVAS_H = 1195;
+
+/* ---------------- actor lanes ---------------- */
+const LANES = [
+  { id:"lane-human", key:"human", x:20, y:112, w:1120, h:186,
+    kicker:"Lane 1", name:"Human / Client", tag:"a terminal and a person",
+    detail:{ badge:"human", type:"Actor lane", name:"Human / Client",
+      file:"challenge2-human-in-the-loop/client.ts", tq:"not on any Task Queue",
+      desc:"The starter process and the person reading it. Neither one is holding the Workflow. The client can exit and come back later with --approve, because the run it is approving does not live in the client.",
+      members:["client.workflow.start(tripApprovalWorkflow, ...)","prints the proposed booking","reads y / N from the keyboard","handle.signal(approveSignal)"] } },
+  { id:"lane-server", key:"server", x:20, y:318, w:1120, h:358,
+    kicker:"Lane 2", name:"Temporal Server", tag:"the only thing that persists across the pause",
+    detail:{ badge:"server", type:"Actor lane", name:"Temporal Server",
+      file:"localhost:7233 · UI on localhost:8233", tq:"owns c2-human-in-the-loop-tq",
+      desc:"A row and its history. While the run is parked this lane is the entire Workflow. It holds the Execution record, the append-only history, and a Task Queue with nothing on it. It schedules a Workflow Task only when a new event demands one.",
+      members:["Workflow Execution row · status Running","Append-only event history","Task Queue c2-human-in-the-loop-tq","Schedules a Workflow Task when an event lands"] } },
+  { id:"lane-worker", key:"worker", x:20, y:696, w:1120, h:212,
+    kicker:"Lane 3", name:"Worker fleet", tag:"interchangeable · any one of them will do",
+    detail:{ badge:"worker", type:"Actor lane", name:"Worker fleet",
+      file:"challenge2-human-in-the-loop/worker.ts", tq:"polls c2-human-in-the-loop-tq",
+      desc:"Stateless processes that long-poll the Task Queue. A Worker holds a Workflow only for the duration of one Workflow Task. When that task completes the Worker forgets the run entirely, which is why any Worker can pick it up next and why none of them grows with the number of parked runs.",
+      members:["Long-polls the Task Queue","Holds a run only during a Workflow Task","Rebuilds state by replaying history","Can be restarted, scaled, or replaced mid-pause"] } },
+];
+
+/* ---------------- the four frames, as an axis across the top ---------------- */
+const STEPCHIPS = [
+  { i:0, x:20,  y:16, w:274, h:70, t:"Running",        d:"a Worker holds the task" },
+  { i:1, x:302, y:16, w:274, h:70, t:"Parked",         d:"the Worker lane empties", key:true },
+  { i:2, x:584, y:16, w:274, h:70, t:"Signal arrives", d:"one new event" },
+  { i:3, x:866, y:16, w:274, h:70, t:"Resumed",        d:"a different Worker" },
+];
+
+/* ---------------- nodes ---------------- */
+const NODES = [
+  /* --- lane 1 : human / client --- */
+  { id:"client", lane:"lane-human", group:"human", hue:"human", x:48, y:164, w:310,
+    type:"Client process", name:"c2:client", sub:"npm run c2:client",
+    note:"Starts the run, prints the proposed booking, waits on a keyboard. It may exit; the run does not care.",
+    file:"client.ts · run()", tq:"targets c2-human-in-the-loop-tq",
+    desc:"The starter. It begins the Execution on the Task Queue, then asks the person to approve. Its own lifetime is unrelated to the Workflow's. Closing the terminal parks nothing extra and loses nothing, because the client was never holding the run.",
+    members:["client.workflow.start(tripApprovalWorkflow, ...)","workflowId: c2-approval-<id>","--approve <workflowId> reconnects later","await handle.result() after the Signal"] },
+
+  { id:"human", lane:"lane-human", group:"human", hue:"human", x:420, y:164, w:290,
+    type:"The one input you cannot retry", name:"A person", sub:"decides · takes as long as needed",
+    note:"Minutes, or a weekend. The run costs the same either way, so nothing pushes you to hurry them.",
+    file:"outside the system", tq:"—",
+    desc:"Attention is the one input an agent cannot retry its way around. A timeout that cancels the trip, or a second prompt asking the same question, both teach the person to ignore the system. Because a parked run is free, the design that respects them is also the cheap one.",
+    members:["No deadline is imposed by the Workflow","No reminder is re-sent","The proposal is still there tomorrow","Answering is a Signal, not a reply on an open connection"] },
+
+  { id:"signal", lane:"lane-human", group:"human", hue:"human", x:780, y:164, w:324,
+    type:"Client call", name:"handle.signal(approveSignal)", sub:"approve",
+    note:"One call against the Workflow ID. It reaches the server, not a Worker, and not the client that started the run.",
+    file:"client.ts · approve()", tq:"—",
+    desc:"A Signal is a fact delivered to a Workflow Execution by ID. It does not need the original client, the original Worker, or an open connection left over from the start. The server accepts it, writes it to the history, and that write is what causes a Workflow Task to be scheduled.",
+    members:["Addressed by workflowId","Appends WorkflowExecutionSignaled","Sets approved = true on replay","Delivered whether or not a Worker is running"] },
+
+  /* --- lane 2 : temporal server --- */
+  { id:"wf_row", lane:"lane-server", group:"server", hue:"server", x:48, y:370, w:310,
+    type:"Workflow Execution", name:"c2-approval-<id>", sub:"status: Running\ntask queue: c2-human-in-the-loop-tq",
+    note:"One row. This, plus the history beside it, is the whole of what is running while the run is parked.",
+    file:"Temporal server store", tq:"c2-human-in-the-loop-tq",
+    desc:"The Execution record. It names the Workflow, its Task Queue, its current status and its run ID. Running means this row is open and its history is not closed. It does not mean code is executing anywhere.",
+    members:["workflowId + runId","status: Running","taskQueue: c2-human-in-the-loop-tq","No pending Workflow Task while parked"] },
+
+  { id:"ui", lane:"lane-server", group:"server", hue:"server", x:48, y:532, w:310,
+    type:"What you saw in the lab", name:"Temporal UI", sub:"localhost:8233 → Running",
+    note:"The UI reads this row. Running is a property of the row, not evidence of a process.",
+    file:"localhost:8233", tq:"—",
+    desc:"The status you read in the UI is this row's status. Open the Pending Activities and Pending Workflow Task panels while the run is parked and both are empty. That empty pair is the answer to the question the lab asks.",
+    members:["Status: Running","Pending Workflow Task: none","Pending Activities: none","History: the full list, still growing on the next event"] },
+
+  { id:"history", lane:"lane-server", group:"server", hue:"server", x:414, y:370, w:352,
+    type:"Append-only event history", name:"Event history",
+    events:[
+      "WorkflowExecutionStarted",
+      "WorkflowTaskScheduled",
+      "WorkflowTaskStarted",
+      "WorkflowTaskCompleted",
+      "ActivityTaskScheduled · agent turn",
+      "ActivityTaskCompleted · agent turn",
+      "WorkflowTaskScheduled",
+      "WorkflowTaskStarted",
+      "WorkflowTaskCompleted  ← parked here",
+      "WorkflowExecutionSignaled · approve",
+      "WorkflowTaskScheduled",
+      "WorkflowTaskStarted",
+      "WorkflowExecutionContinuedAsNew"
+    ],
+    parkAt:9, sigAt:10,
+    file:"Temporal server store", tq:"—",
+    desc:"Everything that happened, in order, written once. The Workflow's variables are not stored anywhere; they are recomputed by replaying this list. That is why a Worker can be replaced mid-pause and why the pause itself costs nothing to hold.",
+    members:["13 events for this run","No event is written while parked","Event 9 is where the run stops","Event 10 is the Signal that restarts it"] },
+
+  { id:"wft", lane:"lane-server", group:"server", hue:"server", x:842, y:370, w:248,
+    type:"Workflow Task", name:"Scheduled?", sub:"only when an event demands one",
+    note:"Scheduled after the start and after the Signal. Between them, this is empty.",
+    file:"Temporal server scheduler", tq:"c2-human-in-the-loop-tq",
+    desc:"A Workflow Task is the unit of work a Worker takes. The server creates one when the history gains an event the Workflow has not yet reacted to. While the run is parked there is no such event, so there is no task, so no Worker has anything to poll for.",
+    members:["Created by WorkflowExecutionStarted","Created by WorkflowExecutionSignaled","Not created by the passage of time","Not created by anything a Worker does"] },
+
+  { id:"taskqueue", lane:"lane-server", group:"server", hue:"server", x:842, y:524, w:248,
+    type:"Task Queue", name:"c2-human-in-the-loop-tq", sub:"0 tasks while parked",
+    note:"Every Worker below polls this queue. During the pause it hands out nothing for this run.",
+    file:"workflows.ts · TASK_QUEUE", tq:"c2-human-in-the-loop-tq",
+    desc:"The queue the Workers long-poll and the client targets. A parked run occupies no slot in it. The Workers keep polling because other runs exist, not because this one is waiting.",
+    members:["Polled by every Worker in the fleet","Targeted by client.workflow.start(...)","Holds no entry for a parked run","Any poller may receive the next task"] },
+
+  /* --- lane 3 : worker fleet --- */
+  { id:"worker_a", lane:"lane-worker", group:"worker", hue:"worker", x:48, y:748, w:250,
+    type:"Worker process", name:"Worker A", sub:"polls c2-human-in-the-loop-tq",
+    live:"Ran the Workflow Task in step 1.", empty:"— holds nothing —",
+    file:"worker.ts", tq:"c2-human-in-the-loop-tq",
+    desc:"The Worker that executed the first Workflow Task. It ran the Workflow code, drove the agent turn, and completed the task. At that moment it discarded the run from memory. It is not reserved for this Workflow and it is not required for the resume.",
+    members:["Executed Workflow Task 1","Completed it and released the run","Holds no thread for the parked run","May be restarted or removed during the pause"] },
+
+  { id:"worker_b", lane:"lane-worker", group:"worker", hue:"worker", x:326, y:748, w:250,
+    type:"Worker process", name:"Worker B", sub:"polls c2-human-in-the-loop-tq",
+    live:"Idle. Never touched this run.", empty:"— holds nothing —",
+    file:"worker.ts", tq:"c2-human-in-the-loop-tq",
+    desc:"An identical Worker. It has never seen this run and could still be the one that resumes it. The fleet is interchangeable because state comes from the history, not from the process.",
+    members:["Same code, same Task Queue","No affinity to any Workflow","Could take the resume task","Scales independently of parked runs"] },
+
+  { id:"worker_c", lane:"lane-worker", group:"worker", hue:"worker", x:604, y:748, w:250,
+    type:"Worker process", name:"Worker C", sub:"polls c2-human-in-the-loop-tq",
+    live:"Picks up the resume in step 4.", empty:"— holds nothing —",
+    file:"worker.ts", tq:"c2-human-in-the-loop-tq",
+    desc:"The Worker that happens to receive the Workflow Task created by the Signal. It was not involved in step 1. It replays the history, rebuilds approved and the agent run state, and continues from the line after condition. The run cannot tell the difference.",
+    members:["Received the post-Signal Workflow Task","Replays the history to rebuild state","Continues after await condition(...)","Runs continueAsNew with the serialized run state"] },
+
+  { id:"empty_note", lane:"lane-worker", group:"worker", hue:"muted", x:882, y:748, w:222,
+    type:"While parked", name:"Nothing here", sub:"nothing scheduled\nnothing polling this run\nno memory held",
+    note:"No thread is blocked. No socket is open for it. No timer is set.",
+    file:"the point of the diagram", tq:"—",
+    desc:"condition(() => approved) is not a sleep and it is not a poll. Reaching it ends the Workflow Task. The Worker returns to the queue for other work and keeps nothing about this run. Nothing re-checks the predicate on a schedule; it is re-evaluated only when a new event arrives.",
+    members:["Not a sleep — no timer is created","Not a poll — no loop re-checks it","No per-run thread, socket or buffer","Re-evaluated only when an event lands"] },
+
+  /* --- below the lanes : persistent tally and the two source lines --- */
+  { id:"cost", lane:null, group:"note", hue:"muted", x:20, y:932, w:545,
+    type:"Cost of one parked run", name:"The whole bill",
+    stats:[["0","threads on any Worker"],["0","sockets held open for it"],["0","bytes of Worker memory"],["0","timers scheduled"],["1","row on the Temporal server"],["13","events in its history"]],
+    costline:"10,000 pending approvals is 10,000 rows and their histories. A design that parks a thread per pending approval is 10,000 threads, and that is the design that falls over first.",
+    file:"measured per parked Execution", tq:"—",
+    desc:"A parked run is storage, not compute. It costs a row and a history and nothing else, so the number of people you are waiting on stops being an engineering constraint. That is the difference between an approval queue you can leave open and one you have to time out.",
+    members:["Storage grows with parked runs","Compute does not","Worker count is set by throughput, not by pending approvals","A run parked for a week costs the same as one parked for a second"] },
+
+  { id:"code_cond", lane:null, group:"note", hue:"muted", x:595, y:932, w:545,
+    type:"Frame 2 · the line the run parks on",
+    code:"// challenge2-human-in-the-loop/workflows.ts\nawait condition(() => approved);",
+    name:"await condition(...)",
+    file:"workflows.ts · condition()", tq:"c2-human-in-the-loop-tq",
+    desc:"Reaching this line completes the Workflow Task. The predicate is not polled and no timer is attached to it. Temporal re-evaluates it after a new event changes Workflow state, which here means after the approve Signal is applied on replay.",
+    members:["Ends the current Workflow Task","Creates no timer and no Activity","Re-evaluated on the next Workflow Task","approved is rebuilt by replay, not stored"],
+    snippet:"let approved = false;\nsetHandler(approveSignal, () => {\n  approved = true;\n});\n\n// the run stops here and the Worker moves on\nawait condition(() => approved);" },
+
+  { id:"code_can", lane:null, group:"note", hue:"muted", x:595, y:1050, w:545,
+    type:"Frame 4 · the line after it",
+    code:"await continueAsNew<typeof tripApprovalWorkflow>({\n  ...input,\n  resumeFromRunState: result.state.toString(),\n});",
+    name:"await continueAsNew(...)",
+    file:"workflows.ts · continueAsNew()", tq:"c2-human-in-the-loop-tq",
+    desc:"The line the resumed run reaches. The paused agent conversation is serialized into the new input, so the next Execution starts with a short history and picks up mid-tool-call. The earlier turns are not repeated and not paid for again.",
+    members:["Starts a new Execution, same workflowId","Carries result.state.toString() forward","Keeps the history short for long conversations","The resumed run rehydrates and approves the interruption"],
+    snippet:"const state = await RunState.fromString(agent, input.resumeFromRunState);\nfor (const interruption of state.getInterruptions()) {\n  state.approve(interruption);\n}\nconst resumed = await runner.run(agent, state, { runConfig: { model: input.model } });" },
+];
+
+const EDGES = [
+  { from:"client",    to:"wf_row",    cat:"work",  label:"workflow.start" },
+  { from:"wf_row",    to:"history",   cat:"state", label:"appends" },
+  { from:"wf_row",    to:"ui",        cat:"state", label:"status you read" },
+  { from:"history",   to:"wft",       cat:"state", label:"schedules" },
+  { from:"wft",       to:"taskqueue", cat:"work",  label:"enqueued" },
+  { from:"taskqueue", to:"worker_a",  cat:"work",  label:"dispatch" },
+  { from:"taskqueue", to:"worker_b",  cat:"poll",  label:"long-poll" },
+  { from:"taskqueue", to:"worker_c",  cat:"poll",  label:"long-poll" },
+  { from:"worker_a",  to:"history",   cat:"state", label:"task completed" },
+  { from:"worker_c",  to:"history",   cat:"state", label:"replay → continue" },
+  { from:"client",    to:"human",     cat:"human", label:"prints the proposal" },
+  { from:"human",     to:"signal",    cat:"human", label:"answers y" },
+  { from:"signal",    to:"history",   cat:"human", label:"WorkflowExecutionSignaled" },
+];
+
+const CAT_LABEL = { work:"workflow task", human:"human", state:"durable state", poll:"idle poll" };
+const GROUPS = [
+  { key:"human",  label:"Human / Client",  desc:"The starter process and the person. Neither holds the run." },
+  { key:"server", label:"Temporal Server",  desc:"The row, the history, the Task Queue. The only lane that survives the pause." },
+  { key:"worker", label:"Worker fleet",     desc:"Interchangeable processes. Empty for the whole of frame 2." },
+  { key:"note",   label:"Source & tally",   desc:"The two lines you wrote, and what one parked run actually costs." },
+];
+const GROUP_LABEL = Object.fromEntries(GROUPS.map(g => [g.key, g.label]));
+const GROUP_DOT = { human:"var(--hitl)", server:"var(--srv)", worker:"var(--accent)", note:"var(--line-strong)" };
+
+/* ---------------- render ---------------- */
+const nodeMap = Object.fromEntries(NODES.map(n => [n.id, n]));
+const laneMap = Object.fromEntries(LANES.map(l => [l.id, l]));
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* Minimal TypeScript highlighter for the code blocks. One pass, one regex and a
+   callback: a chain of .replace() calls would re-scan the markup it just
+   inserted and match keywords inside class="..." attributes. */
+function hl(src){
+  return esc(src).replace(
+    /(\/\/[^\n]*)|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")|\b(await|const|let|async|function|return|typeof|new|true|false|null|undefined|throw|export|interface|import|from|for|of|if|void)\b|\b(\d+)\b|\b([A-Za-z_$][\w$]*)(?=\(|&lt;)/g,
+    (m, com, str_, kw, num, fn) => {
+      if(com) return '<span class="cm">' + com + '</span>';
+      if(str_) return '<span class="cs">' + str_ + '</span>';
+      if(kw) return '<span class="ck">' + kw + '</span>';
+      if(num) return '<span class="cnum">' + num + '</span>';
+      return '<span class="cf">' + fn + '</span>';
+    });
+}
+
+// arrowhead markers, one per edge category
+const defs = document.createElementNS(SVGNS, "defs");
+[["work","var(--accent)"],["human","var(--hitl)"],["state","var(--srv)"],["poll","var(--line-strong)"]].forEach(([cat,color])=>{
+  const m = document.createElementNS(SVGNS,"marker");
+  m.setAttribute("id","arrow-"+cat); m.setAttribute("viewBox","0 0 10 10");
+  m.setAttribute("refX","8"); m.setAttribute("refY","5");
+  m.setAttribute("markerWidth","7"); m.setAttribute("markerHeight","7");
+  m.setAttribute("orient","auto-start-reverse");
+  const p = document.createElementNS(SVGNS,"path");
+  p.setAttribute("d","M0,0 L10,5 L0,10 z"); p.setAttribute("fill",color);
+  m.appendChild(p); defs.appendChild(m);
+});
+svg.appendChild(defs);
+
+// lanes (z1)
+LANES.forEach(ln=>{
+  const el = document.createElement("div");
+  el.className = "lane"; el.dataset.lane = ln.id;
+  el.style.left=ln.x+"px"; el.style.top=ln.y+"px"; el.style.width=ln.w+"px"; el.style.height=ln.h+"px";
+  el.style.setProperty("--lane-color", "var(--lane-tq)");
+  el.tabIndex = 0;
+  el.innerHTML = '<div class="lane-head"><span class="lane-dot"></span><div><div class="lane-kicker">'
+    + ln.kicker + '</div><div class="lane-name">' + esc(ln.name)
+    + '</div></div><span class="lane-tag">' + esc(ln.tag) + '</span></div>';
+  const act = ()=> selectLane(ln);
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); act(); });
+  el.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); act(); } });
+  canvas.appendChild(el); ln._el = el;
+});
+
+// the time axis and its caption
+const axis = document.createElement("div");
+axis.className = "stepaxis";
+axis.style.left = "20px"; axis.style.top = "96px"; axis.style.width = "1120px";
+canvas.appendChild(axis);
+
+// step chips (z3)
+STEPCHIPS.forEach(sc=>{
+  const el = document.createElement("button");
+  el.type = "button"; el.className = "stepchip" + (sc.key ? " key" : "");
+  el.dataset.step = String(sc.i);
+  el.style.left=sc.x+"px"; el.style.top=sc.y+"px"; el.style.width=sc.w+"px";
+  el.innerHTML = '<div class="sn">Frame ' + (sc.i+1) + (sc.key ? " · the key frame" : "") + '</div>'
+    + '<div class="st">' + esc(sc.t) + '</div><div class="sd">' + esc(sc.d) + '</div>';
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); stopPlay(); enterStep(sc.i); });
+  canvas.appendChild(el); sc._el = el;
+});
+
+// nodes (z3)
+NODES.forEach(n=>{
+  const el = document.createElement("button");
+  el.type="button"; el.className="node"; el.dataset.id=n.id;
+  el.dataset.hue=n.hue; el.dataset.group=n.group;
+  el.style.left=n.x+"px"; el.style.top=n.y+"px"; el.style.width=n.w+"px";
+
+  let body = "";
+  if(n.events){
+    body = '<div class="ntype">' + esc(n.type) + '</div><div class="nname">' + esc(n.name) + '</div>'
+      + '<div class="hlist">' + n.events.map((ev,i)=>{
+          const k = (i+1===n.parkAt) ? " park" : (i+1===n.sigAt ? " sig" : "");
+          return '<div class="hev' + k + '" data-i="' + (i+1) + '"><span class="hi">'
+            + (i+1) + '</span><span class="hx">' + esc(ev) + '</span></div>';
+        }).join("") + '</div>';
+  } else if(n.stats){
+    body = '<div class="ntype">' + esc(n.type) + '</div><div class="nname">' + esc(n.name) + '</div>'
+      + '<div class="stats">' + n.stats.map(([v,k])=>
+          '<span class="sv' + (v === "0" ? " zero" : "") + '">' + esc(v) + '</span><span class="sk">' + esc(k) + '</span>'
+        ).join("") + '</div>'
+      + '<div class="costline">' + esc(n.costline) + '</div>';
+  } else if(n.code){
+    body = '<div class="ntype">' + esc(n.type) + '</div><div class="ncode">' + hl(n.code) + '</div>';
+  } else {
+    body = '<div class="ntype">' + esc(n.type) + '</div><div class="nname">' + esc(n.name) + '</div>'
+      + (n.sub ? '<div class="nsub">' + esc(n.sub) + '</div>' : "");
+  }
+  if(n.note) body += '<div class="nnote">' + esc(n.note) + '</div>';
+  if(n.live) body += '<div class="nnote liveonly">' + esc(n.live) + '</div>';
+  if(n.empty) body += '<div class="emptied">' + esc(n.empty) + '</div>';
+  body += '<div class="ngroup"><span class="gdot"></span>' + GROUP_LABEL[n.group] + '</div>';
+
+  el.innerHTML = body;
+  el.addEventListener("click",(e)=>{ e.stopPropagation(); selectNode(n.id); });
+  canvas.appendChild(el); n._el = el;
+});
+
+// edge paths (z2)
+const edgeEls = EDGES.map(e=>{
+  const path = document.createElementNS(SVGNS,"path");
+  path.setAttribute("class","edge-"+e.cat);
+  path.setAttribute("marker-end","url(#arrow-"+e.cat+")");
+  path.setAttribute("stroke-width", e.cat==="poll" ? "1.6" : "2");
+  svg.appendChild(path);
+  const txt = document.createElementNS(SVGNS,"text");
+  txt.setAttribute("class","elabel"); txt.setAttribute("text-anchor","middle");
+  txt.textContent = e.label;
+  svg.appendChild(txt);
+  return { data:e, path, txt };
+});
+const edgeIndex = {};
+edgeEls.forEach(o => { edgeIndex[o.data.from + ">" + o.data.to] = o; });
+
+function rectOf(n){
+  const h = n._el ? n._el.offsetHeight : 80;
+  return { x:n.x, y:n.y, w:n.w, h:h, cx:n.x+n.w/2, cy:n.y+h/2 };
+}
+function borderPoint(r, tx, ty){
+  const dx=tx-r.cx, dy=ty-r.cy; if(dx===0&&dy===0) return {x:r.cx,y:r.cy};
+  const hw=r.w/2, hh=r.h/2;
+  const scale = 1/Math.max(Math.abs(dx)/hw, Math.abs(dy)/hh);
+  return { x:r.cx+dx*scale, y:r.cy+dy*scale };
+}
+/* Nodes paint above the edge layer, so a label parked on top of a box is a
+   label nobody can read. Slide it along the curve and off the curve's normal
+   until the whole label span clears every node. */
+const LANE_HEAD_H = 38;
+let placedLabels = [];
+function spanClear(px, py, half){
+  for(const L of placedLabels){
+    if(Math.abs(py - L.y) < 13 && px + half > L.x - L.half - 5 && px - half < L.x + L.half + 5) return false;
+  }
+  for(const n of NODES){
+    const r = rectOf(n);
+    if(py > r.y - 9 && py < r.y + r.h + 3 && px + half > r.x - 3 && px - half < r.x + r.w + 3) return false;
+  }
+  for(const l of LANES){
+    if(py > l.y - 9 && py < l.y + LANE_HEAD_H && px + half > l.x && px - half < l.x + l.w) return false;
+  }
+  return true;
+}
+function quadAt(p1, c, p2, t){
+  const u = 1 - t;
+  return { x: u*u*p1.x + 2*u*t*c.x + t*t*p2.x, y: u*u*p1.y + 2*u*t*c.y + t*t*p2.y };
+}
+const LABEL_TS   = [0.5, 0.4, 0.6, 0.3, 0.7, 0.22, 0.78];
+const LABEL_OFFS = [0, -16, 16, -32, 32, -48, 48, -66, 66, -86, 86, -108, 108];
+
+function layout(){
+  placedLabels = [];
+  edgeEls.forEach(({data,path,txt})=>{
+    const a=rectOf(nodeMap[data.from]), b=rectOf(nodeMap[data.to]);
+    const p1=borderPoint(a,b.cx,b.cy), p2=borderPoint(b,a.cx,a.cy);
+    const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+    const dx=p2.x-p1.x, dy=p2.y-p1.y, len=Math.hypot(dx,dy)||1;
+    const bow=Math.min(26, len*0.11);
+    const cx=mx+(-dy/len)*bow, cy=my+(dx/len)*bow;
+    path.setAttribute("d","M " + p1.x + " " + p1.y + " Q " + cx + " " + cy + " " + p2.x + " " + p2.y);
+
+    const half = (data.label.length * 6.35) / 2;
+    const nx = -dy/len, ny = dx/len;
+    let lx = null, ly = null;
+    for(const off of LABEL_OFFS){
+      for(const tt of LABEL_TS){
+        const q = quadAt(p1, {x:cx, y:cy}, p2, tt);
+        const px = q.x + nx*off, py = q.y + ny*off - 4;
+        if(px - half < 4 || px + half > CANVAS_W - 4) continue;
+        if(spanClear(px, py, half)){ lx = px; ly = py; break; }
+      }
+      if(lx !== null) break;
+    }
+    if(lx === null){ lx = cx; ly = cy - 3; }
+    placedLabels.push({ x:lx, y:ly, half:half });
+    txt.setAttribute("x", lx); txt.setAttribute("y", ly);
+  });
+}
+
+/* ---------------- history dimming ---------------- */
+const histNode = nodeMap["history"];
+function setHistory(upto){
+  const rows = histNode._el.querySelectorAll(".hev");
+  rows.forEach(r=>{
+    const i = Number(r.dataset.i);
+    r.classList.toggle("off", upto !== null && i > upto);
+  });
+}
+
+/* ---------------- interaction ---------------- */
+const activeCats = new Set(["work","human","state","poll"]);
+
+function neighborsOf(id){
+  const nodes=new Set(), edges=new Set();
+  EDGES.forEach((e,i)=>{ if(e.from===id){nodes.add(e.to);edges.add(i);} if(e.to===id){nodes.add(e.from);edges.add(i);} });
+  return { nodes, edges };
+}
+function clearState(){
+  NODES.forEach(n=> n._el.classList.remove("dim","active","neighbor","groupLit","flow-on","flow-soft","flow-empty"));
+  canvas.querySelectorAll(".stepbadge").forEach(b=> b.remove());
+  activeGroup = null;
+  document.querySelectorAll("#groupLegend .legItem").forEach(b=> b.classList.remove("on"));
+  LANES.forEach(l=> l._el.classList.remove("lit"));
+  edgeEls.forEach(({path,txt})=>{ path.classList.remove("dim","hot"); txt.classList.remove("dim"); });
+}
+function applyFilter(){
+  edgeEls.forEach(({data,path,txt})=>{
+    const show=activeCats.has(data.cat);
+    path.style.display=show?"":"none"; txt.style.display=show?"":"none";
+  });
+}
+function selectNode(id){
+  exitFlow();
+  clearState();
+  const { nodes, edges } = neighborsOf(id);
+  NODES.forEach(n=>{
+    if(n.id===id) n._el.classList.add("active");
+    else if(nodes.has(n.id)) n._el.classList.add("neighbor");
+    else n._el.classList.add("dim");
+  });
+  edgeEls.forEach(({path,txt},i)=>{
+    if(edges.has(i)) path.classList.add("hot");
+    else { path.classList.add("dim"); txt.classList.add("dim"); }
+  });
+  renderNodeDetail(nodeMap[id]);
+}
+function selectLane(ln){
+  exitFlow();
+  clearState();
+  ln._el.classList.add("lit");
+  const mine = new Set(NODES.filter(n=>n.lane===ln.id).map(n=>n.id));
+  NODES.forEach(n=>{ if(mine.has(n.id)) n._el.classList.add("groupLit"); else n._el.classList.add("dim"); });
+  edgeEls.forEach(({data,path,txt})=>{
+    if(mine.has(data.from) || mine.has(data.to)) path.classList.add("hot");
+    else { path.classList.add("dim"); txt.classList.add("dim"); }
+  });
+  renderContainerDetail(ln.detail);
+}
+function resetView(){
+  exitFlow(); clearState(); setHistory(null);
+  document.getElementById("detail").innerHTML = PLACEHOLDER;
+}
+
+/* ---------------- detail panel ---------------- */
+const PLACEHOLDER = document.getElementById("detail").innerHTML;
+function relItemHTML(r){
+  const n=nodeMap[r.id];
+  return '<li><button data-goto="' + r.id + '"><span class="rel-arrow">' + r.dir + '</span>'
+    + esc(n.name) + '<span class="rel-kind">' + CAT_LABEL[r.cat] + '</span></button></li>';
+}
+function renderNodeDetail(n){
+  const calls = EDGES.filter(e=>e.from===n.id).map(e=>({id:e.to, cat:e.cat, dir:"→"}));
+  const callers = EDGES.filter(e=>e.to===n.id).map(e=>({id:e.from, cat:e.cat, dir:"←"}));
+  const d=document.getElementById("detail");
+  const badgeClass = n.group === "note" ? "muted" : n.group;
+  d.innerHTML =
+    '<span class="badge ' + badgeClass + '">' + esc(n.type) + '</span>'
+    + '<h2>' + esc(n.name) + '</h2>'
+    + '<div class="file"><span class="gdot" style="display:inline-block;vertical-align:middle;margin-right:5px;background:' + GROUP_DOT[n.group] + '"></span>'
+      + esc(n.file) + ' · <b>tq:</b> ' + esc(n.tq) + '</div>'
+    + '<p class="desc">' + esc(n.desc) + '</p>'
+    + (n.members && n.members.length
+        ? '<div class="sec">What that means</div><ul class="members">' + n.members.map(m=>'<li>' + esc(m) + '</li>').join("") + '</ul>'
+        : "")
+    + (calls.length ? '<div class="sec">Reaches</div><ul class="rellist">' + calls.map(relItemHTML).join("") + '</ul>' : "")
+    + (callers.length ? '<div class="sec">Reached by</div><ul class="rellist">' + callers.map(relItemHTML).join("") + '</ul>' : "")
+    + (n.snippet ? '<div class="sec">Source</div><pre class="snippet">' + hl(n.snippet) + '</pre>' : "");
+  d.querySelectorAll("button[data-goto]").forEach(b=> b.addEventListener("click",()=> selectNode(b.dataset.goto)));
+}
+function renderContainerDetail(d){
+  const el=document.getElementById("detail");
+  el.innerHTML =
+    '<span class="badge ' + d.badge + '">' + esc(d.type) + '</span>'
+    + '<h2>' + esc(d.name) + '</h2>'
+    + '<div class="file">' + esc(d.file) + ' · <b>' + esc(d.tq) + '</b></div>'
+    + '<p class="desc">' + esc(d.desc) + '</p>'
+    + '<div class="sec">In this lane</div>'
+    + '<ul class="members">' + d.members.map(m=>'<li>' + esc(m) + '</li>').join("") + '</ul>';
+}
+
+/* ---------------- zoom / fit-to-width ----------------
+   The canvas is a fixed 1160x1195 coordinate space so the absolute node
+   positions and the SVG edge math stay simple. Instead of reflowing for narrow
+   panes, scale the whole thing to fit the available width. */
+const viewport = document.getElementById("viewport");
+const scrollEl = document.querySelector(".canvasScroll");
+const elZoomLabel = document.getElementById("zoomLabel");
+const MIN_ZOOM = 0.3, MAX_ZOOM = 2;
+let userZoom = null;   // null = follow fit-to-width
+let curScale = 1;      // the scale actually applied
+
+function fitScale(){
+  // clientWidth already excludes the scrollbar, so this converges in one pass.
+  const avail = scrollEl.clientWidth;
+  if(!avail) return 1;
+  return Math.min(1, Math.max(MIN_ZOOM, avail / CANVAS_W));
+}
+function applyZoom(){
+  const s = userZoom === null ? fitScale() : userZoom;
+  curScale = s;
+  canvas.style.transform = "scale(" + s + ")";
+  // Floor the viewport box so rounding never manufactures a 1px scrollbar.
+  viewport.style.width = Math.floor(CANVAS_W*s) + "px";
+  viewport.style.height = Math.ceil(CANVAS_H*s) + "px";
+  elZoomLabel.textContent = Math.round(s*100) + "%";
+  document.getElementById("zoomFit").disabled = (userZoom === null);
+}
+function nudgeZoom(delta){
+  const base = userZoom === null ? fitScale() : userZoom;
+  userZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round((base+delta)*100)/100));
+  applyZoom();
+}
+document.getElementById("zoomIn").addEventListener("click", ()=> nudgeZoom(+0.15));
+document.getElementById("zoomOut").addEventListener("click", ()=> nudgeZoom(-0.15));
+document.getElementById("zoomFit").addEventListener("click", ()=>{ userZoom = null; applyZoom(); });
+
+// Re-fit when the pane resizes, but only while following fit — and only when
+// the target scale actually moved, so writing the viewport box cannot feed back
+// into an observer loop.
+let lastFit = null;
+if(typeof ResizeObserver !== "undefined"){
+  new ResizeObserver(()=>{
+    if(userZoom !== null) return;
+    const f = fitScale();
+    if(f !== lastFit){ lastFit = f; applyZoom(); }
+  }).observe(scrollEl);
+}
+
+/* ---------------- controls ---------------- */
+document.getElementById("legend").addEventListener("click",(e)=>{
+  const item=e.target.closest(".legItem"); if(!item) return;
+  const cat=item.dataset.cat;
+  if(activeCats.has(cat)){ activeCats.delete(cat); item.classList.add("off"); item.setAttribute("aria-pressed","false"); }
+  else { activeCats.add(cat); item.classList.remove("off"); item.setAttribute("aria-pressed","true"); }
+  applyFilter();
+});
+
+let activeGroup = null;
+function selectGroup(key){
+  exitFlow();
+  clearState();
+  document.querySelectorAll("#groupLegend .legItem").forEach(b=> b.classList.toggle("on", b.dataset.group===key));
+  activeGroup = key;
+  const mine = new Set(NODES.filter(n=>n.group===key).map(n=>n.id));
+  NODES.forEach(n=>{ if(mine.has(n.id)) n._el.classList.add("groupLit"); else n._el.classList.add("dim"); });
+  edgeEls.forEach(({data,path,txt})=>{
+    if(mine.has(data.from) || mine.has(data.to)) path.classList.add("hot");
+    else { path.classList.add("dim"); txt.classList.add("dim"); }
+  });
+  const g = GROUPS.find(x=>x.key===key);
+  const list = NODES.filter(n=>n.group===key);
+  const out = EDGES.filter(e=>mine.has(e.from) && !mine.has(e.to));
+  const inc = EDGES.filter(e=>!mine.has(e.from) && mine.has(e.to));
+  const row = (e,dir)=>{
+    const other = dir==="→" ? e.to : e.from;
+    return '<li><button data-goto="' + other + '"><span class="rel-arrow">' + dir + '</span>'
+      + esc(nodeMap[other].name) + '<span class="rel-kind">' + GROUP_LABEL[nodeMap[other].group] + '</span></button></li>';
+  };
+  document.getElementById("detail").innerHTML =
+    '<span class="badge ' + (key === "note" ? "muted" : key) + '">Lane</span>'
+    + '<h2>' + esc(g.label) + '</h2>'
+    + '<div class="file">' + list.length + ' box' + (list.length===1?"":"es") + ' in this lane</div>'
+    + '<p class="desc">' + esc(g.desc) + '</p>'
+    + '<div class="sec">Boxes</div><ul class="rellist">'
+    + list.map(n=>'<li><button data-goto="' + n.id + '">' + esc(n.name) + '</button></li>').join("") + '</ul>'
+    + (out.length ? '<div class="sec">Reaches out to</div><ul class="rellist">' + out.map(e=>row(e,"→")).join("") + '</ul>' : "")
+    + (inc.length ? '<div class="sec">Reached from</div><ul class="rellist">' + inc.map(e=>row(e,"←")).join("") + '</ul>' : "");
+  document.getElementById("detail").querySelectorAll("button[data-goto]")
+    .forEach(b=> b.addEventListener("click",()=> selectNode(b.dataset.goto)));
+}
+document.getElementById("groupLegend").addEventListener("click",(e)=>{
+  const item=e.target.closest(".legItem"); if(!item) return;
+  if(activeGroup===item.dataset.group) resetView(); else selectGroup(item.dataset.group);
+});
+
+document.getElementById("resetBtn").addEventListener("click", resetView);
+canvas.addEventListener("click",(e)=>{ if(e.target===canvas || e.target===svg) resetView(); });
+
+/* ---------------- the four frames ----------------
+   on    : boxes that are live in this frame
+   soft  : present but not acting
+   empty : Worker boxes rendered as emptied — the whole point of frame 2
+   e     : [fromId, toId, reverse?] edges animated in this frame
+   hot   : edges lit but not animated (they exist, nothing is moving) */
+const STEPS = [
+  { phase:"Running",
+    on:["client","wf_row","history","wft","taskqueue","worker_a"],
+    soft:["human"],
+    e:[["client","wf_row",false],["wf_row","history",false],["history","wft",false],
+       ["wft","taskqueue",false],["taskqueue","worker_a",false],["worker_a","history",false]],
+    hot:[], empty:[], hist:6,
+    marks:{ worker_a:"executing the Workflow Task" },
+    cap:"Worker A holds the Workflow Task. It is running your Workflow code and the agent turn, and each result it reports back becomes an event. This is the only frame in which a process anywhere is holding this conversation.",
+    payload:"WorkflowTaskStarted" },
+
+  { phase:"Parked",
+    on:["wf_row","history","ui","empty_note","cost","code_cond"],
+    soft:["human"],
+    e:[], hot:[["wf_row","history"],["wf_row","ui"]],
+    empty:["worker_a","worker_b","worker_c"], hist:9,
+    marks:{ worker_b:"nothing scheduled · nothing polling · no memory held for this run" },
+    cap:"The Workflow Task completed at await condition(...) and Worker A forgot the run exists. No Workflow Task is scheduled, no timer was created, no socket is held for it, and no Worker holds a byte of its state. What is left is one row and its history. That is what Running means here.",
+    payload:"await condition(() => approved)" },
+
+  { phase:"Signal arrives",
+    on:["human","signal","history","wft","taskqueue"],
+    soft:["client","wf_row"],
+    e:[["human","signal",false],["signal","history",false],["history","wft",false],["wft","taskqueue",false]],
+    hot:[], empty:[], hist:11,
+    marks:{ signal:"one call, addressed by workflow ID" },
+    cap:"The person answers. The Signal appends WorkflowExecutionSignaled to the history, and that new event is what makes the server schedule a Workflow Task. Nothing was watching for the answer; the write itself is the trigger.",
+    payload:"handle.signal(approveSignal)" },
+
+  { phase:"Resumed",
+    on:["taskqueue","worker_c","history","wf_row","code_can"],
+    soft:["worker_a","worker_b"],
+    e:[["taskqueue","worker_c",false],["worker_c","history",false]],
+    hot:[], empty:[], hist:13,
+    marks:{ worker_c:"a different Worker than frame 1", worker_a:"not involved" },
+    cap:"Worker C takes the task. It is not the Worker from frame 1 and nothing about the run depended on that. It replays the history to rebuild approved and the agent run state, then carries on from the line after condition and calls continueAsNew.",
+    payload:"replay → continueAsNew" },
+];
+
+const flowbar = document.getElementById("flowbar");
+const elStep = document.getElementById("flowStep");
+const elPhase = document.getElementById("flowPhase");
+const elCap = document.getElementById("flowCap");
+const elPayload = document.getElementById("flowPayload");
+const elPlay = document.getElementById("flowPlay");
+const elPrev = document.getElementById("flowPrev");
+const elNext = document.getElementById("flowNext");
+const IDLE_CAP = elCap.innerHTML;
+
+/* Boxes that stay legible in every frame: the tally is the running total, not
+   a moment in the story. */
+const PERSISTENT = new Set(["cost"]);
+
+let flowIdx = -1, playing = false, flowTimer = null;
+
+function showAllEdges(){ edgeEls.forEach(({path,txt})=>{ path.style.display=""; txt.style.display=""; }); }
+function clearFlowClasses(){
+  edgeEls.forEach(({path})=> path.classList.remove("flowing","rev"));
+  NODES.forEach(n=> n._el.classList.remove("flow-on","flow-soft","flow-empty"));
+  canvas.querySelectorAll(".stepbadge").forEach(b=> b.remove());
+  STEPCHIPS.forEach(sc=> sc._el.classList.remove("on"));
+}
+function stopPlay(){ playing=false; if(flowTimer){ clearInterval(flowTimer); flowTimer=null; } updateFlowUI(); }
+
+function exitFlow(){
+  stopPlay();
+  flowIdx = -1;
+  clearFlowClasses();
+  setHistory(null);
+  applyFilter();
+  flowbar.classList.add("idle");
+  elStep.textContent = "step — / —";
+  elPhase.textContent = "";
+  elCap.innerHTML = IDLE_CAP;
+  elPayload.textContent = "";
+  elPlay.textContent = "▶ Play";
+  elPrev.disabled = true; elNext.disabled = false;
+}
+
+function scrollToNodes(ids){
+  if(!ids.length) return;
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  ids.forEach(id=>{ const n=nodeMap[id]; if(!n) return; const el=n._el;
+    minX=Math.min(minX,el.offsetLeft); minY=Math.min(minY,el.offsetTop);
+    maxX=Math.max(maxX,el.offsetLeft+el.offsetWidth); maxY=Math.max(maxY,el.offsetTop+el.offsetHeight); });
+  if(minX===Infinity) return;
+  // offsetLeft/offsetTop are unscaled canvas coordinates; the scroll container
+  // works in scaled pixels, so convert before centering.
+  const cx=((minX+maxX)/2)*curScale, cy=((minY+maxY)/2)*curScale;
+  scrollEl.scrollTo({ left: cx - scrollEl.clientWidth/2, top: cy - scrollEl.clientHeight/2, behavior:"smooth" });
+}
+
+/* Annotations sit on the canvas rather than inside the node: an emptied node is
+   rendered at low opacity, which would take its own annotation down with it. */
+function badge(nodeId, text, warn){
+  const n = nodeMap[nodeId]; if(!n) return;
+  const b = document.createElement("span");
+  b.className = "stepbadge" + (warn ? " warn" : "");
+  b.dataset.for = nodeId;
+  b.textContent = text;
+  canvas.appendChild(b);
+  const w = b.offsetWidth;
+  const left = Math.max(4, Math.min(n.x + 12, CANVAS_W - w - 4));
+  b.style.left = left + "px";
+  b.style.top = (n.y - 11) + "px";
+}
+
+function enterStep(i){
+  flowIdx = i;
+  const step = STEPS[i];
+  clearState(); clearFlowClasses(); showAllEdges();
+  flowbar.classList.remove("idle");
+
+  const on = new Set(step.on || []);
+  const soft = new Set(step.soft || []);
+  const empty = new Set(step.empty || []);
+  step.e.forEach(([f,t])=>{ on.add(f); on.add(t); });
+
+  NODES.forEach(n=>{
+    if(empty.has(n.id)) n._el.classList.add("flow-empty");
+    else if(on.has(n.id)) n._el.classList.add("flow-on");
+    else if(soft.has(n.id)) n._el.classList.add("flow-soft");
+    else if(!PERSISTENT.has(n.id)) n._el.classList.add("dim");
+  });
+
+  const activeEdges = new Set();
+  step.e.forEach(([f,t,rev])=>{
+    const o=edgeIndex[f+">"+t];
+    if(o){ o.path.classList.add("flowing"); if(rev) o.path.classList.add("rev"); activeEdges.add(o); }
+  });
+  (step.hot||[]).forEach(([f,t])=>{ const o=edgeIndex[f+">"+t]; if(o){ o.path.classList.add("hot"); activeEdges.add(o); } });
+  edgeEls.forEach(o=>{ if(!activeEdges.has(o)){ o.path.classList.add("dim"); o.txt.classList.add("dim"); } });
+
+  setHistory(step.hist);
+  Object.entries(step.marks||{}).forEach(([id,text])=> badge(id, text, i===1));
+  STEPCHIPS[i]._el.classList.add("on");
+
+  elStep.textContent = "step " + (i+1) + " / " + STEPS.length;
+  elPhase.textContent = step.phase;
+  elCap.textContent = step.cap;
+  elPayload.textContent = step.payload || "";
+  elPrev.disabled = (i===0);
+  elNext.disabled = (i===STEPS.length-1);
+  scrollToNodes(step.on && step.on.length ? step.on : []);
+  updateFlowUI();
+}
+
+function updateFlowUI(){
+  if(playing){ elPlay.textContent = "⏸ Pause"; }
+  else if(flowIdx >= STEPS.length-1 && flowIdx >= 0){ elPlay.textContent = "↻ Replay"; }
+  else if(flowIdx < 0){ elPlay.textContent = "▶ Play"; }
+  else { elPlay.textContent = "▶ Resume"; }
+}
+function flowNext(){ if(flowIdx < STEPS.length-1) enterStep(flowIdx+1); }
+function flowPrev(){ if(flowIdx > 0) enterStep(flowIdx-1); }
+function togglePlay(){
+  if(playing){ stopPlay(); return; }
+  if(flowIdx >= STEPS.length-1) flowIdx = -1;
+  playing = true; updateFlowUI();
+  enterStep(flowIdx+1);
+  flowTimer = setInterval(()=>{
+    if(flowIdx >= STEPS.length-1){ stopPlay(); return; }
+    enterStep(flowIdx+1);
+  }, 3400);
+}
+elPlay.addEventListener("click", togglePlay);
+elNext.addEventListener("click", ()=>{ stopPlay(); if(flowIdx<0) enterStep(0); else flowNext(); });
+elPrev.addEventListener("click", ()=>{ stopPlay(); flowPrev(); });
+document.addEventListener("keydown",(e)=>{
+  if(e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if(e.key === "ArrowRight"){ stopPlay(); if(flowIdx<0) enterStep(0); else flowNext(); }
+  else if(e.key === "ArrowLeft"){ stopPlay(); flowPrev(); }
+  else if(e.key === "Escape"){ resetView(); }
+});
+
+/* ---------------- boot ---------------- */
+function boot(){ layout(); applyFilter(); applyZoom(); lastFit = fitScale(); }
+window.addEventListener("resize", ()=>{ layout(); if(userZoom===null) applyZoom(); });
+if(document.readyState==="complete") boot(); else window.addEventListener("load", boot);
+requestAnimationFrame(()=> requestAnimationFrame(layout));
+</script>
+</body>
+</html>

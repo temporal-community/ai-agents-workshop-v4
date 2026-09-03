@@ -52,6 +52,11 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/decouple-agents
   port: 8080
+- title: Parked Workflow
+  type: service
+  hostname: workshop
+  path: /
+  port: 8090
 difficulty: basic
 timelimit: 2400
 enhanced_loading: null
@@ -193,6 +198,11 @@ npm run c2:client -- "Book me a trip to Tokyo on 2026-11-02."
 <summary>Answer</summary>
 
 A row on the Temporal server, and a history of everything that happened up to the pause.
+
+Open the [button label="Parked Workflow" background="#444CE7"](tab-4) tab and step
+through it. Four frames: the Workflow running, the Workflow parked, the Signal
+arriving, and a **different** Worker resuming it. Watch the Worker lane in frame
+two - it is empty, and that emptiness is the answer.
 
 `condition(...)` is not a sleep and not a poll. When the Workflow reached it, the Worker finished its Workflow Task and forgot the Workflow existed. Nothing is scheduled, nothing is waiting on a socket, nothing consumes memory per parked run. That is why a queue of ten thousand pending approvals is unremarkable and a thread-per-pending-approval design is not.
 

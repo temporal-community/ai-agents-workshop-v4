@@ -32,6 +32,7 @@ containers:
   ports:
   - 8080   # Editor (code-server)
   - 8233   # Temporal Web UI (temporal server start-dev)
+  - 8090   # Parked-workflow diagram (node serve-diagrams.mjs)
 secrets:
 # HMAC signing secret the LiteLLM secret broker uses to authenticate this
 # sandbox. NOT an OpenAI key. It is team-scoped in Instruqt (Team Settings >
