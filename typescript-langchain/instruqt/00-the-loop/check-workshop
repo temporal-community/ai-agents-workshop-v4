@@ -1,0 +1,13 @@
+#!/bin/bash
+# ABOUTME: Instant pass.
+#
+# This is an instructor-led workshop. A real check would have to inspect the
+# attendee's own edits, and the only way to make one pass on demand is a solve
+# script that writes over their work - which is worse than no check at all.
+#
+# An instant pass is the right trade whenever the failure mode is loud. Here it
+# is louder than anywhere else in the track: this challenge has nothing to
+# edit, so the only thing a check could gate on is whether someone watched a
+# script print numbers. Gating that pushes a stuck learner into Skip, and Skip
+# runs the solve script over their terminal for no benefit at all.
+exit 0

@@ -19,7 +19,7 @@ async function run(): Promise<void> {
       bundlerOptions: agentsBundlerOptions,
     });
 
-    // TODO 9: Create a second Worker on `SPECIALIST_TASK_QUEUE` with the same
+    // TODO 8: Create a second Worker on `SPECIALIST_TASK_QUEUE` with the same
     // `workflowsPath`, `plugins` and `bundlerOptions`, plus
     // `activities: { ...weatherActivities, ...travelActivities }`. Then run both
     // with `await Promise.all([orchestratorWorker.run(), specialistWorker.run()])`

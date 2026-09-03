@@ -5,6 +5,7 @@
   "description": "Temporal + OpenAI Agents SDK workshop (TypeScript) \u2014 complete solution",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "c0:loop": "ts-node src/challenge0-the-loop/agent-loop.ts",
     "c1:worker": "ts-node src/challenge1-durable-agent/worker.ts",
     "c1:client": "ts-node src/challenge1-durable-agent/client.ts",
     "c2:worker": "ts-node src/challenge2-human-in-the-loop/worker.ts",
@@ -24,6 +25,7 @@
     "@temporalio/worker": "^1.23.0",
     "@temporalio/workflow": "^1.23.0",
     "nanoid": "3.x",
+    "openai": "^6.49.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {

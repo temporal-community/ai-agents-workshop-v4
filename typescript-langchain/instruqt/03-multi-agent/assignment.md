@@ -84,29 +84,38 @@ Several Workflow Executions per question, on two Task Queues:
 Every specialist is a Workflow Execution of its own: its own history, its own retries, its own
 Task Queue. The orchestrator's agent code sees only tools.
 
-## The four TODOs
+## The three TODOs
 
-**TODO 6** - `exercise/src/shared/childWorkflowAsTool.ts`
+The `childWorkflowAsTool` helper in `shared/` is written for you. The Agents SDK
+ships a wrapper for turning an Activity into a tool; a Child Workflow needs one of
+your own, and that is it. Worth reading: it uses `wf.uuid4()` rather than
+`Math.random()`, because Workflow code must produce the same values on replay as
+it did the first time.
 
-Make the tool start a Child Workflow. The Agents SDK ships a wrapper for turning an Activity into a tool; a Child Workflow needs one of your own, and this is it. Every call the model makes here becomes a full Workflow Execution with its own history, its own retries and its own Task Queue.
-
-Read the TODO's warning about the Workflow ID. Workflow code must produce the same values on replay as it did the first time, so `Math.random()` is a correctness bug, not a style preference.
-
-**TODO 7** - `exercise/src/challenge3-multi-agent/workflows.ts`
+**TODO 6** - `exercise/src/challenge3-multi-agent/workflows.ts`
 
 The travel specialist, reached the same way as the weather one. Once it is done, both specialists are Child Workflows on one queue - one deployment, owned by one team, independent of the orchestrator.
 
-**TODO 8** - `exercise/src/challenge3-multi-agent/workflows.ts`
+**TODO 7** - `exercise/src/challenge3-multi-agent/workflows.ts`
 
 Fan out. One tool, several cities, all their Child Workflows running at the same time.
 
 This is the one place in the workshop where **the Workflow decides the concurrency, not the model**. The model calls the tool once; what happens inside is ordinary deterministic code. Awaiting in a loop instead would be the anti-pattern - identical work, identical history, N times the latency.
 
-**TODO 9** - `exercise/src/challenge3-multi-agent/worker.ts`
+**TODO 8** - `exercise/src/challenge3-multi-agent/worker.ts`
 
 A second Worker, on the specialists' Task Queue, carrying the specialists' Activities. It lives in the same process here only for convenience - it is a separate deployment in every way that matters.
 
 > Stuck? The same files under `solution/` are the answer.
+
+> **Fell behind?** Copy the previous challenge's finished code into your tree and
+> carry on - nothing here depends on you having typed it yourself:
+>
+> ```bash,run
+> cp /root/workshop/decouple-agents/solution/src/challenge2-human-in-the-loop/*.ts \
+>    /root/workshop/decouple-agents/exercise/src/challenge2-human-in-the-loop/
+> ```
+
 
 ## Start the Workers
 
@@ -128,7 +137,7 @@ npm run c3:client -- "What's the weather in Monaco, and what should I know about
 
 You get one answer combining conditions in Monaco and what the place is like.
 
-> **If it hangs with no output for a minute:** TODO 9 is the usual cause. With only the orchestrator Worker running, the specialists' Task Queue has nobody polling it, so every Child Workflow is scheduled and never picked up. Look in the [button label="Temporal UI" background="#444CE7"](tab-2) tab - a Workflow stuck in `Running` with a pending task and no Worker is the signature. It is also what an unpolled queue looks like in production.
+> **If it hangs with no output for a minute:** TODO 8 is the usual cause. With only the orchestrator Worker running, the specialists' Task Queue has nobody polling it, so every Child Workflow is scheduled and never picked up. Look in the [button label="Temporal UI" background="#444CE7"](tab-2) tab - a Workflow stuck in `Running` with a pending task and no Worker is the signature. It is also what an unpolled queue looks like in production.
 
 ## Read the Event History
 

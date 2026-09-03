@@ -92,27 +92,46 @@ Now open the [button label="Temporal UI" background="#444CE7"](tab-2) tab and fi
 
 You said no. It booked the trip anyway. The prompt was theatre - the client asked you *after* the agent had already acted, because nothing in the Workflow was waiting for your answer.
 
-## The five TODOs
+## The three TODOs
+
+The resume branch is written for you. Read it before you need it - it is the half
+of this pattern that runs in the *second* Execution, and seeing it first makes the
+handoff you are about to write make sense.
 
 **TODO 3** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
 
-One property on the `bookTrip` tool definition. It is the difference between the two behaviours you are comparing: with it, the Agents SDK refuses to execute the tool, ends the run early, and hands back an interruption describing what the model wanted to do.
+One property on the `bookTrip` tool definition. It is the difference between the
+two behaviours you are comparing: with it, the Agents SDK refuses to execute the
+tool, ends the run early, and hands back an interruption describing what the model
+wanted to do.
 
-**TODO 4a** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
+**TODO 4** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
 
-The resume branch, which runs in the *second* Execution: rehydrate the serialized run, mark the interruptions approved, and let the loop carry on. Note what does not happen here - the earlier turns are not replayed to the model. The conversation resumes mid-tool-call.
+Park, then hand off. Two lines, and together they are the whole pattern.
 
-**TODO 4b** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
+`condition()` is the line worth staring at: the Workflow Task completes and the
+Worker walks away. Nothing polls, nothing is scheduled, and the state lives on the
+Temporal server - you could delete every Worker in the fleet and the parked run
+would be waiting when new ones came up.
 
-Park the Workflow until the approval arrives. This is the line worth staring at: the Workflow Task completes and the Worker walks away. Nothing polls, nothing is scheduled, and the state lives on the Temporal server. You could delete every Worker in the fleet and the parked run would be waiting when new ones came up.
-
-**TODO 4c** - `exercise/src/challenge2-human-in-the-loop/workflows.ts`
-
-Hand the paused run to a fresh Execution. `continueAsNew` closes the current Execution and starts a new one under the same Workflow ID with a short new history - the reason a Workflow that waited three days is no more expensive to resume than one that waited three seconds.
+`continueAsNew` then closes this Execution and starts a fresh one under the same
+Workflow ID with a short new history. That is why a Workflow which waited three
+days is no more expensive to resume than one that waited three seconds.
 
 **TODO 5** - `exercise/src/challenge2-human-in-the-loop/client.ts`
 
-Deliver the verdict as a Signal. The choice of primitive is the lesson: a Signal is one-way and does not wait for a reply, which is exactly the shape of "I approve this" - a fact, not a question.
+Deliver the verdict as a Signal. The choice of primitive is the lesson: a Signal
+is one-way and does not wait for a reply, which is exactly the shape of "I approve
+this" - a fact, not a question.
+
+
+> **Fell behind?** Copy the previous challenge's finished code into your tree and
+> carry on - nothing here depends on you having typed it yourself:
+>
+> ```bash,run
+> cp /root/workshop/decouple-agents/solution/src/challenge1-durable-agent/*.ts \
+>    /root/workshop/decouple-agents/exercise/src/challenge1-durable-agent/
+> ```
 
 > Stuck? The same files under `solution/` are the answer.
 

@@ -1,0 +1,20 @@
+#!/bin/bash
+# ABOUTME: Drives challenge 0 to one completed agent loop, non-interactively.
+#
+# Runs the SOLUTION tree, never the attendee's exercise/ tree - so `instruqt
+# track test` can prove the whole track end to end without destroying anyone's
+# work in a live lab. For this challenge the two trees are identical, but the
+# rule does not get an exception: the day someone adds a TODO here, a solve
+# script pointed at exercise/ would start overwriting learner edits silently.
+#
+# A single-city question keeps this to two model calls and one deliberate
+# four-second pause. `timeout` bounds it so a wedged gateway fails the track
+# test instead of hanging it.
+set -euxo pipefail
+
+cd /root/workshop/decouple-agents/solution
+
+pkill -f "challenge0-the-loop/agent-loop.ts" 2>/dev/null || true
+sleep 1
+
+timeout 300 npm run c0:loop -- "What is the weather in Barcelona right now?"

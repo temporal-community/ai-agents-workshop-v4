@@ -71,7 +71,7 @@ enhanced_loading: null
 > [!WARNING]
 > You work in `exercise/`. `solution/` sits beside it with identical filenames - check the editor's title bar before you type.
 
-This challenge needs **TODO 6** (`exercise/src/shared/childWorkflowAsTool.ts`) from challenge 3.
+This challenge builds on challenge 3's specialists.
 
 ## What changed since the last challenge
 
@@ -102,7 +102,7 @@ Two things in there are worth your attention before you write any TypeScript.
 
 ## The one TODO
 
-**TODO 10** - `exercise/src/challenge4-heterogeneous-agents/workflows.ts`
+**TODO 9** - `exercise/src/challenge4-heterogeneous-agents/workflows.ts`
 
 Reach the Python specialist.
 
@@ -111,6 +111,15 @@ Read `exercise/src/challenge4-heterogeneous-agents/api.ts` first. It is finished
 Then look at what you write. There is nothing in it that says "Python". Naming a Workflow type as a **string** rather than importing a function is the only concession to the boundary - and that is exactly why the orchestrator's agent code is byte-identical to the previous challenge's.
 
 > Stuck? The same file under `solution/` is the answer.
+
+> **Fell behind?** Copy the previous challenge's finished code into your tree and
+> carry on - nothing here depends on you having typed it yourself:
+>
+> ```bash,run
+> cp /root/workshop/decouple-agents/solution/src/challenge3-multi-agent/*.ts \
+>    /root/workshop/decouple-agents/exercise/src/challenge3-multi-agent/
+> ```
+
 
 ## Start all three processes
 

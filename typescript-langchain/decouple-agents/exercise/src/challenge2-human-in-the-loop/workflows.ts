@@ -57,14 +57,16 @@ export async function tripApprovalWorkflow(input: ApprovalInput): Promise<string
   const runner = new TemporalOpenAIRunner();
 
   if (input.resumeFromRunState !== undefined) {
-    // TODO 4a: This is the second Execution: a human approved and the paused run
-    // arrived as a string. Rehydrate it with
-    // `await RunState.fromString(agent, input.resumeFromRunState)`, call
-    // `state.approve(interruption)` for each `state.getInterruptions()`, then
-    // `await runner.run(agent, state, { runConfig: { model: input.model } })`
-    // and return its `finalOutput`. The earlier turns are not repeated — the
-    // loop carries on from exactly where it stopped.
-    throw new Error('TODO 4a: rehydrate the run from input.resumeFromRunState.');
+    // The resume branch, written for you so you can read it before you need it.
+    // The paused run arrived as a string; rehydrate it, mark every interruption
+    // approved, and let the loop carry on. The earlier turns are NOT repeated -
+    // the conversation picks up mid-tool-call.
+    const state = await RunState.fromString(agent, input.resumeFromRunState);
+    for (const interruption of state.getInterruptions()) {
+      state.approve(interruption);
+    }
+    const resumed = await runner.run(agent, state, { runConfig: { model: input.model } });
+    return resumed.finalOutput ?? '';
   }
 
   let approved = false;
@@ -79,19 +81,20 @@ export async function tripApprovalWorkflow(input: ApprovalInput): Promise<string
     return result.finalOutput ?? '';
   }
 
-  // TODO 4b: Park until the human approves: `await condition(() => approved)`.
-  // The Workflow Task completes, the Worker moves on to other work, and the
-  // state lives on the Temporal server. Nothing polls and nothing is paid for;
-  // the Worker could be replaced entirely and the run would still resume.
-
-  // TODO 4c: Then hand the paused run to a fresh Execution with a fresh, short
-  // history: `await continueAsNew<typeof tripApprovalWorkflow>({ ...input,
+  // TODO 4: Park, then hand off. Two lines, and they are the whole pattern.
+  //
+  // First: `await condition(() => approved)`. The Workflow Task completes and
+  // the Worker walks away. Nothing polls, nothing is paid for, and the state
+  // lives on the Temporal server - you could replace every Worker in the fleet
+  // and this run would still be waiting.
+  //
+  // Then: `await continueAsNew<typeof tripApprovalWorkflow>({ ...input,
   // resumeFromRunState: result.state.toString() })`. That string is the whole
-  // agent conversation, serialized — which is why the resumed run can pick up
-  // mid-tool-call.
+  // agent conversation, serialized, which is how the resumed run picks up
+  // mid-tool-call with a fresh, short history.
   //
   // Nothing after continueAsNew ever runs, but TypeScript cannot see that, so
   // finish the function with `throw new Error('unreachable')` or you get
   // "Function lacks ending return statement" (TS2366).
-  throw new Error('TODO 4b and 7c: wait for the approve Signal, then continue as new.');
+  throw new Error('TODO 4: wait for the approve Signal, then continue as new.');
 }
