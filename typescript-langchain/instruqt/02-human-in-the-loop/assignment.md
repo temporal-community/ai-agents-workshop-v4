@@ -52,7 +52,8 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/decouple-agents
   port: 8080
-- title: Parked Workflow
+- id: ljjjak8dglhd
+  title: Parked Workflow
   type: service
   hostname: workshop
   path: /
