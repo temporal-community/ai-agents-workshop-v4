@@ -26,7 +26,12 @@ if not assignments:
     sys.exit(1)
 
 BUTTON = re.compile(r'\[button\s+label="([^"]*)"[^\]]*\]\(tab-(\d+)\)')
-TAB_TITLE = re.compile(r'^-\s+title:\s*(.+?)\s*$')
+# A tab entry begins at "- "; its title may sit on that line ("- title: X") or on
+# any continuation line ("  title: X"), which is where it lands once Instruqt has
+# assigned an id and the entry starts "- id: ...". Matching only the first form
+# silently found zero tabs in every assignment whose ids had been committed.
+TAB_START = re.compile(r'^-\s')
+TAB_TITLE = re.compile(r'^[-\s]\s*title:\s*(.+?)\s*$')
 
 failures = 0
 
@@ -60,9 +65,13 @@ for path in assignments:
     for line in front[start + 1:]:
         if line and not line[0].isspace() and not line.startswith("-"):
             break  # next top-level key
+        if TAB_START.match(line):
+            titles.append(None)            # a new tab entry, title not seen yet
         m = TAB_TITLE.match(line)
-        if m:
-            titles.append(m.group(1).strip("'\""))
+        if m and titles:
+            titles[-1] = m.group(1).strip("'\"")
+    # An untitled tab still occupies a position, so it must still be counted.
+    titles = [t if t is not None else "(untitled)" for t in titles]
 
     if not titles:
         print(f"FAIL {path}: tabs: block has no titles")
