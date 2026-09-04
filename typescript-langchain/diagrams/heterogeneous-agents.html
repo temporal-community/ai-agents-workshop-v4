@@ -160,7 +160,7 @@
 
   .canvasScroll { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: auto; position: relative; max-height: calc(100vh - 210px); min-height: 380px; }
   .canvasViewport { position: relative; margin: 0 auto; }
-  .canvas { position: relative; width: 1180px; height: 3324px; transform-origin: top left; }
+  .canvas { position: relative; width: 1180px; height: 2711px; transform-origin: top left; }
 
   .zoomgrp { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; }
   .zoomlabel { font-family: var(--mono); font-size: 11.5px; color: var(--muted); min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -227,12 +227,11 @@
   .ncode .cn { color: var(--ink); font-weight: 700; }
 
   /* the duplicated contract, side by side */
-  .pairs { margin-top: 6px; display: flex; flex-direction: column; gap: 7px; }
-  .prow { display: grid; grid-template-columns: 1fr 74px 1fr; align-items: center; gap: 8px; }
-  .pcell { font-family: var(--mono); font-size: 11px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; white-space: pre; overflow: hidden; }
-  .pcell .pwhere { display: block; font-size: 9.5px; color: var(--faint); margin-top: 2px; }
+  .pairs { margin-top: 6px; display: grid; grid-template-columns: minmax(0,1fr) 82px minmax(0,1fr) minmax(0,1.15fr); gap: 7px 10px; align-items: center; }
+  .phead { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding-left: 2px; }
+  .pcell { font-family: var(--mono); font-size: 11px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; white-space: pre; overflow: hidden; align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
   .plink { text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px dashed var(--file-contract); border-radius: 999px; padding: 3px 0; }
-  .pbreak { font-size: 10.5px; color: var(--muted); grid-column: 1 / -1; line-height: 1.45; padding-left: 2px; }
+  .pbreak { font-size: 10.5px; color: var(--muted); line-height: 1.45; padding-left: 2px; }
   .pfoot { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--ink); line-height: 1.5; }
 
   /* file row: colored dot carries identity, filename stays in muted ink */
@@ -351,8 +350,8 @@
     <div class="canvasScroll">
       <div class="canvasViewport" id="viewport">
         <div class="canvas" id="canvas">
-          <svg class="edges" id="edges" viewBox="0 0 1180 3324" preserveAspectRatio="none" aria-hidden="true"></svg>
-          <svg class="elabels" id="elabels" viewBox="0 0 1180 3324" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <svg class="edges" id="edges" viewBox="0 0 1180 2711" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <svg class="elabels" id="elabels" viewBox="0 0 1180 2711" preserveAspectRatio="none" aria-hidden="true"></svg>
           <!-- workers, task-queue bands and nodes injected here -->
         </div>
       </div>
@@ -387,7 +386,7 @@ const SVGNS = "http://www.w3.org/2000/svg";
 /* One fixed coordinate space. Every position below is authored in it; the whole
    canvas is scaled to fit the pane instead of reflowing. Taller beats wider:
    a 1180px canvas still fits at ~76% in a 900px lab pane. */
-const CANVAS_W = 1180, CANVAS_H = 3324;
+const CANVAS_W = 1180, CANVAS_H = 2711;
 
 /* ---------------- source files: the file-dot channel ----------------
    Only the two halves of the cross-language contract carry a hue. A second
@@ -411,21 +410,21 @@ const FILE_MAP = Object.fromEntries(FILES.map(f => [f.key, f]));
 
 /* ---------------- container 1: worker processes (dashed outline) ---------------- */
 const WORKERS = [
-  { id:"wk-ts-orch", x:24, y:236, w:1132, h:905,
+  { id:"wk-ts-orch", x:24, y:222, w:1132, h:711,
     kicker:"Worker process 1", name:"TypeScript · orchestrator", tag:"worker.ts",
     detail:{ badge:"", type:"Worker process", name:"TypeScript orchestrator Worker",
       file:"challenge4-heterogeneous-agents/worker.ts", tq:"polls c4-orchestrator-tq",
       desc:"Worker.create with a workflowsPath and the OpenAI Agents plugin, and no activities of its own. It runs the triage agent's control loop inside the Workflow and hands every model call to the plugin-installed Activity. Both TypeScript Workers are created in the same Node process; they are separate Workers because they poll separate Task Queues.",
       members:["Worker.create({ taskQueue: ORCHESTRATOR_TASK_QUEUE, ... })","workflowsPath: require.resolve('./workflows')","plugins: [openAIAgentsPlugin()]","No activities: this Worker only orchestrates","Started by npm alongside the specialist Worker"] } },
 
-  { id:"wk-ts-spec", x:24, y:1181, w:550, h:954,
+  { id:"wk-ts-spec", x:24, y:973, w:550, h:836,
     kicker:"Worker process 2", name:"TypeScript · specialists", tag:"worker.ts",
     detail:{ badge:"", type:"Worker process", name:"TypeScript specialist Worker",
       file:"challenge4-heterogeneous-agents/worker.ts", tq:"polls c4-specialists-tq",
       desc:"The second Worker.create in worker.ts. It registers the same workflowsPath and the same plugin, and adds activities: weatherActivities. Because it polls its own Task Queue, the team that owns the weather specialist can deploy it on its own schedule.",
       members:["Worker.create({ taskQueue: SPECIALIST_TASK_QUEUE, ... })","activities: weatherActivities","plugins: [openAIAgentsPlugin()]","Runs weatherSpecialistWorkflow as a Child Workflow","Same Node process as the orchestrator Worker, different queue"] } },
 
-  { id:"wk-py", x:606, y:1181, w:550, h:1219,
+  { id:"wk-py", x:606, y:973, w:550, h:1069,
     kicker:"Worker process 3", name:"Python · travel planner", tag:"worker.py",
     detail:{ badge:"", type:"Worker process", name:"Python travel-planner Worker",
       file:"python-travel-planner/worker.py", tq:"polls c4-python-travel-planner-tq",
@@ -435,21 +434,21 @@ const WORKERS = [
 
 /* ---------------- container 2: task-queue bands, inside the workers ---------------- */
 const BANDS = [
-  { id:"tq-orch", wk:"wk-ts-orch", x:40, y:283, w:1100, h:842,
+  { id:"tq-orch", wk:"wk-ts-orch", x:40, y:269, w:1100, h:648,
     name:"c4-orchestrator-tq", tag:"1 Workflow · 2 agent tools",
     detail:{ type:"Task Queue", name:"c4-orchestrator-tq",
       file:"workflows.ts · ORCHESTRATOR_TASK_QUEUE", tq:"polled by Worker process 1",
       desc:"The queue the client targets. Naming it selects the orchestrator Worker, and therefore TypeScript. The triage Workflow and both of its tool wrappers execute here.",
       members:["export const ORCHESTRATOR_TASK_QUEUE = 'c4-orchestrator-tq'","Targeted by client.workflow.execute(...)","Hosts triageAgentWorkflow","Model calls leave as Activities on this same queue"] } },
 
-  { id:"tq-spec", wk:"wk-ts-spec", x:40, y:1228, w:518, h:891,
+  { id:"tq-spec", wk:"wk-ts-spec", x:40, y:1020, w:518, h:773,
     name:"c4-specialists-tq", tag:"1 Workflow · 4 Activities",
     detail:{ type:"Task Queue", name:"c4-specialists-tq",
       file:"workflows.ts · SPECIALIST_TASK_QUEUE", tq:"polled by Worker process 2",
       desc:"Named by childWorkflowAsTool as the taskQueue for the weather specialist. The Child Workflow and the four weather Activities all run here, so the specialist keeps its own history, its own retries and its own deployment.",
       members:["export const SPECIALIST_TASK_QUEUE = 'c4-specialists-tq'","Hosts weatherSpecialistWorkflow","Hosts getIpAddress, getLocationInfo, getCoordinates, getWeather","Reached only through the askWeatherSpecialist tool"] } },
 
-  { id:"tq-py", wk:"wk-py", x:622, y:1228, w:518, h:1156,
+  { id:"tq-py", wk:"wk-py", x:622, y:1020, w:518, h:1006,
     name:"c4-python-travel-planner-tq", tag:"1 Workflow",
     detail:{ type:"Task Queue", name:"c4-python-travel-planner-tq",
       file:"api.ts and travel_planner_service.py", tq:"polled by Worker process 3",
@@ -465,7 +464,7 @@ const NODES = [
   /* --- top row: outside every Worker --- */
   { id:"client", wk:null, tq:null, x:24, y:20, w:384, file:"client.ts", lang:"ts",
     type:"Client process", name:"npm run c4:client",
-    code:"// client.ts\nawait client.workflow.execute(triageAgentWorkflow, {\n  taskQueue: ORCHESTRATOR_TASK_QUEUE,\n  args: [{ question, model: modelName() }],\n});",
+    code:"// client.ts\nawait client.workflow.execute(triageAgentWorkflow,\n  { taskQueue: ORCHESTRATOR_TASK_QUEUE,\n    args: [{ question, model }] })",
     note:"Nothing here mentions Python. The client names a TypeScript Workflow function and one Task Queue.",
     tqLabel:"targets c4-orchestrator-tq",
     desc:"The starter. It connects with the OpenAI Agents plugin registered on the Client, then executes triageAgentWorkflow by function reference. The model name is resolved here, in a plain Node process, because Workflow code has no access to the environment.",
@@ -489,32 +488,32 @@ const NODES = [
     members:["TypeScript: new OpenAIProvider({ apiKey, baseURL, useResponses: false })","Python: init_chat_model(model_name, api_key=..., base_url=...)","Called from inside an Activity, never from Workflow code","Credentials never enter Workflow inputs"] },
 
   /* --- Worker 1 · c4-orchestrator-tq --- */
-  { id:"w1_create", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:334, w:520, file:"worker.ts", lang:"ts",
+  { id:"w1_create", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:320, w:520, file:"worker.ts", lang:"ts",
     type:"Worker registration", name:"orchestratorWorker",
-    code:"// worker.ts — no activities of its own\nconst orchestratorWorker = await Worker.create({\n  connection,\n  taskQueue: ORCHESTRATOR_TASK_QUEUE,\n  workflowsPath: require.resolve('./workflows'),\n  plugins: [openAIAgentsPlugin()],\n  bundlerOptions: agentsBundlerOptions,\n});",
+    code:"// worker.ts — no activities of its own\nconst orchestratorWorker = await Worker.create({\n  taskQueue: ORCHESTRATOR_TASK_QUEUE, workflowsPath,\n  plugins: [openAIAgentsPlugin()], … })",
     note:"The absent activities option is the point: this Worker orchestrates and calls specialists. The only Activity it runs is the model call the plugin installs.",
     tqLabel:"c4-orchestrator-tq",
     desc:"The first of the two Worker.create calls in worker.ts. It registers the Workflow bundle and the OpenAI Agents plugin against the orchestrator queue. No activities list appears, because the work this Worker delegates goes out as Child Workflows rather than Activities.",
     members:["taskQueue: ORCHESTRATOR_TASK_QUEUE","workflowsPath: require.resolve('./workflows')","plugins: [openAIAgentsPlugin()]","bundlerOptions: agentsBundlerOptions","Run together with specialistWorker via Promise.all"] },
 
-  { id:"w1_model", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:334, w:520, file:"workerOptions.ts", lang:"ts",
+  { id:"w1_model", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:320, w:520, file:"workerOptions.ts", lang:"ts",
     type:"Plugin-installed Activity", name:"model call",
-    code:"// shared/workerOptions.ts\nnew OpenAIAgentsPlugin({\n  modelProvider: createModelProvider(),\n  modelParams: { startToCloseTimeout: '2 minutes' },\n});",
+    code:"// shared/workerOptions.ts\nnew OpenAIAgentsPlugin({ modelProvider, modelParams })",
     note:"Regular Activities, not local ones, so every LLM call lands in Workflow history as its own event. The same plugin is registered on the specialist Worker.",
     tqLabel:"c4-orchestrator-tq",
     desc:"Registered on the Worker, the plugin installs the Activity that every model call is routed through. The agent loop runs inside the Workflow and replays deterministically; the non-deterministic part, the call to the model, leaves as an Activity and is retried on its own.",
     members:["modelProvider: createModelProvider()","modelParams: { startToCloseTimeout: '2 minutes' }","Registered on the Worker and on the Client","One ScheduleActivityTask per model turn","Also registered on the specialist Worker"] },
 
-  { id:"triage", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:583, w:520, file:"workflows.ts", lang:"ts",
+  { id:"triage", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:502, w:520, file:"workflows.ts", lang:"ts",
     type:"Workflow", name:"triageAgentWorkflow",
-    code:"// challenge4-heterogeneous-agents/workflows.ts\nexport async function triageAgentWorkflow(\n  request: AgentRequest,\n): Promise<string>",
+    code:"// challenge4-heterogeneous-agents/workflows.ts\nexport async function triageAgentWorkflow(\n  request: AgentRequest): Promise<string>",
     note:"Routes, then composes. It answers nothing itself: it calls a specialist and combines what comes back.",
     tqLabel:"c4-orchestrator-tq",
     desc:"The orchestrator. It builds one Agent with two tools and runs it through TemporalOpenAIRunner. The control loop runs inside the Workflow so it replays deterministically; each model turn leaves as an Activity, and each specialist call leaves as a Child Workflow.",
     members:["new Agent({ name: 'TriageAgent', tools: [weatherTool, travelTool] })","new TemporalOpenAIRunner().run(agent, request.question, ...)","runConfig: { model: request.model }","Returns result.finalOutput ?? ''","The same file also exports weatherSpecialistWorkflow"],
     snippet:"const agent = new Agent({\n  name: 'TriageAgent',\n  instructions: TRIAGE_INSTRUCTIONS,\n  tools: [weatherTool, travelTool],\n});\n\nconst result = await new TemporalOpenAIRunner().run(agent, request.question, {\n  runConfig: { model: request.model },\n});\nreturn result.finalOutput ?? '';" },
 
-  { id:"w1_note", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:583, w:520, file:"workflows.ts", lang:"ts",
+  { id:"w1_note", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:502, w:520, file:"workflows.ts", lang:"ts",
     type:"The lesson", name:"Two tools, two ways to name a Workflow",
     sub:"askWeatherSpecialist -> a function\naskTravelPlanner     -> a string",
     note:"Both become executeChild. Both land on a Task Queue. Only one of them is checked by a compiler. The source says so directly: childWorkflowAsTool cannot be reused for the Python call, because it takes a Workflow function and there is no function to import.",
@@ -522,18 +521,18 @@ const NODES = [
     desc:"The two boxes below are the same call with two strings changed. The weather tool hands executeChild a Workflow function, so TypeScript checks the argument and return types against the implementation. The travel tool hands it a string, and the type it declares locally is a promise the compiler cannot verify against anything.",
     members:["Same Child Workflow mechanism in both cases","Same history events: StartChildWorkflowExecution, ChildWorkflowExecutionCompleted","One is verified at compile time, one at run time","Nothing in workflows.ts says the word Python","The Task Queue name is what selects the language"] },
 
-  { id:"weatherTool", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:765, w:520, file:"workflows.ts", lang:"ts",
+  { id:"weatherTool", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:675, w:520, file:"workflows.ts", lang:"ts",
     type:"Agent tool · checked by the compiler", name:"askWeatherSpecialist",
-    code:"// workflows.ts — passes the Workflow function\nconst weatherTool = childWorkflowAsTool({\n  name: 'askWeatherSpecialist',\n  workflow: weatherSpecialistWorkflow,\n  taskQueue: SPECIALIST_TASK_QUEUE,\n  model: request.model,\n  workflowExecutionTimeout: '5 minutes',\n});",
+    code:"// workflows.ts — passes the Workflow function\nconst weatherTool = childWorkflowAsTool({\n  name, description, workflow: weatherSpecialistWorkflow,\n  taskQueue: SPECIALIST_TASK_QUEUE, model, … })",
     note:"weatherSpecialistWorkflow is imported from the same file. Change its signature and this call stops compiling.",
     tqLabel:"starts a Child on c4-specialists-tq",
     desc:"The helper in shared/childWorkflowAsTool.ts wraps a Workflow function as an agent tool. Its options type declares workflow as (request: AgentRequest) => Promise<string>, so the argument shape and the return type are both checked against the real implementation.",
     members:["childWorkflowAsTool({ name, description, workflow, taskQueue, ... })","workflow: weatherSpecialistWorkflow — a function reference","Calls wf.executeChild(options.workflow, ...) underneath","workflowId: askWeatherSpecialist-<uuid>","A signature change is a compile error, not a run-time failure"],
     snippet:"// shared/childWorkflowAsTool.ts\nexport interface ChildWorkflowAsToolOptions {\n  workflow: (request: AgentRequest) => Promise<string>;\n  taskQueue: string;\n}\n\nexecute: async ({ question }) =>\n  await wf.executeChild(options.workflow, {\n    args: [{ question, model: options.model }],\n    taskQueue: options.taskQueue,\n  });" },
 
-  { id:"travelTool", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:765, w:520, file:"workflows.ts", lang:"ts",
+  { id:"travelTool", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:675, w:520, file:"workflows.ts", lang:"ts",
     type:"Agent tool · checked at run time", name:"askTravelPlanner",
-    code:"// workflows.ts — passes the Workflow type as a string\nconst travelTool = tool({\n  name: 'askTravelPlanner',\n  parameters: z.object({ question: z.string() }),\n  execute: async ({ question }) => {\n    const response = await wf.executeChild<\n      PythonTravelPlannerWorkflow>(\n        PYTHON_TRAVEL_PLANNER_WORKFLOW, {\n          taskQueue: PYTHON_TRAVEL_PLANNER_TASK_QUEUE,\n          workflowExecutionTimeout: '5 minutes', ...\n        });\n    return response.answer;\n  },\n});",
+    code:"// workflows.ts — passes the Workflow type as a string\nconst travelTool = tool({ name, description, parameters,\n  execute: async ({ question }) => {\n    const response = await wf.executeChild<PythonTravelPlannerWorkflow>(\n      PYTHON_TRAVEL_PLANNER_WORKFLOW,\n      { taskQueue: PYTHON_TRAVEL_PLANNER_TASK_QUEUE, … });\n    return response.answer; } })",
     note:"childWorkflowAsTool cannot be reused here: it takes a Workflow function, and there is no function to import. So the Workflow type is a string and the Task Queue selects the Worker that hosts it.",
     tqLabel:"starts a Child on c4-python-travel-planner-tq",
     desc:"The same Child Workflow call as the weather tool, with two strings changed. PythonTravelPlannerWorkflow is a type declared locally in api.ts; it states the shape this caller expects. If the Python dataclass changes and that type does not, nothing fails at compile time. It fails at run time, in the payload converter.",
@@ -541,31 +540,31 @@ const NODES = [
     snippet:"// The same Child Workflow call as challenge 3, with two strings changed.\n//\n// childWorkflowAsTool cannot be reused here: it takes a Workflow *function*,\n// and there is no function to import — the implementation is Python. So the\n// Workflow type is named as a STRING, and the Task Queue selects the Worker\n// that hosts it. Nothing else about the call differs, and nothing in this file\n// says 'Python'." },
 
   /* --- Worker 2 · c4-specialists-tq --- */
-  { id:"w2_create", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1279, w:490, file:"worker.ts", lang:"ts",
+  { id:"w2_create", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1071, w:490, file:"worker.ts", lang:"ts",
     type:"Worker registration", name:"specialistWorker",
-    code:"// worker.ts\nconst specialistWorker = await Worker.create({\n  connection,\n  taskQueue: SPECIALIST_TASK_QUEUE,\n  workflowsPath: require.resolve('./workflows'),\n  activities: weatherActivities,\n  plugins: [openAIAgentsPlugin()],\n});",
+    code:"// worker.ts\nconst specialistWorker = await Worker.create({\n  taskQueue: SPECIALIST_TASK_QUEUE, workflowsPath,\n  activities: weatherActivities, … })",
     note:"Same file, same process, different Task Queue. This one does carry activities.",
     tqLabel:"c4-specialists-tq",
     desc:"The second Worker.create in worker.ts. Registering it on its own Task Queue is what makes the weather specialist independently deployable: it can be scaled, restarted or moved to another host without touching the orchestrator.",
     members:["taskQueue: SPECIALIST_TASK_QUEUE","activities: weatherActivities — the whole module","plugins: [openAIAgentsPlugin()]","Run with Promise.all alongside the orchestrator Worker"] },
 
-  { id:"weatherSpecialist", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1512, w:490, file:"workflows.ts", lang:"ts",
+  { id:"weatherSpecialist", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1237, w:490, file:"workflows.ts", lang:"ts",
     type:"Child Workflow", name:"weatherSpecialistWorkflow",
-    code:"// workflows.ts\nexport async function weatherSpecialistWorkflow(\n  request: AgentRequest,\n): Promise<string>",
+    code:"// workflows.ts\nexport async function weatherSpecialistWorkflow(\n  request: AgentRequest): Promise<string>",
     note:"Unchanged from the previous challenge. Its own agent, its own tools, its own Event History.",
     tqLabel:"c4-specialists-tq",
     desc:"A second agent behind a Child Workflow. Each invocation is its own durable Execution, visible in the caller's history as StartChildWorkflowExecution and ChildWorkflowExecutionCompleted. Its LLM calls leave as Activities too, through the same plugin registered on this Worker.",
     members:["new Agent({ name: 'WeatherSpecialist', tools: weatherTools() })","Instructions: geocode a city before asking for its forecast","new TemporalOpenAIRunner().run(agent, request.question, ...)","Returns result.finalOutput ?? ''","Started by the askWeatherSpecialist tool, never by the client"] },
 
-  { id:"weatherTools", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1694, w:490, file:"weatherTools.ts", lang:"ts",
+  { id:"weatherTools", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1402, w:490, file:"weatherTools.ts", lang:"ts",
     type:"Activities as agent tools", name:"weatherTools()",
-    code:"// shared/weatherTools.ts\nexport function weatherTools(): Tool[]\n  activityAsTool<typeof activities.getIpAddress>(...)\n  activityAsTool<typeof activities.getLocationInfo>(...)\n  activityAsTool<typeof activities.getCoordinates>(...)\n  activityAsTool<typeof activities.getWeather>(...)",
+    code:"// shared/weatherTools.ts\nexport function weatherTools(): Tool[]\n  activityAsTool<typeof activities.getIpAddress>(…)\n  … getLocationInfo, getCoordinates, getWeather",
     note:"The Activity module is imported as a type only. The Workflow schedules Activities by name; it never runs their code.",
     tqLabel:"c4-specialists-tq",
     desc:"activityAsTool gives the model a tool whose implementation is a Temporal Activity. Each call the model makes becomes a ScheduleActivityTask in the specialist's history: independently retried, and replayed from history rather than re-executed.",
     members:["startToCloseTimeout: '30 seconds' on all four","Parameters are declared as JSON Schema per tool","import type * as activities from './weatherActivities'","Compare with tool_as_activity on the Python side"] },
 
-  { id:"weatherActivities", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1910, w:490, file:"weatherActivities.ts", lang:"ts",
+  { id:"weatherActivities", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1584, w:490, file:"weatherActivities.ts", lang:"ts",
     type:"Worker-registered Activities", name:"weatherActivities",
     code:"// shared/weatherActivities.ts\nexport async function getIpAddress(...): Promise<string>\nexport async function getLocationInfo(...): Promise<string>\nexport async function getCoordinates(...): Promise<string>\nexport async function getWeather(...): Promise<string>",
     note:"Every one is a network call: icanhazip.com, ip-api.com, Open-Meteo geocoding and forecast. Every one is async, because proxyActivities only sees Promise-returning functions.",
@@ -574,23 +573,23 @@ const NODES = [
     members:["getIpAddress(_input) — public IP of the Worker host","getLocationInfo({ ipAddress })","getCoordinates({ city }) — returns an explicit no_match on a miss","getWeather({ latitude, longitude })","Each takes a single object argument, which is the tool schema"] },
 
   /* --- Worker 3 · c4-python-travel-planner-tq --- */
-  { id:"py_worker", wk:"wk-py", tq:"tq-py", x:636, y:1279, w:490, file:"worker.py", lang:"py",
+  { id:"py_worker", wk:"wk-py", tq:"tq-py", x:636, y:1071, w:490, file:"worker.py", lang:"py",
     type:"Worker registration", name:"Worker(client, ...)",
-    code:"# worker.py\nworker = Worker(\n    client,\n    task_queue=TASK_QUEUE,\n    workflows=[TravelPlannerAgentWorkflow])",
+    code:"# worker.py\nworker = Worker(client, task_queue=TASK_QUEUE,\n                workflows=[TravelPlannerAgentWorkflow])",
     note:"No activities= list. The plugin registers the deepagents Activities that carry every model call and every tool_as_activity tool.",
     tqLabel:"c4-python-travel-planner-tq",
     desc:"The Python Worker. It is built from a Client that already carries DeepAgentsPlugin, so the plugin is added on exactly one side and propagates here. It polls the queue named in travel_planner_service.py, which is the same string api.ts declares on the TypeScript side.",
     members:["Worker(client, task_queue=TASK_QUEUE, workflows=[TravelPlannerAgentWorkflow])","Client.connect(TEMPORAL_ADDRESS, namespace=..., plugins=[plugin])","Same Namespace as the TypeScript Workers","Started separately from the TypeScript Workers","Raises early if OPENAI_API_KEY is not set"] },
 
-  { id:"py_plugin", wk:"wk-py", tq:"tq-py", x:636, y:1478, w:490, file:"worker.py", lang:"py",
+  { id:"py_plugin", wk:"wk-py", tq:"tq-py", x:636, y:1236, w:490, file:"worker.py", lang:"py",
     type:"Client-level plugin", name:"DeepAgentsPlugin",
-    code:"# worker.py — added on the Client, inherited by the Worker\nplugin = DeepAgentsPlugin(\n    model_provider=build_model,\n    passthrough_modules=['travel_planner', 'httpx'])\n\ndef build_model(model_name: str):\n    from langchain.chat_models import init_chat_model\n    return init_chat_model(model_name, **kwargs)",
+    code:"# worker.py — added on the Client, inherited by the Worker\nplugin = DeepAgentsPlugin(model_provider=build_model,\n    passthrough_modules=['travel_planner', 'httpx'])\ndef build_model(model_name: str):  # → init_chat_model(…)",
     note:"travel_planner imports httpx, which the default passthrough does not cover. Without these two entries the Workflow sandbox rejects the import.",
     tqLabel:"c4-python-travel-planner-tq",
     desc:"The seam that points the deep agent at the lab's OpenAI-compatible gateway. build_model turns the model NAME the Workflow shipped into a real LangChain client, in the Worker process. The Workflow never sees the key, so no credential is written to Event History.",
     members:["DeepAgentsPlugin(model_provider=build_model, passthrough_modules=[...])","Added on the Client; the SDK propagates it to Workers built from it","build_model reads OPENAI_API_KEY and OPENAI_BASE_URL","init_chat_model(model_name, **kwargs)","Configures the Workflow sandbox to pass the LangChain import tree through"] },
 
-  { id:"py_workflow", wk:"wk-py", tq:"tq-py", x:636, y:1727, w:490, file:"travel_planner_service.py", lang:"py",
+  { id:"py_workflow", wk:"wk-py", tq:"tq-py", x:636, y:1418, w:490, file:"travel_planner_service.py", lang:"py",
     type:"Workflow · the wire type", name:"TravelPlannerAgentWorkflow",
     code:"# travel_planner_service.py\n@workflow.defn\nclass TravelPlannerAgentWorkflow:\n    @workflow.run\n    async def run(self, request: AskRequest) -> AskResponse:",
     note:"The class name IS the Workflow type on the wire. TypeScript names it as a string in api.ts, because there is no Python code for it to import.",
@@ -599,41 +598,41 @@ const NODES = [
     members:["@workflow.defn class TravelPlannerAgentWorkflow","async def run(self, request: AskRequest) -> AskResponse","Takes the flat JSON the TypeScript caller sends","Returns AskResponse(answer=result['messages'][-1].content)","Rename the class and the TypeScript call fails at run time"],
     snippet:"@workflow.defn\nclass TravelPlannerAgentWorkflow:\n    @workflow.run\n    async def run(self, request: AskRequest) -> AskResponse:\n        agent = create_temporal_deep_agent(...)\n        result = await agent.ainvoke(\n            {'messages': [{'role': 'user', 'content': request.question}]}\n        )\n        return AskResponse(answer=result['messages'][-1].content)" },
 
-  { id:"py_agent", wk:"wk-py", tq:"tq-py", x:636, y:1926, w:490, file:"travel_planner_service.py", lang:"py",
+  { id:"py_agent", wk:"wk-py", tq:"tq-py", x:636, y:1617, w:490, file:"travel_planner_service.py", lang:"py",
     type:"Deep agent loop", name:"create_temporal_deep_agent",
-    code:"# travel_planner_service.py\nagent = create_temporal_deep_agent(\n    model=f'openai:{request.model}',\n    system_prompt=travel_planner.SYSTEM_PROMPT,\n    tools=[tool_as_activity(t, ...)\n           for t in travel_planner.TOOLS],\n    activity_options={...})",
+    code:"# travel_planner_service.py\nagent = create_temporal_deep_agent(\n    model=f'openai:{request.model}', system_prompt=…,\n    tools=[tool_as_activity(t, …) for t in travel_planner.TOOLS],\n    activity_options={…})",
     note:"The model is named, not built. The Workflow ships only the string; the Worker's model_provider constructs the real client.",
     tqLabel:"c4-python-travel-planner-tq",
     desc:"tool_as_activity wraps each plain LangChain tool so the call leaves the Workflow as an Activity, with its own timeout and retry policy. Retries are bounded on purpose: the Temporal default is unlimited, which is right in production and wrong in a lab, where a bad key would retry forever and the learner would see a hang instead of an error.",
     members:["model=f'openai:{request.model}'","system_prompt=travel_planner.SYSTEM_PROMPT","tool_as_activity(t, start_to_close_timeout=timedelta(seconds=30), ...)","activity_options={'retry_policy': RetryPolicy(maximum_attempts=3)}","The retry policy goes inside activity_options; there is no top-level kwarg","await agent.ainvoke({'messages': [...]})"] },
 
-  { id:"py_tools", wk:"wk-py", tq:"tq-py", x:636, y:2158, w:490, file:"travel_planner.py", lang:"py",
+  { id:"py_tools", wk:"wk-py", tq:"tq-py", x:636, y:1816, w:490, file:"travel_planner.py", lang:"py",
     type:"Another team's agent, imported as-is", name:"TOOLS",
-    code:"# travel_planner.py — plain LangChain, no Temporal imports\n@tool\nasync def wikipedia_summary(topic: str) -> str\n@tool\nasync def country_info(country: str) -> str\n\nTOOLS = [wikipedia_summary, country_info]",
+    code:"# travel_planner.py — plain LangChain, no Temporal imports\n@tool\nasync def wikipedia_summary(topic: str) -> str\n@tool\nasync def country_info(country: str) -> str\nTOOLS = [wikipedia_summary, country_info]",
     note:"Both do network I/O with httpx, so both become Activities. Nothing in this file knows that.",
     tqLabel:"c4-python-travel-planner-tq",
     desc:"An unmodified LangChain tool module. It has no Temporal import and no Temporal decorator. The Workflow wraps its two tools with tool_as_activity, which is what makes them durable, retried and replayable without a line changing here.",
     members:["wikipedia_summary(topic) — en.wikipedia.org REST summary","country_info(country) — restcountries.com","Both are @tool and both are async","SYSTEM_PROMPT lives here too","Listed in passthrough_modules so the Workflow sandbox allows the import"] },
 
   /* --- the contract, duplicated by hand --- */
-  { id:"api_ts", wk:null, tq:null, x:24, y:2444, w:550, file:"api.ts", lang:"ts",
+  { id:"api_ts", wk:null, tq:null, x:24, y:2086, w:550, file:"api.ts", lang:"ts",
     type:"Contract · TypeScript half", name:"api.ts",
-    code:"// challenge4-heterogeneous-agents/api.ts\nexport interface AskRequest {\n  question: string;\n  model?: string;\n}\nexport interface AskResponse {\n  answer: string;\n}\nexport type PythonTravelPlannerWorkflow =\n  (request: AskRequest) => Promise<AskResponse>;\n\nexport const PYTHON_TRAVEL_PLANNER_WORKFLOW =\n  'TravelPlannerAgentWorkflow';\nexport const PYTHON_TRAVEL_PLANNER_TASK_QUEUE =\n  'c4-python-travel-planner-tq';",
+    code:"// challenge4-heterogeneous-agents/api.ts\nexport interface AskRequest  { question: string; model?: string }\nexport interface AskResponse { answer: string }\nexport type PythonTravelPlannerWorkflow =\n  (request: AskRequest) => Promise<AskResponse>;\nexport const PYTHON_TRAVEL_PLANNER_WORKFLOW =\n  'TravelPlannerAgentWorkflow';\nexport const PYTHON_TRAVEL_PLANNER_TASK_QUEUE =\n  'c4-python-travel-planner-tq';",
     note:"The remote Workflow's signature, declared locally. There is no Python code to import, so the caller states the shape it expects and the type system holds it to that.",
     tqLabel:"names c4-python-travel-planner-tq",
     desc:"The whole of the TypeScript side of the boundary. Two interfaces, one function type and two string constants. The type system will hold the rest of the TypeScript code to these declarations, and nothing at all will hold Python to them.",
     members:["AskRequest { question; model? }","AskResponse { answer }","type PythonTravelPlannerWorkflow = (request: AskRequest) => Promise<AskResponse>","PYTHON_TRAVEL_PLANNER_WORKFLOW = 'TravelPlannerAgentWorkflow'","PYTHON_TRAVEL_PLANNER_TASK_QUEUE = 'c4-python-travel-planner-tq'"],
     snippet:"/**\n * The remote Workflow's signature, declared locally.\n *\n * There is no Python code to import, so the caller states the shape it expects\n * and the type system holds it to that. If Python changes its dataclass and this\n * does not, nothing fails at compile time — it fails at run time, in the payload\n * converter. That is the cost of a boundary a compiler cannot see across.\n */" },
 
-  { id:"svc_py", wk:null, tq:null, x:606, y:2444, w:550, file:"travel_planner_service.py", lang:"py",
+  { id:"svc_py", wk:null, tq:null, x:606, y:2086, w:550, file:"travel_planner_service.py", lang:"py",
     type:"Contract · Python half", name:"travel_planner_service.py",
-    code:"# python-travel-planner/travel_planner_service.py\nTASK_QUEUE = 'c4-python-travel-planner-tq'\n\n@dataclass\nclass AskRequest:\n    question: str\n    model: str = 'gpt-4o'\n\n@dataclass\nclass AskResponse:\n    answer: str\n\n@workflow.defn\nclass TravelPlannerAgentWorkflow:\n    ...",
+    code:"# python-travel-planner/travel_planner_service.py\nTASK_QUEUE = 'c4-python-travel-planner-tq'\n@dataclass\nclass AskRequest:    question: str; model: str = 'gpt-4o'\n@dataclass\nclass AskResponse:   answer: str\n@workflow.defn\nclass TravelPlannerAgentWorkflow: ...",
     note:"Plain dataclasses, not Pydantic: the default JSON payload converter maps them to and from the flat objects the TypeScript caller sends. The FIELD NAMES are the wire contract.",
     tqLabel:"declares c4-python-travel-planner-tq",
     desc:"The whole of the Python side. Two dataclasses, one Task Queue constant and one Workflow class whose name is the wire type. Every name here has a counterpart in api.ts, and nothing keeps them in step except the person editing both files.",
     members:["TASK_QUEUE = 'c4-python-travel-planner-tq'","@dataclass AskRequest: question: str, model: str = 'gpt-4o'","@dataclass AskResponse: answer: str","@workflow.defn class TravelPlannerAgentWorkflow","Field names are the contract, not the class names of the dataclasses"] },
 
-  { id:"pairs", wk:null, tq:null, x:24, y:2817, w:1132, file:"api.ts", lang:"ts",
+  { id:"pairs", wk:null, tq:null, x:24, y:2358, w:1132, file:"api.ts", lang:"ts",
     type:"Duplicated, not generated", name:"Four names that must match, byte for byte",
     pairs:[
       { ts:"PYTHON_TRAVEL_PLANNER_WORKFLOW =\n  'TravelPlannerAgentWorkflow'", tsWhere:"api.ts",
@@ -643,10 +642,10 @@ const NODES = [
         py:"TASK_QUEUE =\n  'c4-python-travel-planner-tq'", pyWhere:"travel_planner_service.py",
         breaks:"Mistype it and the Child Workflow is enqueued where nothing polls. The caller waits out workflowExecutionTimeout: '5 minutes'." },
       { ts:"interface AskRequest {\n  question: string; model?: string }", tsWhere:"api.ts",
-        py:"@dataclass\nclass AskRequest:\n  question: str; model: str = 'gpt-4o'", pyWhere:"travel_planner_service.py",
+        py:"@dataclass class AskRequest:\n  question: str; model: str = 'gpt-4o'", pyWhere:"travel_planner_service.py",
         breaks:"Rename a field on one side and the payload converter raises when it deserializes. Compile-clean, run-time failure." },
       { ts:"interface AskResponse {\n  answer: string }", tsWhere:"api.ts",
-        py:"@dataclass\nclass AskResponse:\n  answer: str", pyWhere:"travel_planner_service.py",
+        py:"@dataclass class AskResponse:\n  answer: str", pyWhere:"travel_planner_service.py",
         breaks:"response.answer is typed against a local declaration, not against Python. Drop the field and TypeScript still compiles." },
     ],
     pfoot:"No code generator, no shared schema, no IDL. Two files, edited by hand, that have to agree. That is the honest cost of crossing a language boundary this way, and it is worth naming out loud before a learner ships it.",
@@ -784,11 +783,14 @@ NODES.forEach(n=>{
   let body = '<div class="ntype">' + esc(n.type) + '</div>';
   if(n.pairs){
     body += '<div class="nname">' + esc(n.name) + '</div><div class="pairs">'
+      + '<div class="phead">api.ts · TypeScript</div><div></div>'
+      + '<div class="phead">travel_planner_service.py · Python</div>'
+      + '<div class="phead">if the two ever disagree</div>'
       + n.pairs.map(p =>
-          '<div class="prow"><div class="pcell">' + esc(p.ts) + '<span class="pwhere">' + esc(p.tsWhere) + '</span></div>'
+          '<div class="pcell">' + esc(p.ts) + '</div>'
           + '<div class="plink">must match</div>'
-          + '<div class="pcell">' + esc(p.py) + '<span class="pwhere">' + esc(p.pyWhere) + '</span></div>'
-          + '<div class="pbreak">' + esc(p.breaks) + '</div></div>'
+          + '<div class="pcell">' + esc(p.py) + '</div>'
+          + '<div class="pbreak">' + esc(p.breaks) + '</div>'
         ).join("")
       + '</div><div class="pfoot">' + esc(n.pfoot) + '</div>';
   } else if(n.code){
@@ -1030,7 +1032,7 @@ function renderContainerDetail(d, mine, kind){
 }
 
 /* ---------------- zoom / fit-to-width ----------------
-   The canvas is a fixed 1180 x 3324 coordinate space so the absolute node
+   The canvas is a fixed 1180 x 2711 coordinate space so the absolute node
    positions and the SVG edge math stay simple. Instead of reflowing for narrow
    panes, scale the whole thing to fit the available width. */
 const viewport = document.getElementById("viewport");
