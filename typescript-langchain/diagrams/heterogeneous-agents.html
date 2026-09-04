@@ -11,7 +11,8 @@
 
      Three colour channels, and they never borrow each other's hues.
        edge colour  -> call category   : --accent, --child, --act, --edge-neutral
-       file dot     -> which source file : --file-contract, else --line-strong
+       file dot     -> which source file : --file-wf / --file-api / --file-svc,
+                                            everything else --line-strong
        syntax       -> code tokens     : --syn-*
      --accent means one thing: the agent tool-call category, plus selection
      affordances. Task-queue bands use --lane-tq. Worker outlines use
@@ -38,7 +39,9 @@
     --edge-neutral: #6b7787; /* edge: setup wiring, contract pairing */
     --lane-tq: #54708c;     /* task-queue band furniture, never a category */
     --worker-line: #8d99a8; /* worker-process dashed outline */
-    --file-contract: #aa1546; /* file dot: the duplicated contract */
+    --file-wf:  #ac189d;  /* file dot: workflows.ts */
+    --file-api: #525800;  /* file dot: api.ts */
+    --file-svc: #036f4f;  /* file dot: travel_planner_service.py */
     --on-accent: #ffffff;
     --warn-bg: #8a4f06;
     --warn-ink: #ffffff;
@@ -63,7 +66,7 @@
       --act: #f0a848; --act-ink: #f0a848;
       --edge-neutral: #93a0b1;
       --lane-tq: #8ba3bd; --worker-line: #6a7686;
-      --file-contract: #f15f7f;
+      --file-wf: #d768c7; --file-api: #bdc900; --file-svc: #12b382;
       --on-accent: #141922;
       --warn-bg: #f0a848; --warn-ink: #141922;
       --syn-kw: #569cd6; --syn-deco: #c586c0; --syn-fn: #dcdcaa; --syn-str: #ce9178;
@@ -83,7 +86,7 @@
     --act: #c9791b; --act-ink: #8a4f06;
     --edge-neutral: #6b7787;
     --lane-tq: #54708c; --worker-line: #8d99a8;
-    --file-contract: #aa1546;
+    --file-wf: #ac189d; --file-api: #525800; --file-svc: #036f4f;
     --on-accent: #ffffff;
     --warn-bg: #8a4f06; --warn-ink: #ffffff;
     --syn-kw: #0b4fbd; --syn-deco: #af00db; --syn-fn: #795e26; --syn-str: #a31515;
@@ -102,7 +105,7 @@
     --act: #f0a848; --act-ink: #f0a848;
     --edge-neutral: #93a0b1;
     --lane-tq: #8ba3bd; --worker-line: #6a7686;
-    --file-contract: #f15f7f;
+    --file-wf: #d768c7; --file-api: #bdc900; --file-svc: #12b382;
     --on-accent: #141922;
     --warn-bg: #f0a848; --warn-ink: #141922;
     --syn-kw: #569cd6; --syn-deco: #c586c0; --syn-fn: #dcdcaa; --syn-str: #ce9178;
@@ -141,7 +144,9 @@
   .legItem:hover { border-color: var(--line-strong); }
   .legItem.off { opacity: .38; }
   .legItem .fdot { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); flex: none; }
-  .legItem[data-hued="1"] .fdot { background: var(--file-contract); }
+  .legItem[data-fhue="wf"]  .fdot { background: var(--file-wf); }
+  .legItem[data-fhue="api"] .fdot { background: var(--file-api); }
+  .legItem[data-fhue="svc"] .fdot { background: var(--file-svc); }
   .legItem.on { border-color: var(--line-strong); background: var(--panel); box-shadow: inset 0 0 0 1px var(--line-strong); font-weight: 600; }
   .legItem .fname { font-family: var(--mono); font-size: 11.5px; }
   .spacer { flex: 1 1 auto; }
@@ -160,7 +165,7 @@
 
   .canvasScroll { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: auto; position: relative; max-height: calc(100vh - 210px); min-height: 380px; }
   .canvasViewport { position: relative; margin: 0 auto; }
-  .canvas { position: relative; width: 1180px; height: 2711px; transform-origin: top left; }
+  .canvas { position: relative; width: 1180px; height: 2250px; transform-origin: top left; }
 
   .zoomgrp { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; }
   .zoomlabel { font-family: var(--mono); font-size: 11.5px; color: var(--muted); min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -191,7 +196,9 @@
   .worker.lit { box-shadow: inset 0 0 0 2.5px var(--worker-line); }
   .worker-head { display: flex; align-items: baseline; gap: 10px; padding: 9px 16px; pointer-events: none; flex-wrap: wrap; }
   .worker-kicker { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 700; }
-  .worker-name { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink); }
+  /* Container labels are furniture. They name the process; they must not
+     compete with the declarations inside it. */
+  .worker-name { font-family: var(--mono); font-size: 11.5px; font-weight: 600; color: var(--muted); }
   .worker-tag { font-size: 11px; color: var(--muted); margin-left: auto; font-family: var(--mono); }
 
   /* container 2: the task-queue band, inside the worker */
@@ -208,13 +215,17 @@
   .tq-tag { font-size: 11px; color: var(--muted); margin-left: auto; font-family: var(--mono); text-align: right; }
 
   /* container 3: nodes */
-  .node { position: absolute; z-index: 4; cursor: pointer; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-left-width: 4px; border-left-color: var(--line-strong); border-radius: 10px; padding: 9px 12px; box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s, opacity .18s, border-color .15s; font-family: var(--sans); }
+  .node { position: absolute; z-index: 4; cursor: pointer; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-left-width: 5px; border-left-color: var(--line-strong); border-radius: 10px; padding: 9px 12px; box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s, opacity .18s, border-color .15s; font-family: var(--sans); }
   .node:hover { transform: translateY(-2px); }
-  .node[data-hued="1"] { border-left-color: var(--file-contract); }
+  .node[data-fhue="wf"]  { border-left-color: var(--file-wf); }
+  .node[data-fhue="api"] { border-left-color: var(--file-api); }
+  .node[data-fhue="svc"] { border-left-color: var(--file-svc); }
   .node .ntype { font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
   .node .nname { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--ink); margin-top: 2px; }
   .node .nsub { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: var(--mono); white-space: pre; }
-  .node .nnote { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+  /* Boxes carry the declaration, its syntax colour and its filename. The
+     prose that used to sit under each one now lives in the detail panel. */
+  .detail .nlead { font-size: 13.5px; color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
 
   /* code blocks: authored line breaks, rendered pre, never reflowed */
   .node .ncode { font-family: var(--mono); font-size: 10.5px; line-height: 1.6; white-space: pre; color: var(--muted); margin-top: 4px; }
@@ -230,14 +241,15 @@
   .pairs { margin-top: 6px; display: grid; grid-template-columns: minmax(0,1fr) 82px minmax(0,1fr) minmax(0,1.15fr); gap: 7px 10px; align-items: center; }
   .phead { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding-left: 2px; }
   .pcell { font-family: var(--mono); font-size: 11px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; white-space: pre; overflow: hidden; align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
-  .plink { text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px dashed var(--file-contract); border-radius: 999px; padding: 3px 0; }
+  .plink { text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px dashed var(--line-strong); border-radius: 999px; padding: 3px 0; }
   .pbreak { font-size: 10.5px; color: var(--muted); line-height: 1.45; padding-left: 2px; }
-  .pfoot { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--ink); line-height: 1.5; }
 
   /* file row: colored dot carries identity, filename stays in muted ink */
   .node .nfile { display: flex; align-items: center; gap: 5px; margin-top: 7px; font-family: var(--mono); font-size: 9.5px; color: var(--faint); }
   .fdot { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); flex: none; }
-  .node[data-hued="1"] .fdot { background: var(--file-contract); }
+  .node[data-fhue="wf"]  .fdot { background: var(--file-wf); }
+  .node[data-fhue="api"] .fdot { background: var(--file-api); }
+  .node[data-fhue="svc"] .fdot { background: var(--file-svc); }
   .node.dim { opacity: .2; }
   .node.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
   .node.neighbor { box-shadow: 0 0 0 1.5px var(--line-strong), var(--shadow); }
@@ -260,12 +272,14 @@
   aside.detail { position: sticky; top: 20px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; min-height: 300px; }
   .detail .placeholder { color: var(--muted); font-size: 14px; }
   .detail .placeholder strong { color: var(--ink); }
-  .detail .placeholder .q { display: block; margin: 12px 0; padding-left: 12px; border-left: 3px solid var(--file-contract); color: var(--ink); font-size: 14px; }
+  .detail .placeholder .q { display: block; margin: 12px 0; padding-left: 12px; border-left: 3px solid var(--file-wf); color: var(--ink); font-size: 14px; }
   .badge { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; padding: 3px 9px 3px 8px; border-radius: 7px; text-transform: uppercase; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-left: 3px solid var(--line-strong); }
   .badge.agent    { border-left-color: var(--accent); }
   .badge.wfstart  { border-left-color: var(--child); }
   .badge.activity { border-left-color: var(--act); }
-  .badge.contract { border-left-color: var(--file-contract); }
+  .badge.wf  { border-left-color: var(--file-wf); }
+  .badge.api { border-left-color: var(--file-api); }
+  .badge.svc { border-left-color: var(--file-svc); }
   .detail h2 { font-family: var(--mono); font-size: 16.5px; margin: 12px 0 3px; letter-spacing: -.01em; word-break: break-word; }
   .detail .file { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-bottom: 14px; }
   .detail .file b { color: var(--muted); }
@@ -350,8 +364,8 @@
     <div class="canvasScroll">
       <div class="canvasViewport" id="viewport">
         <div class="canvas" id="canvas">
-          <svg class="edges" id="edges" viewBox="0 0 1180 2711" preserveAspectRatio="none" aria-hidden="true"></svg>
-          <svg class="elabels" id="elabels" viewBox="0 0 1180 2711" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <svg class="edges" id="edges" viewBox="0 0 1180 2250" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <svg class="elabels" id="elabels" viewBox="0 0 1180 2250" preserveAspectRatio="none" aria-hidden="true"></svg>
           <!-- workers, task-queue bands and nodes injected here -->
         </div>
       </div>
@@ -386,7 +400,7 @@ const SVGNS = "http://www.w3.org/2000/svg";
 /* One fixed coordinate space. Every position below is authored in it; the whole
    canvas is scaled to fit the pane instead of reflowing. Taller beats wider:
    a 1180px canvas still fits at ~76% in a 900px lab pane. */
-const CANVAS_W = 1180, CANVAS_H = 2711;
+const CANVAS_W = 1180, CANVAS_H = 2250;
 
 /* ---------------- source files: the file-dot channel ----------------
    Only the two halves of the cross-language contract carry a hue. A second
@@ -394,37 +408,38 @@ const CANVAS_W = 1180, CANVAS_H = 2711;
    simulation and halved the worst-case separation, so it was not spent. Every
    other file is a neutral dot; the filename text is always visible. */
 const FILES = [
-  { key:"client.ts",                 label:"client.ts",                 hued:false },
-  { key:"workflows.ts",              label:"workflows.ts",              hued:false },
-  { key:"api.ts",                    label:"api.ts",                    hued:true  },
-  { key:"worker.ts",                 label:"worker.ts",                 hued:false },
-  { key:"workerOptions.ts",          label:"shared/workerOptions.ts",   hued:false },
-  { key:"weatherTools.ts",           label:"shared/weatherTools.ts",    hued:false },
-  { key:"weatherActivities.ts",      label:"shared/weatherActivities.ts", hued:false },
-  { key:"worker.py",                 label:"worker.py",                 hued:false },
-  { key:"travel_planner_service.py", label:"travel_planner_service.py", hued:true  },
-  { key:"travel_planner.py",         label:"travel_planner.py",         hued:false },
-  { key:"external",                  label:"not a source file",         hued:false },
+  { key:"client.ts",                 label:"client.ts",                 hue:null  },
+  { key:"workflows.ts",              label:"workflows.ts",              hue:"wf"  },
+  { key:"api.ts",                    label:"api.ts",                    hue:"api" },
+  { key:"worker.ts",                 label:"worker.ts",                 hue:null  },
+  { key:"workerOptions.ts",          label:"shared/workerOptions.ts",   hue:null  },
+  { key:"weatherTools.ts",           label:"shared/weatherTools.ts",    hue:null  },
+  { key:"weatherActivities.ts",      label:"shared/weatherActivities.ts", hue:null },
+  { key:"worker.py",                 label:"worker.py",                 hue:null  },
+  { key:"travel_planner_service.py", label:"travel_planner_service.py", hue:"svc" },
+  { key:"travel_planner.py",         label:"travel_planner.py",         hue:null  },
+  { key:"external",                  label:"not a source file",         hue:null  },
 ];
 const FILE_MAP = Object.fromEntries(FILES.map(f => [f.key, f]));
+const FILE_DOT = h => h ? "var(--file-" + h + ")" : "var(--line-strong)";
 
 /* ---------------- container 1: worker processes (dashed outline) ---------------- */
 const WORKERS = [
-  { id:"wk-ts-orch", x:24, y:222, w:1132, h:711,
+  { id:"wk-ts-orch", x:24, y:180, w:1132, h:574,
     kicker:"Worker process 1", name:"TypeScript · orchestrator", tag:"worker.ts",
     detail:{ badge:"", type:"Worker process", name:"TypeScript orchestrator Worker",
       file:"challenge4-heterogeneous-agents/worker.ts", tq:"polls c4-orchestrator-tq",
       desc:"Worker.create with a workflowsPath and the OpenAI Agents plugin, and no activities of its own. It runs the triage agent's control loop inside the Workflow and hands every model call to the plugin-installed Activity. Both TypeScript Workers are created in the same Node process; they are separate Workers because they poll separate Task Queues.",
       members:["Worker.create({ taskQueue: ORCHESTRATOR_TASK_QUEUE, ... })","workflowsPath: require.resolve('./workflows')","plugins: [openAIAgentsPlugin()]","No activities: this Worker only orchestrates","Started by npm alongside the specialist Worker"] } },
 
-  { id:"wk-ts-spec", x:24, y:973, w:550, h:836,
+  { id:"wk-ts-spec", x:24, y:794, w:550, h:684,
     kicker:"Worker process 2", name:"TypeScript · specialists", tag:"worker.ts",
     detail:{ badge:"", type:"Worker process", name:"TypeScript specialist Worker",
       file:"challenge4-heterogeneous-agents/worker.ts", tq:"polls c4-specialists-tq",
       desc:"The second Worker.create in worker.ts. It registers the same workflowsPath and the same plugin, and adds activities: weatherActivities. Because it polls its own Task Queue, the team that owns the weather specialist can deploy it on its own schedule.",
       members:["Worker.create({ taskQueue: SPECIALIST_TASK_QUEUE, ... })","activities: weatherActivities","plugins: [openAIAgentsPlugin()]","Runs weatherSpecialistWorkflow as a Child Workflow","Same Node process as the orchestrator Worker, different queue"] } },
 
-  { id:"wk-py", x:606, y:973, w:550, h:1069,
+  { id:"wk-py", x:606, y:794, w:550, h:879,
     kicker:"Worker process 3", name:"Python · travel planner", tag:"worker.py",
     detail:{ badge:"", type:"Worker process", name:"Python travel-planner Worker",
       file:"python-travel-planner/worker.py", tq:"polls c4-python-travel-planner-tq",
@@ -434,21 +449,21 @@ const WORKERS = [
 
 /* ---------------- container 2: task-queue bands, inside the workers ---------------- */
 const BANDS = [
-  { id:"tq-orch", wk:"wk-ts-orch", x:40, y:269, w:1100, h:648,
+  { id:"tq-orch", wk:"wk-ts-orch", x:40, y:227, w:1100, h:511,
     name:"c4-orchestrator-tq", tag:"1 Workflow · 2 agent tools",
     detail:{ type:"Task Queue", name:"c4-orchestrator-tq",
       file:"workflows.ts · ORCHESTRATOR_TASK_QUEUE", tq:"polled by Worker process 1",
       desc:"The queue the client targets. Naming it selects the orchestrator Worker, and therefore TypeScript. The triage Workflow and both of its tool wrappers execute here.",
       members:["export const ORCHESTRATOR_TASK_QUEUE = 'c4-orchestrator-tq'","Targeted by client.workflow.execute(...)","Hosts triageAgentWorkflow","Model calls leave as Activities on this same queue"] } },
 
-  { id:"tq-spec", wk:"wk-ts-spec", x:40, y:1020, w:518, h:773,
+  { id:"tq-spec", wk:"wk-ts-spec", x:40, y:841, w:518, h:621,
     name:"c4-specialists-tq", tag:"1 Workflow · 4 Activities",
     detail:{ type:"Task Queue", name:"c4-specialists-tq",
       file:"workflows.ts · SPECIALIST_TASK_QUEUE", tq:"polled by Worker process 2",
       desc:"Named by childWorkflowAsTool as the taskQueue for the weather specialist. The Child Workflow and the four weather Activities all run here, so the specialist keeps its own history, its own retries and its own deployment.",
       members:["export const SPECIALIST_TASK_QUEUE = 'c4-specialists-tq'","Hosts weatherSpecialistWorkflow","Hosts getIpAddress, getLocationInfo, getCoordinates, getWeather","Reached only through the askWeatherSpecialist tool"] } },
 
-  { id:"tq-py", wk:"wk-py", x:622, y:1020, w:518, h:1006,
+  { id:"tq-py", wk:"wk-py", x:622, y:841, w:518, h:816,
     name:"c4-python-travel-planner-tq", tag:"1 Workflow",
     detail:{ type:"Task Queue", name:"c4-python-travel-planner-tq",
       file:"api.ts and travel_planner_service.py", tq:"polled by Worker process 3",
@@ -488,7 +503,7 @@ const NODES = [
     members:["TypeScript: new OpenAIProvider({ apiKey, baseURL, useResponses: false })","Python: init_chat_model(model_name, api_key=..., base_url=...)","Called from inside an Activity, never from Workflow code","Credentials never enter Workflow inputs"] },
 
   /* --- Worker 1 · c4-orchestrator-tq --- */
-  { id:"w1_create", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:320, w:520, file:"worker.ts", lang:"ts",
+  { id:"w1_create", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:278, w:520, file:"worker.ts", lang:"ts",
     type:"Worker registration", name:"orchestratorWorker",
     code:"// worker.ts — no activities of its own\nconst orchestratorWorker = await Worker.create({\n  taskQueue: ORCHESTRATOR_TASK_QUEUE, workflowsPath,\n  plugins: [openAIAgentsPlugin()], … })",
     note:"The absent activities option is the point: this Worker orchestrates and calls specialists. The only Activity it runs is the model call the plugin installs.",
@@ -496,7 +511,7 @@ const NODES = [
     desc:"The first of the two Worker.create calls in worker.ts. It registers the Workflow bundle and the OpenAI Agents plugin against the orchestrator queue. No activities list appears, because the work this Worker delegates goes out as Child Workflows rather than Activities.",
     members:["taskQueue: ORCHESTRATOR_TASK_QUEUE","workflowsPath: require.resolve('./workflows')","plugins: [openAIAgentsPlugin()]","bundlerOptions: agentsBundlerOptions","Run together with specialistWorker via Promise.all"] },
 
-  { id:"w1_model", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:320, w:520, file:"workerOptions.ts", lang:"ts",
+  { id:"w1_model", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:278, w:520, file:"workerOptions.ts", lang:"ts",
     type:"Plugin-installed Activity", name:"model call",
     code:"// shared/workerOptions.ts\nnew OpenAIAgentsPlugin({ modelProvider, modelParams })",
     note:"Regular Activities, not local ones, so every LLM call lands in Workflow history as its own event. The same plugin is registered on the specialist Worker.",
@@ -504,7 +519,7 @@ const NODES = [
     desc:"Registered on the Worker, the plugin installs the Activity that every model call is routed through. The agent loop runs inside the Workflow and replays deterministically; the non-deterministic part, the call to the model, leaves as an Activity and is retried on its own.",
     members:["modelProvider: createModelProvider()","modelParams: { startToCloseTimeout: '2 minutes' }","Registered on the Worker and on the Client","One ScheduleActivityTask per model turn","Also registered on the specialist Worker"] },
 
-  { id:"triage", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:502, w:520, file:"workflows.ts", lang:"ts",
+  { id:"triage", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:422, w:520, file:"workflows.ts", lang:"ts",
     type:"Workflow", name:"triageAgentWorkflow",
     code:"// challenge4-heterogeneous-agents/workflows.ts\nexport async function triageAgentWorkflow(\n  request: AgentRequest): Promise<string>",
     note:"Routes, then composes. It answers nothing itself: it calls a specialist and combines what comes back.",
@@ -513,7 +528,7 @@ const NODES = [
     members:["new Agent({ name: 'TriageAgent', tools: [weatherTool, travelTool] })","new TemporalOpenAIRunner().run(agent, request.question, ...)","runConfig: { model: request.model }","Returns result.finalOutput ?? ''","The same file also exports weatherSpecialistWorkflow"],
     snippet:"const agent = new Agent({\n  name: 'TriageAgent',\n  instructions: TRIAGE_INSTRUCTIONS,\n  tools: [weatherTool, travelTool],\n});\n\nconst result = await new TemporalOpenAIRunner().run(agent, request.question, {\n  runConfig: { model: request.model },\n});\nreturn result.finalOutput ?? '';" },
 
-  { id:"w1_note", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:502, w:520, file:"workflows.ts", lang:"ts",
+  { id:"w1_note", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:422, w:520, file:"workflows.ts", lang:"ts",
     type:"The lesson", name:"Two tools, two ways to name a Workflow",
     sub:"askWeatherSpecialist -> a function\naskTravelPlanner     -> a string",
     note:"Both become executeChild. Both land on a Task Queue. Only one of them is checked by a compiler. The source says so directly: childWorkflowAsTool cannot be reused for the Python call, because it takes a Workflow function and there is no function to import.",
@@ -521,7 +536,7 @@ const NODES = [
     desc:"The two boxes below are the same call with two strings changed. The weather tool hands executeChild a Workflow function, so TypeScript checks the argument and return types against the implementation. The travel tool hands it a string, and the type it declares locally is a promise the compiler cannot verify against anything.",
     members:["Same Child Workflow mechanism in both cases","Same history events: StartChildWorkflowExecution, ChildWorkflowExecutionCompleted","One is verified at compile time, one at run time","Nothing in workflows.ts says the word Python","The Task Queue name is what selects the language"] },
 
-  { id:"weatherTool", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:675, w:520, file:"workflows.ts", lang:"ts",
+  { id:"weatherTool", wk:"wk-ts-orch", tq:"tq-orch", x:54, y:549, w:520, file:"workflows.ts", lang:"ts",
     type:"Agent tool · checked by the compiler", name:"askWeatherSpecialist",
     code:"// workflows.ts — passes the Workflow function\nconst weatherTool = childWorkflowAsTool({\n  name, description, workflow: weatherSpecialistWorkflow,\n  taskQueue: SPECIALIST_TASK_QUEUE, model, … })",
     note:"weatherSpecialistWorkflow is imported from the same file. Change its signature and this call stops compiling.",
@@ -530,7 +545,7 @@ const NODES = [
     members:["childWorkflowAsTool({ name, description, workflow, taskQueue, ... })","workflow: weatherSpecialistWorkflow — a function reference","Calls wf.executeChild(options.workflow, ...) underneath","workflowId: askWeatherSpecialist-<uuid>","A signature change is a compile error, not a run-time failure"],
     snippet:"// shared/childWorkflowAsTool.ts\nexport interface ChildWorkflowAsToolOptions {\n  workflow: (request: AgentRequest) => Promise<string>;\n  taskQueue: string;\n}\n\nexecute: async ({ question }) =>\n  await wf.executeChild(options.workflow, {\n    args: [{ question, model: options.model }],\n    taskQueue: options.taskQueue,\n  });" },
 
-  { id:"travelTool", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:675, w:520, file:"workflows.ts", lang:"ts",
+  { id:"travelTool", wk:"wk-ts-orch", tq:"tq-orch", x:606, y:549, w:520, file:"workflows.ts", lang:"ts",
     type:"Agent tool · checked at run time", name:"askTravelPlanner",
     code:"// workflows.ts — passes the Workflow type as a string\nconst travelTool = tool({ name, description, parameters,\n  execute: async ({ question }) => {\n    const response = await wf.executeChild<PythonTravelPlannerWorkflow>(\n      PYTHON_TRAVEL_PLANNER_WORKFLOW,\n      { taskQueue: PYTHON_TRAVEL_PLANNER_TASK_QUEUE, … });\n    return response.answer; } })",
     note:"childWorkflowAsTool cannot be reused here: it takes a Workflow function, and there is no function to import. So the Workflow type is a string and the Task Queue selects the Worker that hosts it.",
@@ -540,7 +555,7 @@ const NODES = [
     snippet:"// The same Child Workflow call as challenge 3, with two strings changed.\n//\n// childWorkflowAsTool cannot be reused here: it takes a Workflow *function*,\n// and there is no function to import — the implementation is Python. So the\n// Workflow type is named as a STRING, and the Task Queue selects the Worker\n// that hosts it. Nothing else about the call differs, and nothing in this file\n// says 'Python'." },
 
   /* --- Worker 2 · c4-specialists-tq --- */
-  { id:"w2_create", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1071, w:490, file:"worker.ts", lang:"ts",
+  { id:"w2_create", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:892, w:490, file:"worker.ts", lang:"ts",
     type:"Worker registration", name:"specialistWorker",
     code:"// worker.ts\nconst specialistWorker = await Worker.create({\n  taskQueue: SPECIALIST_TASK_QUEUE, workflowsPath,\n  activities: weatherActivities, … })",
     note:"Same file, same process, different Task Queue. This one does carry activities.",
@@ -548,7 +563,7 @@ const NODES = [
     desc:"The second Worker.create in worker.ts. Registering it on its own Task Queue is what makes the weather specialist independently deployable: it can be scaled, restarted or moved to another host without touching the orchestrator.",
     members:["taskQueue: SPECIALIST_TASK_QUEUE","activities: weatherActivities — the whole module","plugins: [openAIAgentsPlugin()]","Run with Promise.all alongside the orchestrator Worker"] },
 
-  { id:"weatherSpecialist", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1237, w:490, file:"workflows.ts", lang:"ts",
+  { id:"weatherSpecialist", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1036, w:490, file:"workflows.ts", lang:"ts",
     type:"Child Workflow", name:"weatherSpecialistWorkflow",
     code:"// workflows.ts\nexport async function weatherSpecialistWorkflow(\n  request: AgentRequest): Promise<string>",
     note:"Unchanged from the previous challenge. Its own agent, its own tools, its own Event History.",
@@ -556,7 +571,7 @@ const NODES = [
     desc:"A second agent behind a Child Workflow. Each invocation is its own durable Execution, visible in the caller's history as StartChildWorkflowExecution and ChildWorkflowExecutionCompleted. Its LLM calls leave as Activities too, through the same plugin registered on this Worker.",
     members:["new Agent({ name: 'WeatherSpecialist', tools: weatherTools() })","Instructions: geocode a city before asking for its forecast","new TemporalOpenAIRunner().run(agent, request.question, ...)","Returns result.finalOutput ?? ''","Started by the askWeatherSpecialist tool, never by the client"] },
 
-  { id:"weatherTools", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1402, w:490, file:"weatherTools.ts", lang:"ts",
+  { id:"weatherTools", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1163, w:490, file:"weatherTools.ts", lang:"ts",
     type:"Activities as agent tools", name:"weatherTools()",
     code:"// shared/weatherTools.ts\nexport function weatherTools(): Tool[]\n  activityAsTool<typeof activities.getIpAddress>(…)\n  … getLocationInfo, getCoordinates, getWeather",
     note:"The Activity module is imported as a type only. The Workflow schedules Activities by name; it never runs their code.",
@@ -564,7 +579,7 @@ const NODES = [
     desc:"activityAsTool gives the model a tool whose implementation is a Temporal Activity. Each call the model makes becomes a ScheduleActivityTask in the specialist's history: independently retried, and replayed from history rather than re-executed.",
     members:["startToCloseTimeout: '30 seconds' on all four","Parameters are declared as JSON Schema per tool","import type * as activities from './weatherActivities'","Compare with tool_as_activity on the Python side"] },
 
-  { id:"weatherActivities", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1584, w:490, file:"weatherActivities.ts", lang:"ts",
+  { id:"weatherActivities", wk:"wk-ts-spec", tq:"tq-spec", x:54, y:1307, w:490, file:"weatherActivities.ts", lang:"ts",
     type:"Worker-registered Activities", name:"weatherActivities",
     code:"// shared/weatherActivities.ts\nexport async function getIpAddress(...): Promise<string>\nexport async function getLocationInfo(...): Promise<string>\nexport async function getCoordinates(...): Promise<string>\nexport async function getWeather(...): Promise<string>",
     note:"Every one is a network call: icanhazip.com, ip-api.com, Open-Meteo geocoding and forecast. Every one is async, because proxyActivities only sees Promise-returning functions.",
@@ -573,7 +588,7 @@ const NODES = [
     members:["getIpAddress(_input) — public IP of the Worker host","getLocationInfo({ ipAddress })","getCoordinates({ city }) — returns an explicit no_match on a miss","getWeather({ latitude, longitude })","Each takes a single object argument, which is the tool schema"] },
 
   /* --- Worker 3 · c4-python-travel-planner-tq --- */
-  { id:"py_worker", wk:"wk-py", tq:"tq-py", x:636, y:1071, w:490, file:"worker.py", lang:"py",
+  { id:"py_worker", wk:"wk-py", tq:"tq-py", x:636, y:892, w:490, file:"worker.py", lang:"py",
     type:"Worker registration", name:"Worker(client, ...)",
     code:"# worker.py\nworker = Worker(client, task_queue=TASK_QUEUE,\n                workflows=[TravelPlannerAgentWorkflow])",
     note:"No activities= list. The plugin registers the deepagents Activities that carry every model call and every tool_as_activity tool.",
@@ -581,7 +596,7 @@ const NODES = [
     desc:"The Python Worker. It is built from a Client that already carries DeepAgentsPlugin, so the plugin is added on exactly one side and propagates here. It polls the queue named in travel_planner_service.py, which is the same string api.ts declares on the TypeScript side.",
     members:["Worker(client, task_queue=TASK_QUEUE, workflows=[TravelPlannerAgentWorkflow])","Client.connect(TEMPORAL_ADDRESS, namespace=..., plugins=[plugin])","Same Namespace as the TypeScript Workers","Started separately from the TypeScript Workers","Raises early if OPENAI_API_KEY is not set"] },
 
-  { id:"py_plugin", wk:"wk-py", tq:"tq-py", x:636, y:1236, w:490, file:"worker.py", lang:"py",
+  { id:"py_plugin", wk:"wk-py", tq:"tq-py", x:636, y:1019, w:490, file:"worker.py", lang:"py",
     type:"Client-level plugin", name:"DeepAgentsPlugin",
     code:"# worker.py — added on the Client, inherited by the Worker\nplugin = DeepAgentsPlugin(model_provider=build_model,\n    passthrough_modules=['travel_planner', 'httpx'])\ndef build_model(model_name: str):  # → init_chat_model(…)",
     note:"travel_planner imports httpx, which the default passthrough does not cover. Without these two entries the Workflow sandbox rejects the import.",
@@ -589,7 +604,7 @@ const NODES = [
     desc:"The seam that points the deep agent at the lab's OpenAI-compatible gateway. build_model turns the model NAME the Workflow shipped into a real LangChain client, in the Worker process. The Workflow never sees the key, so no credential is written to Event History.",
     members:["DeepAgentsPlugin(model_provider=build_model, passthrough_modules=[...])","Added on the Client; the SDK propagates it to Workers built from it","build_model reads OPENAI_API_KEY and OPENAI_BASE_URL","init_chat_model(model_name, **kwargs)","Configures the Workflow sandbox to pass the LangChain import tree through"] },
 
-  { id:"py_workflow", wk:"wk-py", tq:"tq-py", x:636, y:1418, w:490, file:"travel_planner_service.py", lang:"py",
+  { id:"py_workflow", wk:"wk-py", tq:"tq-py", x:636, y:1163, w:490, file:"travel_planner_service.py", lang:"py",
     type:"Workflow · the wire type", name:"TravelPlannerAgentWorkflow",
     code:"# travel_planner_service.py\n@workflow.defn\nclass TravelPlannerAgentWorkflow:\n    @workflow.run\n    async def run(self, request: AskRequest) -> AskResponse:",
     note:"The class name IS the Workflow type on the wire. TypeScript names it as a string in api.ts, because there is no Python code for it to import.",
@@ -598,7 +613,7 @@ const NODES = [
     members:["@workflow.defn class TravelPlannerAgentWorkflow","async def run(self, request: AskRequest) -> AskResponse","Takes the flat JSON the TypeScript caller sends","Returns AskResponse(answer=result['messages'][-1].content)","Rename the class and the TypeScript call fails at run time"],
     snippet:"@workflow.defn\nclass TravelPlannerAgentWorkflow:\n    @workflow.run\n    async def run(self, request: AskRequest) -> AskResponse:\n        agent = create_temporal_deep_agent(...)\n        result = await agent.ainvoke(\n            {'messages': [{'role': 'user', 'content': request.question}]}\n        )\n        return AskResponse(answer=result['messages'][-1].content)" },
 
-  { id:"py_agent", wk:"wk-py", tq:"tq-py", x:636, y:1617, w:490, file:"travel_planner_service.py", lang:"py",
+  { id:"py_agent", wk:"wk-py", tq:"tq-py", x:636, y:1324, w:490, file:"travel_planner_service.py", lang:"py",
     type:"Deep agent loop", name:"create_temporal_deep_agent",
     code:"# travel_planner_service.py\nagent = create_temporal_deep_agent(\n    model=f'openai:{request.model}', system_prompt=…,\n    tools=[tool_as_activity(t, …) for t in travel_planner.TOOLS],\n    activity_options={…})",
     note:"The model is named, not built. The Workflow ships only the string; the Worker's model_provider constructs the real client.",
@@ -606,7 +621,7 @@ const NODES = [
     desc:"tool_as_activity wraps each plain LangChain tool so the call leaves the Workflow as an Activity, with its own timeout and retry policy. Retries are bounded on purpose: the Temporal default is unlimited, which is right in production and wrong in a lab, where a bad key would retry forever and the learner would see a hang instead of an error.",
     members:["model=f'openai:{request.model}'","system_prompt=travel_planner.SYSTEM_PROMPT","tool_as_activity(t, start_to_close_timeout=timedelta(seconds=30), ...)","activity_options={'retry_policy': RetryPolicy(maximum_attempts=3)}","The retry policy goes inside activity_options; there is no top-level kwarg","await agent.ainvoke({'messages': [...]})"] },
 
-  { id:"py_tools", wk:"wk-py", tq:"tq-py", x:636, y:1816, w:490, file:"travel_planner.py", lang:"py",
+  { id:"py_tools", wk:"wk-py", tq:"tq-py", x:636, y:1485, w:490, file:"travel_planner.py", lang:"py",
     type:"Another team's agent, imported as-is", name:"TOOLS",
     code:"# travel_planner.py — plain LangChain, no Temporal imports\n@tool\nasync def wikipedia_summary(topic: str) -> str\n@tool\nasync def country_info(country: str) -> str\nTOOLS = [wikipedia_summary, country_info]",
     note:"Both do network I/O with httpx, so both become Activities. Nothing in this file knows that.",
@@ -615,7 +630,7 @@ const NODES = [
     members:["wikipedia_summary(topic) — en.wikipedia.org REST summary","country_info(country) — restcountries.com","Both are @tool and both are async","SYSTEM_PROMPT lives here too","Listed in passthrough_modules so the Workflow sandbox allows the import"] },
 
   /* --- the contract, duplicated by hand --- */
-  { id:"api_ts", wk:null, tq:null, x:24, y:2086, w:550, file:"api.ts", lang:"ts",
+  { id:"api_ts", wk:null, tq:null, x:24, y:1717, w:550, file:"api.ts", lang:"ts",
     type:"Contract · TypeScript half", name:"api.ts",
     code:"// challenge4-heterogeneous-agents/api.ts\nexport interface AskRequest  { question: string; model?: string }\nexport interface AskResponse { answer: string }\nexport type PythonTravelPlannerWorkflow =\n  (request: AskRequest) => Promise<AskResponse>;\nexport const PYTHON_TRAVEL_PLANNER_WORKFLOW =\n  'TravelPlannerAgentWorkflow';\nexport const PYTHON_TRAVEL_PLANNER_TASK_QUEUE =\n  'c4-python-travel-planner-tq';",
     note:"The remote Workflow's signature, declared locally. There is no Python code to import, so the caller states the shape it expects and the type system holds it to that.",
@@ -624,7 +639,7 @@ const NODES = [
     members:["AskRequest { question; model? }","AskResponse { answer }","type PythonTravelPlannerWorkflow = (request: AskRequest) => Promise<AskResponse>","PYTHON_TRAVEL_PLANNER_WORKFLOW = 'TravelPlannerAgentWorkflow'","PYTHON_TRAVEL_PLANNER_TASK_QUEUE = 'c4-python-travel-planner-tq'"],
     snippet:"/**\n * The remote Workflow's signature, declared locally.\n *\n * There is no Python code to import, so the caller states the shape it expects\n * and the type system holds it to that. If Python changes its dataclass and this\n * does not, nothing fails at compile time — it fails at run time, in the payload\n * converter. That is the cost of a boundary a compiler cannot see across.\n */" },
 
-  { id:"svc_py", wk:null, tq:null, x:606, y:2086, w:550, file:"travel_planner_service.py", lang:"py",
+  { id:"svc_py", wk:null, tq:null, x:606, y:1717, w:550, file:"travel_planner_service.py", lang:"py",
     type:"Contract · Python half", name:"travel_planner_service.py",
     code:"# python-travel-planner/travel_planner_service.py\nTASK_QUEUE = 'c4-python-travel-planner-tq'\n@dataclass\nclass AskRequest:    question: str; model: str = 'gpt-4o'\n@dataclass\nclass AskResponse:   answer: str\n@workflow.defn\nclass TravelPlannerAgentWorkflow: ...",
     note:"Plain dataclasses, not Pydantic: the default JSON payload converter maps them to and from the flat objects the TypeScript caller sends. The FIELD NAMES are the wire contract.",
@@ -632,7 +647,7 @@ const NODES = [
     desc:"The whole of the Python side. Two dataclasses, one Task Queue constant and one Workflow class whose name is the wire type. Every name here has a counterpart in api.ts, and nothing keeps them in step except the person editing both files.",
     members:["TASK_QUEUE = 'c4-python-travel-planner-tq'","@dataclass AskRequest: question: str, model: str = 'gpt-4o'","@dataclass AskResponse: answer: str","@workflow.defn class TravelPlannerAgentWorkflow","Field names are the contract, not the class names of the dataclasses"] },
 
-  { id:"pairs", wk:null, tq:null, x:24, y:2358, w:1132, file:"api.ts", lang:"ts",
+  { id:"pairs", wk:null, tq:null, x:24, y:1951, w:1132, file:"api.ts", lang:"ts",
     type:"Duplicated, not generated", name:"Four names that must match, byte for byte",
     pairs:[
       { ts:"PYTHON_TRAVEL_PLANNER_WORKFLOW =\n  'TravelPlannerAgentWorkflow'", tsWhere:"api.ts",
@@ -777,7 +792,7 @@ BANDS.forEach(b=>{
 NODES.forEach(n=>{
   const el = document.createElement("button");
   el.type="button"; el.className="node"; el.dataset.id=n.id;
-  el.dataset.file=n.file; el.dataset.hued = FILE_MAP[n.file].hued ? "1" : "0";
+  el.dataset.file=n.file; if(FILE_MAP[n.file].hue) el.dataset.fhue = FILE_MAP[n.file].hue;
   el.style.left=n.x+"px"; el.style.top=n.y+"px"; el.style.width=n.w+"px";
 
   let body = '<div class="ntype">' + esc(n.type) + '</div>';
@@ -792,14 +807,13 @@ NODES.forEach(n=>{
           + '<div class="pcell">' + esc(p.py) + '</div>'
           + '<div class="pbreak">' + esc(p.breaks) + '</div>'
         ).join("")
-      + '</div><div class="pfoot">' + esc(n.pfoot) + '</div>';
+      + '</div>';
   } else if(n.code){
     body += '<div class="ncode">' + hl(n.code, n.lang) + '</div>';
   } else {
     body += '<div class="nname">' + esc(n.name) + '</div>'
       + (n.sub ? '<div class="nsub">' + esc(n.sub) + '</div>' : "");
   }
-  if(n.note) body += '<div class="nnote">' + esc(n.note) + '</div>';
   body += '<div class="nfile"><span class="fdot"></span>' + esc(FILE_MAP[n.file].label) + '</div>';
 
   el.innerHTML = body;
@@ -809,7 +823,7 @@ NODES.forEach(n=>{
 
 // file chips
 document.getElementById("fileLegend").innerHTML = FILES.map(f =>
-  '<button class="legItem" type="button" data-file="' + f.key + '" data-hued="' + (f.hued?1:0) + '">'
+  '<button class="legItem" type="button" data-file="' + f.key + '"' + (f.hue ? ' data-fhue="' + f.hue + '"' : '') + '>'
   + '<span class="fdot"></span><span class="fname">' + esc(f.label) + '</span></button>').join("");
 
 // edge paths (z4)
@@ -962,10 +976,10 @@ function selectFile(key){
   const out = EDGES.filter(e=>mine.has(e.from) && !mine.has(e.to));
   const inc = EDGES.filter(e=>!mine.has(e.from) && mine.has(e.to));
   detailBody.innerHTML =
-    '<span class="badge' + (f.hued ? " contract" : "") + '">Source file</span>'
+    '<span class="badge' + (f.hue ? " " + f.hue : "") + '">Source file</span>'
     + '<h2>' + esc(f.label) + '</h2>'
     + '<div class="file"><span class="fdot" style="display:inline-block;vertical-align:middle;margin-right:5px;background:'
-      + (f.hued ? "var(--file-contract)" : "var(--line-strong)") + '"></span>'
+      + FILE_DOT(f.hue) + '"></span>'
       + list.length + ' box' + (list.length===1?"":"es") + ' on the canvas</div>'
     + (list.length ? '<div class="sec">Boxes</div><ul class="rellist">'
         + list.map(n=>'<li><button data-goto="' + n.id + '">' + esc(n.name) + '</button></li>').join("") + '</ul>' : "")
@@ -1002,12 +1016,14 @@ function renderNodeDetail(n){
   const callers = EDGES.filter(e=>e.to===n.id).map(e=>({id:e.from, cat:e.cat, dir:"←"}));
   const f = FILE_MAP[n.file];
   detailBody.innerHTML =
-    '<span class="badge' + (f.hued ? " contract" : "") + '">' + esc(n.type) + '</span>'
+    '<span class="badge' + (f.hue ? " " + f.hue : "") + '">' + esc(n.type) + '</span>'
     + '<h2>' + esc(n.name) + '</h2>'
     + '<div class="file"><span class="fdot" style="display:inline-block;vertical-align:middle;margin-right:5px;background:'
-      + (f.hued ? "var(--file-contract)" : "var(--line-strong)") + '"></span>'
+      + FILE_DOT(f.hue) + '"></span>'
       + esc(f.label) + ' · <b>tq:</b> ' + esc(n.tqLabel) + '</div>'
+    + (n.note ? '<p class="nlead">' + esc(n.note) + '</p>' : "")
     + '<p class="desc">' + esc(n.desc) + '</p>'
+    + (n.pfoot ? '<p class="desc">' + esc(n.pfoot) + '</p>' : "")
     + (n.members && n.members.length
         ? '<div class="sec">What that means</div><ul class="members">' + n.members.map(m=>'<li>' + esc(m) + '</li>').join("") + '</ul>'
         : "")
@@ -1032,7 +1048,7 @@ function renderContainerDetail(d, mine, kind){
 }
 
 /* ---------------- zoom / fit-to-width ----------------
-   The canvas is a fixed 1180 x 2711 coordinate space so the absolute node
+   The canvas is a fixed 1180 x 2250 coordinate space so the absolute node
    positions and the SVG edge math stay simple. Instead of reflowing for narrow
    panes, scale the whole thing to fit the available width. */
 const viewport = document.getElementById("viewport");
