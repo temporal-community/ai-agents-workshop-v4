@@ -53,6 +53,11 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/decouple-agents
   port: 8080
+- title: Architecture
+  type: service
+  hostname: workshop
+  path: /heterogeneous-agents.html
+  port: 8090
 difficulty: basic
 timelimit: 2400
 enhanced_loading: null
@@ -72,6 +77,17 @@ enhanced_loading: null
 > You work in `exercise/`. `solution/` sits beside it with identical filenames - check the editor's title bar before you type.
 
 This challenge builds on challenge 3's specialists.
+
+## See the shape before you change it
+
+Open the [button label="Architecture" background="#444CE7"](tab-5) tab. Three
+Worker processes, three Task Queues, two languages, one Namespace.
+
+Click **Play data flow** and follow one question end to end: the triage agent
+picks a specialist, the call crosses into Python by Workflow type name, the Deep
+Agent runs its own loop over there, and the answer comes back. Then click the two
+delegation edges and compare them - one names a Workflow function, the other names
+a string. That difference is this challenge.
 
 ## What changed since the last challenge
 

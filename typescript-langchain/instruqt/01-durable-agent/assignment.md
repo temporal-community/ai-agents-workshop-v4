@@ -17,6 +17,8 @@ notes:
     Kill the process at turn four and turn four is gone - along with the
     three turns you already paid the model for, and any tool call that
     already changed something in the outside world.
+
+    **Author:** [Nikolay Advolodkin](https://www.linkedin.com/in/nikolayadvolodkin/), Staff Developer Advocate
 - type: text
   contents: |-
     # The change is one object
