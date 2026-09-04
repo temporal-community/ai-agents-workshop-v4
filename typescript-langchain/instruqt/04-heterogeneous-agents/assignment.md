@@ -53,7 +53,8 @@ tabs:
   hostname: workshop
   path: /?folder=/root/workshop/decouple-agents
   port: 8080
-- title: Architecture
+- id: nfrunsrxg8ct
+  title: Architecture
   type: service
   hostname: workshop
   path: /heterogeneous-agents.html
