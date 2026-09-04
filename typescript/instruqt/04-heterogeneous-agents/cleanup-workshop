@@ -1,0 +1,5 @@
+#!/bin/bash
+# ABOUTME: Challenge 4 cleanup. One pkill per pattern.
+pkill -f "challenge4-heterogeneous-agents/worker.ts" 2>/dev/null || true
+pkill -f "python-travel-planner" 2>/dev/null || true
+echo "Challenge 4 cleanup: OK"

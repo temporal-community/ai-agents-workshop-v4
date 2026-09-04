@@ -1,0 +1,12 @@
+[project]
+name = "python-travel-planner"
+version = "0.1"
+description = "Strands Agents SDK travel planner, exposed to a TypeScript orchestrator over Temporal Nexus"
+authors = [{ name = "Temporal Technologies Inc", email = "sdk@temporal.io" }]
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "temporalio>=1.17.0,<2",
+    "httpx>=0.27",
+    "strands-agents[openai]>=1.38.0",
+]

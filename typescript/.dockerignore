@@ -1,0 +1,38 @@
+# Build context for sandbox/Dockerfile is THIS directory (`typescript/`), which
+# is why the ignore file lives here: Docker only reads .dockerignore from the
+# root of the build context.
+#
+#   cd typescript && docker build --platform linux/amd64 -f sandbox/Dockerfile .
+#
+# Everything below is either rebuilt inside the image or has no business in it.
+# node_modules and .venv are the ones that matter: both are large, both are
+# platform-specific (native addons built for the host, not linux/amd64), and
+# shipping them into the context would both slow every build and risk the image
+# running binaries compiled for the wrong architecture.
+
+**/node_modules
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
+
+# TypeScript build output; `tsc --noEmit` is all the image runs.
+**/lib
+**/dist
+**/*.tsbuildinfo
+
+# Local-only files.
+**/.env
+**/.env.*
+**/*.log
+**/.DS_Store
+
+# The Track definition. It is deployed to Instruqt with the CLI and is never
+# part of the image.
+instruqt
+
+# Git metadata: this is a worktree, so .git is a file rather than a directory.
+.git
+.gitignore

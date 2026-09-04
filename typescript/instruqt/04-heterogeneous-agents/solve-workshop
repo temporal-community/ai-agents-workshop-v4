@@ -1,0 +1,23 @@
+#!/bin/bash
+# ABOUTME: Drives challenge 4 across the language boundary, non-interactively.
+# Three processes: the TypeScript Workers, the Python travel-planner Worker, and
+# the client (which creates the Nexus endpoint pointing at the Python queue).
+# Runs the SOLUTION tree, never the attendee's exercise/.
+set -euxo pipefail
+
+cd /root/workshop/decouple-agents/solution
+
+pkill -f "challenge4-heterogeneous-agents/worker.ts" 2>/dev/null || true
+pkill -f "python-travel-planner" 2>/dev/null || true
+sleep 1
+
+nohup npm run c4:worker > /tmp/solve-c4-ts-worker.log 2>&1 &
+
+(cd python-travel-planner && nohup uv run python worker.py > /tmp/solve-c4-py-worker.log 2>&1 &)
+
+sleep 25
+
+timeout 240 npm run c4:client -- "What should I know about visiting Monaco, and what is the weather there?"
+
+pkill -f "challenge4-heterogeneous-agents/worker.ts" 2>/dev/null || true
+pkill -f "python-travel-planner" 2>/dev/null || true
