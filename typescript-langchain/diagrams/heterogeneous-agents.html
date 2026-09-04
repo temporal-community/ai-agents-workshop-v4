@@ -51,6 +51,8 @@
     --syn-str: #a31515;
     --syn-num: #0a6e48;
     --syn-com: #008000;
+    --syn-type: #1c6c82;
+    --syn-var: #001080;
     --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
     --radius: 13px;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
@@ -71,6 +73,7 @@
       --warn-bg: #f0a848; --warn-ink: #141922;
       --syn-kw: #569cd6; --syn-deco: #c586c0; --syn-fn: #dcdcaa; --syn-str: #ce9178;
       --syn-num: #b5cea8; --syn-com: #6a9955;
+      --syn-type: #4ec9b0; --syn-var: #9cdcfe;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
       --radius: 13px;
       --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
@@ -91,6 +94,7 @@
     --warn-bg: #8a4f06; --warn-ink: #ffffff;
     --syn-kw: #0b4fbd; --syn-deco: #af00db; --syn-fn: #795e26; --syn-str: #a31515;
     --syn-num: #0a6e48; --syn-com: #008000;
+    --syn-type: #1c6c82; --syn-var: #001080;
     --shadow: 0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.08);
     --radius: 13px;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
@@ -110,6 +114,7 @@
     --warn-bg: #f0a848; --warn-ink: #141922;
     --syn-kw: #569cd6; --syn-deco: #c586c0; --syn-fn: #dcdcaa; --syn-str: #ce9178;
     --syn-num: #b5cea8; --syn-com: #6a9955;
+    --syn-type: #4ec9b0; --syn-var: #9cdcfe;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
     --radius: 13px;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, "Menlo", "Cascadia Code", "Roboto Mono", monospace;
@@ -228,7 +233,9 @@
   .detail .nlead { font-size: 13.5px; color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
 
   /* code blocks: authored line breaks, rendered pre, never reflowed */
-  .node .ncode { font-family: var(--mono); font-size: 10.5px; line-height: 1.6; white-space: pre; color: var(--muted); margin-top: 4px; }
+  /* Base code colour is ink, not muted. A grey base makes every token that is
+     not a keyword or a string read as furniture. */
+  .node .ncode { font-family: var(--mono); font-size: 10.5px; line-height: 1.6; white-space: pre; color: var(--ink); margin-top: 4px; }
   .ncode .ck { color: var(--syn-kw); }
   .ncode .cd { color: var(--syn-deco); }
   .ncode .cf { color: var(--syn-fn); }
@@ -236,11 +243,16 @@
   .ncode .cm { color: var(--syn-com); font-style: italic; }
   .ncode .cnum { color: var(--syn-num); }
   .ncode .cn { color: var(--ink); font-weight: 700; }
+  .ncode .ct { color: var(--syn-type); }
+  .ncode .cv { color: var(--syn-var); }
 
   /* the duplicated contract, side by side */
   .pairs { margin-top: 6px; display: grid; grid-template-columns: minmax(0,1fr) 82px minmax(0,1fr) minmax(0,1.15fr); gap: 7px 10px; align-items: center; }
   .phead { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding-left: 2px; }
-  .pcell { font-family: var(--mono); font-size: 11px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; white-space: pre; overflow: hidden; align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
+  .pcell .ck { color: var(--syn-kw); } .pcell .cd { color: var(--syn-deco); }
+  .pcell .cs { color: var(--syn-str); } .pcell .ct { color: var(--syn-type); }
+  .pcell .cv { color: var(--syn-var); } .pcell .cn { color: var(--ink); font-weight: 700; }
+  .pcell { font-family: var(--mono); font-size: 11px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; white-space: pre; overflow: hidden; }
   .plink { text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px dashed var(--line-strong); border-radius: 999px; padding: 3px 0; }
   .pbreak { font-size: 10.5px; color: var(--muted); line-height: 1.45; padding-left: 2px; }
 
@@ -298,7 +310,7 @@
   .kdash[data-cat="activity"] { border-color: var(--act); }
   .kdash[data-cat="setup"]    { border-color: var(--edge-neutral); border-top-style: dashed; }
   .kdash[data-cat="contract"] { border-color: var(--edge-neutral); border-top-style: dotted; border-top-width: 4px; }
-  .snippet { font-family: var(--mono); font-size: 11.5px; line-height: 1.6; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 11px 12px; overflow-x: auto; white-space: pre; margin-top: 4px; }
+  .snippet { font-family: var(--mono); font-size: 11.5px; line-height: 1.6; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 11px 12px; overflow-x: auto; white-space: pre; margin-top: 4px; }
   .snippet .ck { color: var(--syn-kw); }
   .snippet .cd { color: var(--syn-deco); }
   .snippet .cf { color: var(--syn-fn); }
@@ -306,6 +318,8 @@
   .snippet .cm { color: var(--syn-com); font-style: italic; }
   .snippet .cnum { color: var(--syn-num); }
   .snippet .cn { color: var(--ink); font-weight: 700; }
+  .snippet .ct { color: var(--syn-type); }
+  .snippet .cv { color: var(--syn-var); }
 
   /* step player */
   /* One bar, not two. The transport controls and zoom ride together; the
@@ -721,28 +735,42 @@ function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").rep
 /* Two-language highlighter. One pass, one regex and a callback: a chain of
    .replace() calls would re-scan the markup it just inserted and match keywords
    inside class="..." attributes. */
-const TS_KW = "await|const|let|async|function|return|typeof|new|true|false|null|undefined|throw|export|import|from|for|of|if|void|string|number|Promise|Tool";
-const PY_KW = "async|await|return|for|in|from|import|not|None|True|False|self|if|else|str|lambda|pass";
+/* Two-language highlighter. One pass, one regex and a callback: a chain of
+   .replace() calls would re-scan the markup it just inserted and match keywords
+   inside class="..." attributes. Token order matters — a class name must be
+   claimed as a type before the call rule can claim it as a function. */
+const TS_KW   = "await|const|let|async|function|return|typeof|new|true|false|null|undefined|throw|export|import|from|for|of|if";
+const TS_TYPE = "string|number|boolean|void|any|unknown";
+const PY_KW   = "async|await|return|for|in|from|import|not|None|True|False|self|if|else|lambda|pass";
+const PY_TYPE = "str|int|float|bool";
 function hl(src, lang){
   const py = lang === "py";
   const parts = [
-    "(" + (py ? "#" : "\\/\\/") + "[^\\n]*)",                       // 1 comment
-    "(" + (py ? "@[A-Za-z_][\\w.]*" : "@[A-Za-z_][\\w.]*") + ")",   // 2 decorator
-    "('(?:[^'\\\\\\n]|\\\\.)*'|\"(?:[^\"\\\\\\n]|\\\\.)*\")",       // 3 string
-    "\\b(class|def|function|interface|type|dataclass)\\s+([A-Za-z_$][\\w$]*)", // 4/5 decl
-    "\\b(" + (py ? PY_KW : TS_KW) + ")\\b",                          // 6 keyword
-    "\\b(\\d+)\\b",                                                  // 7 number
-    "\\b([A-Za-z_$][\\w$]*)(?=\\(|&lt;)",                            // 8 call
+    "(" + (py ? "#" : "\\/\\/") + "[^\\n]*)",                              // 1  comment
+    "(@[A-Za-z_][\\w.]*)",                                                  // 2  decorator
+    "('(?:[^'\\\\\\n]|\\\\.)*'|\"(?:[^\"\\\\\\n]|\\\\.)*\")",              // 3  string
+    "\\b(class|def|function|interface|type)\\s+([A-Za-z_$][\\w$]*)",         // 4  declared name
+    "\\b(" + (py ? PY_KW : TS_KW) + ")\\b",                                 // 6  keyword
+    "\\b(" + (py ? PY_TYPE : TS_TYPE) + ")\\b",                             // 7  primitive type
+    "\\b([A-Z][A-Z0-9_]{2,})\\b",                                          // 8  CONSTANT
+    "\\b([A-Z][A-Za-z0-9_]*)\\b",                                          // 9  class / type
+    "\\b(\\d+)\\b",                                                        // 10 number
+    "\\b([a-z_$][\\w$]*)(?=\\(|&lt;)",                                      // 11 call
+    "\\b([a-z_$][\\w$]*)(?=\\??\\s*[:=](?![=>]))",                           // 12 property / binding
   ];
   const re = new RegExp(parts.join("|"), "g");
-  return esc(src).replace(re, (m, com, deco, str_, dk, dn, kw, num, fn) => {
-    if(com !== undefined) return '<span class="cm">' + com + '</span>';
-    if(deco !== undefined) return '<span class="cd">' + deco + '</span>';
-    if(str_ !== undefined) return '<span class="cs">' + str_ + '</span>';
-    if(dk !== undefined) return '<span class="ck">' + dk + '</span> <span class="cn">' + dn + '</span>';
-    if(kw !== undefined) return '<span class="ck">' + kw + '</span>';
-    if(num !== undefined) return '<span class="cnum">' + num + '</span>';
-    return '<span class="cf">' + fn + '</span>';
+  return esc(src).replace(re, (m, com, deco, str_, dk, dn, kw, prim, konst, type_, num, fn, prop) => {
+    if(com   !== undefined) return '<span class="cm">' + com + '</span>';
+    if(deco  !== undefined) return '<span class="cd">' + deco + '</span>';
+    if(str_  !== undefined) return '<span class="cs">' + str_ + '</span>';
+    if(dk    !== undefined) return '<span class="ck">' + dk + '</span> <span class="cn">' + dn + '</span>';
+    if(kw    !== undefined) return '<span class="ck">' + kw + '</span>';
+    if(prim  !== undefined) return '<span class="ct">' + prim + '</span>';
+    if(konst !== undefined) return '<span class="cv">' + konst + '</span>';
+    if(type_ !== undefined) return '<span class="ct">' + type_ + '</span>';
+    if(num   !== undefined) return '<span class="cnum">' + num + '</span>';
+    if(fn    !== undefined) return '<span class="cf">' + fn + '</span>';
+    return '<span class="cv">' + prop + '</span>';
   });
 }
 
@@ -802,9 +830,9 @@ NODES.forEach(n=>{
       + '<div class="phead">travel_planner_service.py · Python</div>'
       + '<div class="phead">if the two ever disagree</div>'
       + n.pairs.map(p =>
-          '<div class="pcell">' + esc(p.ts) + '</div>'
+          '<div class="pcell">' + hl(p.ts, "ts") + '</div>'
           + '<div class="plink">must match</div>'
-          + '<div class="pcell">' + esc(p.py) + '</div>'
+          + '<div class="pcell">' + hl(p.py, "py") + '</div>'
           + '<div class="pbreak">' + esc(p.breaks) + '</div>'
         ).join("")
       + '</div>';

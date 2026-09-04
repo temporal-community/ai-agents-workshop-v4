@@ -44,6 +44,9 @@ class AgentWorkflow:            async def get_ip_address() -> str:
 - **Container labels are furniture.** A worker or lane name sits at caption size in
   muted ink. If the container's label competes with the declarations inside it, the
   reader's eye goes to the wrong thing.
+- A `white-space: pre` code cell must not also be a flex container. Every token
+  `<span>` the highlighter emits becomes a flex item, and each one lands on its own
+  line — a silent four-fold height blowout that only a rendered measurement catches.
 
 ## Color has one meaning per channel
 
@@ -59,8 +62,15 @@ Three independent channels. Don't let them borrow each other's hues.
   affordances (active ring, focus outline). It is not for lane bands, headings, or
   code. Task-queue bands use `--lane-tq` (slate).
 - **Syntax palette** is VS Code Light+/Dark+, independent of the diagram hues:
-  `--syn-kw` keywords, `--syn-deco` decorators, `--syn-str` strings, bold ink for
-  the declared name.
+  `--syn-kw` keywords, `--syn-deco` decorators, `--syn-str` strings, `--syn-type`
+  classes and types, `--syn-var` properties and bindings, `--syn-fn` calls,
+  `--syn-com` comments, bold ink for the declared name.
+- **Code sits in ink, not grey.** A muted base colour makes every token that isn't
+  a keyword or a string read as furniture, and a box of signatures ends up looking
+  like one grey block. Give types and properties their own slots and a declaration
+  becomes mostly colour. Aim for most of the characters in a code block carrying a
+  token colour, and order the highlighter so a class name is claimed as a type
+  before the call rule can claim it as a function.
 - **At most three files carry a hue** — that's the cap for colorblind separation
   across all pairs. Colored slots go to the files the demo is *about*; everything
   else is neutral. The filename text is always visible, so identity never depends
