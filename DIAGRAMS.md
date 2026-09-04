@@ -67,9 +67,30 @@ runnable checker. Don't eyeball colorblind separation.
   *touch* it, so a cross-file call reads as an edge leaving the lit set. The panel
   lists what the file calls out to and what calls into it.
 - **Play data flow** → step through one concrete request, narrating each hop.
-- **Edge legend** toggles categories.
 - Anything that centers the view must convert canvas coordinates to scaled pixels
   (multiply by the active scale) or it centers on the wrong place when zoomed.
+
+## Chrome costs vertical space, and the canvas needs it
+
+Every row of controls above the diagram is a row the diagram does not get. In
+Instruqt's split pane that is the difference between reading a node and squinting
+at it. Two rules follow.
+
+**No edge legend.** Edge colour still encodes call category, but a legend of
+toggle chips is a whole row spent on something a learner reads once. Put the
+category in the detail panel when a node or edge is selected, and let the colours
+carry it on the canvas. A lane legend earns its place — lanes are the diagram's
+structure and clicking one filters — an edge legend does not.
+
+**Zoom lives in the Play row.** `−` / `%` / `+` / `Fit` / `Reset view` go on the
+right of the step-player row, not in a control bar of their own. That collapses
+the chrome to a single row above the canvas.
+
+**No standfirst under the title.** An eyebrow and an `h1` are enough. The
+paragraph explaining what the diagram shows belongs in the assignment, which the
+learner is already reading, or in the step narration, which is where they look
+once they press Play. Prose above the canvas is read once and then costs vertical
+space forever.
 
 ## Themes
 

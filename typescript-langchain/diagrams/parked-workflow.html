@@ -119,9 +119,7 @@
   .legItem.off { opacity: .38; }
   .legItem .swatch { width: 22px; height: 0; border-top-width: 3px; border-top-style: solid; border-radius: 3px; }
   .legItem.dashed .swatch { border-top-style: dashed; }
-  .legItem[data-cat="work"]  .swatch { border-color: var(--accent); }
   .legItem[data-cat="human"] .swatch { border-color: var(--hitl); }
-  .legItem[data-cat="state"] .swatch { border-color: var(--srv); }
   .legItem[data-cat="poll"]  .swatch { border-color: var(--line-strong); }
   .spacer { flex: 1 1 auto; }
   .btn { font-family: var(--sans); font-size: 12.5px; font-weight: 500; cursor: pointer; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); padding: 6px 13px; border-radius: 8px; transition: border-color .15s; }
@@ -306,17 +304,9 @@
   <header class="masthead">
     <p class="eyebrow">Challenge 2 · Human in the loop</p>
     <h1>What "Running" means while the Workflow is parked</h1>
-    <p class="standfirst">The Temporal UI says <b>Running</b>. No process holds the conversation and no timer counts down. What is actually running is a <b>row on the Temporal server</b> and the <b>history</b> that produced it. Step through the four frames below and watch the Worker lane empty out.</p>
   </header>
 
   <div class="controls" role="group" aria-label="Diagram controls">
-    <span class="clabel">Edges</span>
-    <div class="legend" id="legend">
-      <button class="legItem" data-cat="work"  type="button" aria-pressed="true"><span class="swatch"></span>Workflow Task</button>
-      <button class="legItem" data-cat="human" type="button" aria-pressed="true"><span class="swatch"></span>Human &amp; Signal</button>
-      <button class="legItem" data-cat="state" type="button" aria-pressed="true"><span class="swatch"></span>Durable state</button>
-      <button class="legItem dashed" data-cat="poll" type="button" aria-pressed="true"><span class="swatch"></span>Idle long-poll</button>
-    </div>
     <span class="clabel">Lanes</span>
     <div class="legend" id="groupLegend">
       <button class="legItem" data-group="human"  type="button"><span class="gdot"></span>Human / Client</button>
@@ -324,14 +314,6 @@
       <button class="legItem" data-group="worker" type="button"><span class="gdot"></span>Worker fleet</button>
       <button class="legItem" data-group="note"   type="button"><span class="gdot"></span>Source &amp; tally</button>
     </div>
-    <span class="spacer"></span>
-    <span class="zoomgrp" role="group" aria-label="Zoom">
-      <button class="btn zoombtn" id="zoomOut" type="button" aria-label="Zoom out">&minus;</button>
-      <span class="zoomlabel" id="zoomLabel">100%</span>
-      <button class="btn zoombtn" id="zoomIn" type="button" aria-label="Zoom in">+</button>
-      <button class="btn" id="zoomFit" type="button">Fit</button>
-    </span>
-    <button class="btn" id="resetBtn" type="button">Reset view</button>
   </div>
 
   <div class="flowbar idle" id="flowbar" role="group" aria-label="Step player">
@@ -344,6 +326,14 @@
       <span class="flowcap" id="flowCap">Four frames of one run: <b>Running</b>, <b>Parked</b>, <b>Signal arrives</b>, <b>Resumed</b>. Step 2 is the one to look at.</span>
       <code class="flowpayload" id="flowPayload"></code>
     </div>
+    <span class="spacer"></span>
+    <span class="zoomgrp" role="group" aria-label="Zoom">
+      <button class="btn zoombtn" id="zoomOut" type="button" aria-label="Zoom out">&minus;</button>
+      <span class="zoomlabel" id="zoomLabel">100%</span>
+      <button class="btn zoombtn" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+      <button class="btn" id="zoomFit" type="button">Fit</button>
+    </span>
+    <button class="btn" id="resetBtn" type="button">Reset view</button>
   </div>
 
   <div class="stage">
@@ -903,13 +893,9 @@ if(typeof ResizeObserver !== "undefined"){
 }
 
 /* ---------------- controls ---------------- */
-document.getElementById("legend").addEventListener("click",(e)=>{
-  const item=e.target.closest(".legItem"); if(!item) return;
-  const cat=item.dataset.cat;
-  if(activeCats.has(cat)){ activeCats.delete(cat); item.classList.add("off"); item.setAttribute("aria-pressed","false"); }
-  else { activeCats.add(cat); item.classList.remove("off"); item.setAttribute("aria-pressed","true"); }
-  applyFilter();
-});
+/* No edge legend: every category stays visible on the canvas and is named in the
+   detail panel when a node is selected. activeCats therefore starts full and is
+   never toggled — kept so applyFilter() has one code path. */
 
 let activeGroup = null;
 function selectGroup(key){
