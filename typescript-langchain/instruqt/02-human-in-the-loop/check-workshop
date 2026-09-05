@@ -1,0 +1,4 @@
+#!/bin/bash
+# ABOUTME: Instant pass. Instructor-led workshop; see 01-durable-agent/check-workshop
+# for the reasoning. Every unfinished TODO here fails loudly and by name.
+exit 0

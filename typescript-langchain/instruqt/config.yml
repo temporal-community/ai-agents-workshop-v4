@@ -1,0 +1,43 @@
+version: "3"
+containers:
+- name: workshop
+  # DIGEST PIN - REPLACE BEFORE THE FIRST REAL RUN.
+  #
+  # The sha256 below is a deliberately invalid PLACEHOLDER. A sandbox will not
+  # boot until it is replaced with the digest of a real, pushed image.
+  #
+  # Pin by digest, never `:latest`. A moving tag lets a sandbox boot a stale
+  # cached layer with no visible symptom - the lab comes up, the code is from
+  # last week, and nothing in any log says so.
+  #
+  # Build and re-pin (run from `typescript-langchain/`, the build context):
+  #
+  #   docker build --platform linux/amd64 \
+  #       -f sandbox/Dockerfile \
+  #       -t nadvolod/ai-agents-workshop-v4-ts-sandbox-langchain:latest .
+  #   docker push nadvolod/ai-agents-workshop-v4-ts-sandbox-langchain:latest
+  #   docker buildx imagetools inspect \
+  #       nadvolod/ai-agents-workshop-v4-ts-sandbox-langchain:latest --format '{{.Manifest.Digest}}'
+  #
+  # `--platform linux/amd64` is not optional. An arm64 image (the default on an
+  # Apple Silicon machine) fails on Instruqt with an empty container log.
+  #
+  # Paste the printed digest below, keeping the `@sha256:` form.
+  image: nadvolod/ai-agents-workshop-v4-ts-sandbox-langchain@sha256:d639b26dca646c552235fe772ebea0d31add881a0a7e6efbae5f8ace0b537a6f
+  shell: /bin/bash
+  memory: 6144
+  # Every port any challenge tab points at MUST be listed here. Instruqt's tab
+  # proxy cannot reach an undeclared port, and the tab shows "Please wait"
+  # forever with nothing in any log to explain it.
+  ports:
+  - 8080   # Editor (code-server)
+  - 8233   # Temporal Web UI (temporal server start-dev)
+  # One server, both diagrams: / is challenge 2's parked-workflow,
+  # /heterogeneous-agents.html is challenge 4's.
+  - 8090   # Architecture diagrams (node serve-diagrams.mjs)
+secrets:
+# HMAC signing secret the LiteLLM secret broker uses to authenticate this
+# sandbox. NOT an OpenAI key. It is team-scoped in Instruqt (Team Settings >
+# Secrets) and already exists, shared across Temporal's tracks. Without it
+# `track_scripts/setup-workshop` aborts and the whole lab fails to start.
+- name: TEMPORAL_LITELLM_BROKER_SECRET
