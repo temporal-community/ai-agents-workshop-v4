@@ -2,16 +2,16 @@ slug: temporal-ai-agents-langchain-typescript
 id: xrrtzzqsfe3o
 title: Build AI Agents That Survive Failure (TypeScript + LangChain)
 teaser: Take an OpenAI Agents SDK agent from a script that dies with its process to
-  a fleet of specialists, in two languages, that survive anything.
+  a set of specialists, in two languages, that resume after a crash.
 description: |-
   A hands-on workshop in TypeScript. You start with an ordinary OpenAI Agents
   SDK agent and, over four challenges, make it durable, pause it for a human,
   split it into independently deployable specialists that run in parallel, and
-  finally reach across a language boundary to a Python LangChain Deep Agent -
-  without the orchestrator ever knowing.
+  call a Python LangChain Deep Agent without the orchestrator knowing it is
+  Python.
 
-  Each challenge adds exactly one capability, and each one ends in the Temporal
-  Web UI so you can see the shape of what you just built in the Event History.
+  Each challenge adds one capability and ends in the Temporal Web UI, where the
+  Event History shows what you just built.
 
   Everything runs against one local Temporal dev server. There is no
   infrastructure to provision and no API key to bring.
