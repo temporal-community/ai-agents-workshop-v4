@@ -43,15 +43,6 @@ Each demo's README is a self-contained walkthrough. The rough shape every time:
 
 Every demo uses a distinct Temporal task queue, so workers can run side-by-side without interfering with each other.
 
-## Prerequisites
-
-- **Python 3.10+**
-- **[uv](https://docs.astral.sh/uv/)** — `brew install uv` on macOS.
-- **[Temporal CLI](https://docs.temporal.io/cli)** — `brew install temporal` on macOS.
-- **OpenAI API key** — set as `OPENAI_API_KEY`.
-- **F1 MCP server** (demos 3–6) — a Node.js + Python hybrid that wraps [FastF1](https://docs.fastf1.dev/). Expected at `~/Projects/Temporal/AI/MCP/f1-mcp-server/`; override with `F1_MCP_SERVER_HOME`. See each demo's README for details.
-- **JDK 21+ and Maven** (demo6b only) — the travel planner is a Java + Spring AI worker. A Maven wrapper (`./mvnw`) is included, so a system Maven is optional.
-
 ## Observing what Temporal gives you
 
 All demos are Temporal workflows, so you can watch them in the Temporal Web UI at http://localhost:8233. The comparisons between demos are most interesting in that UI — demo2's tool calls appear as activities automatically, demo3 adds MCP listTools/callTool activities, demo4 shows a workflow that suspends durably on `wait_condition` and later receives a signal, and demo6a puts per-step (OpenAI Agents) and single-activity (Strands) durability side by side. demo6b goes further: the Java travel planner runs as its own workflow with per-step LLM/tool activities, all driven by a Python orchestrator across a Nexus boundary.

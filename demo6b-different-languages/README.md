@@ -61,11 +61,18 @@ The Python caller and the Java handler never share code — they agree on **stri
 
 The Python side defines only the *caller stub* (the `@nexusrpc.service` interface) — there's no Python handler. The Nexus endpoint routes the call to whatever worker polls the target task queue, which here is the Java worker.
 
-## Prerequisites
+## Complete the exercise
 
-- Everything from the other demos: Python 3.10+, [uv](https://docs.astral.sh/uv/), the [Temporal CLI](https://docs.temporal.io/cli), and `OPENAI_API_KEY`.
-- The **F1 MCP server** (same as demos 3–6a) at `~/Projects/Temporal/AI/MCP/f1-mcp-server/` (override with `F1_MCP_SERVER_HOME`).
-- **JDK 21+** for the Java travel planner. A Maven wrapper (`./mvnw`) is included, so a system Maven install is optional.
+`exercise/` ships with the key code commented out. Run it untouched and the
+workflow does nothing, so do this first:
+
+- `personal_assistant.py` — uncomment two blocks: wiring in the Java travel planner, then its `travel_tool` entry.
+
+Search for `TODO` in each file, uncomment the block beneath it, and delete any
+`pass` placeholder. Then continue below.
+
+To skip ahead and see the finished behaviour, run the same commands from
+`solution/` instead of `exercise/`.
 
 ## Running it
 
