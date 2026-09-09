@@ -63,28 +63,18 @@ difficulty: basic
 timelimit: 2400
 enhanced_loading: null
 ---
-
 # Heterogeneous agents
 
 > [!NOTE]
-> Your tabs. Three processes this time, because two of them are different runtimes.
+> Three processes this time, because two of them are different runtimes.
 > - [button label="TypeScript Workers" background="#444CE7"](tab-0) runs the orchestrator and the weather specialist.
-> - [button label="Python Worker" background="#444CE7"](tab-1) runs the travel specialist, in the other language.
+> - [button label="Python Worker" background="#444CE7"](tab-1) runs the travel specialist.
 > - [button label="Client" background="#444CE7"](tab-2) asks a question.
-> - [button label="Temporal UI" background="#444CE7"](tab-3) shows Event History for both languages.
-> - [button label="Editor" background="#444CE7"](tab-4) is VS Code, open on the whole workshop.
+> - [button label="Temporal UI" background="#444CE7"](tab-3) shows Event History for both.
+> - [button label="Editor" background="#444CE7"](tab-4) is VS Code. You work in `exercise/`, so check the title bar before you type.
 > - [button label="Architecture" background="#444CE7"](tab-5) diagrams the three processes.
 
-> [!WARNING]
-> You work in `exercise/`. `solution/` sits beside it with identical filenames, so check the editor's title bar before you type.
-
 This challenge builds on challenge 3's specialists.
-
-## See the shape before you change it
-
-Open the [button label="Architecture" background="#444CE7"](tab-5) tab. Three Worker processes, three Task Queues, two languages, one Namespace. Click **Play data flow** to follow one question end to end, then click the two delegation edges. One names a Workflow function, the other names a string, and that difference is this challenge.
-
-## What changed since the last challenge
 
 | | Challenge 3 | Challenge 4 |
 |---|---|---|
@@ -95,9 +85,11 @@ Open the [button label="Architecture" background="#444CE7"](tab-5) tab. Three Wo
 
 The third row is why the fourth row is possible.
 
+Open the [button label="Architecture" background="#444CE7"](tab-5) tab: three Worker processes, three Task Queues, two languages, one Namespace. Click **Play data flow**, then click the two delegation edges. One names a Workflow function, the other names a string, and that difference is this challenge.
+
 ## Read the other side first
 
-Open the [button label="Editor" background="#444CE7"](tab-4) tab and read `exercise/python-travel-planner/`. It is finished, so read it and run it but do not edit it.
+`exercise/python-travel-planner/` is finished. Read it and run it, but do not edit it.
 
 - `travel_planner.py` has two tools and a prompt, plain LangChain, zero Temporal imports. This is the file that already existed.
 - `travel_planner_service.py` has the Workflow the orchestrator starts, plus the request and response shapes.
@@ -116,13 +108,13 @@ The model is named, never built. The Workflow ships the string `openai:gpt-4o` a
 
 ## The one TODO
 
-TODO 9 in `exercise/src/challenge4-heterogeneous-agents/workflows.ts`. Reach the Python specialist.
+**TODO 9** in `exercise/src/challenge4-heterogeneous-agents/workflows.ts`. Reach the Python specialist.
 
-Read `exercise/src/challenge4-heterogeneous-agents/api.ts` first. It is finished, and it is the entire agreement between the two languages: a Workflow type, a Task Queue, and two field shapes. Nothing checks those four names at compile time, because no compiler can see both sides, so getting one wrong fails at run time in the payload converter.
+Read `api.ts` first. It is finished, and it is the entire agreement between the two languages: a Workflow type, a Task Queue, and two field shapes. No compiler sees both sides, so getting one of those four names wrong fails at run time in the payload converter.
 
 Then look at what you write. Nothing in it says "Python". Naming a Workflow type as a string rather than importing a function is the only concession to the language boundary, and it is why the orchestrator's agent code is byte-identical to challenge 3's.
 
-> Stuck? The same file under `solution/` is the answer. Fell behind? Copy the previous challenge's finished code and carry on.
+> Stuck? `solution/` has the answer. Behind? Catch up with:
 >
 > ```bash,run
 > cp /root/workshop/decouple-agents/solution/src/challenge3-multi-agent/*.ts \
@@ -137,29 +129,26 @@ In the [button label="TypeScript Workers" background="#444CE7"](tab-0) terminal:
 npm run c4:worker
 ```
 
-Then the [button label="Python Worker" background="#444CE7"](tab-1) terminal. Its dependencies are already in the image, so this starts in seconds.
+Then the [button label="Python Worker" background="#444CE7"](tab-1) terminal. Its dependencies are already in the image, so this starts in seconds and prints `Python travel-planner Worker polling c4-python-travel-planner-tq`.
 
 ```bash,run
 uv run python worker.py
 ```
 
-It prints `Python travel-planner Worker polling c4-python-travel-planner-tq` and keeps running.
-
-> If it exits with `OPENAI_API_KEY is not set`, the credentials the lab minted did not reach this shell. Open a fresh terminal tab and try again.
-
-## Run it
-
-In the [button label="Client" background="#444CE7"](tab-2) terminal:
+Then ask in the [button label="Client" background="#444CE7"](tab-2) terminal. You get one answer, with the weather from a TypeScript specialist and the destination background from a Python one.
 
 ```bash,run
 npm run c4:client -- "What should I know about visiting Monaco, and what is the weather there?"
 ```
 
-You get one answer, with the weather from a TypeScript specialist and the destination background from a Python one.
+<details>
+<summary>If it fails</summary>
 
-> If the travel half hangs and never completes, the Python Worker is not polling, or it is polling a different queue. A Child Workflow scheduled on a queue nobody serves sits in `Running` forever with no error anywhere. Check that tab-1 is still up, then check the Task Queue name in `api.ts` against `TASK_QUEUE` in `travel_planner_service.py`.
+- **The Python Worker exits with `OPENAI_API_KEY is not set`.** The credentials the lab minted did not reach this shell. Open a fresh terminal tab and try again.
+- **The travel half hangs and never completes.** The Python Worker is not polling, or it is polling a different queue. A Child Workflow scheduled on a queue nobody serves sits in `Running` forever with no error anywhere. Check that tab-1 is still up, then check the Task Queue name in `api.ts` against `TASK_QUEUE` in `travel_planner_service.py`.
+- **It fails immediately with a payload or attribute error.** The four names in `api.ts` and the Python dataclasses have drifted apart. That is the compile-time check you do not get.
 
-> If it fails immediately with a payload or attribute error, the four names in `api.ts` and the Python dataclasses have drifted apart. That is the compile-time check you do not get.
+</details>
 
 ## Read the Event History
 
@@ -181,13 +170,13 @@ Two languages, two agent frameworks, one durability guarantee, and neither team 
 
 ## Break it
 
-**1.** In the [button label="Client" background="#444CE7"](tab-2) terminal, ask something that needs both specialists:
+**1.** Ask something that needs both specialists:
 
 ```bash,run
 npm run c4:client -- "What is the weather in Reykjavik, and what should I know about visiting Iceland?"
 ```
 
-**2.** As soon as it starts, press **Ctrl+C** in the [button label="Python Worker" background="#444CE7"](tab-1) terminal. The TypeScript Workers in tab-0 are untouched.
+**2.** As soon as it starts, press **Ctrl+C** in the [button label="Python Worker" background="#444CE7"](tab-1) terminal. The TypeScript Workers are untouched.
 
 **3.** In the [button label="Temporal UI" background="#444CE7"](tab-3) tab:
 
@@ -195,7 +184,7 @@ npm run c4:client -- "What is the weather in Reykjavik, and what should I know a
 - `TravelPlannerAgentWorkflow` is **Running**, frozen at whichever Activity was in flight
 - the weather side is unaffected and may already be **Completed**
 
-**4.** Before you restart it:
+Before you restart it:
 
 > The Python process is gone mid-conversation. What gets redone when it comes back, and what does not?
 
@@ -212,7 +201,7 @@ Killing the TypeScript Workers instead, after the Python side completed, works t
 
 </details>
 
-**5.** Restart the Python Worker in the [button label="Python Worker" background="#444CE7"](tab-1) terminal:
+**4.** Restart the Python Worker:
 
 ```bash,run
 uv run python worker.py
@@ -222,8 +211,6 @@ The in-flight step is retried, the agent finishes, and the [button label="Client
 
 ## Try more prompts
 
-In the [button label="Client" background="#444CE7"](tab-2) terminal:
-
 ```bash,run
 npm run c4:client -- "What should I know about visiting Suzuka Circuit?"
 ```
@@ -232,7 +219,7 @@ npm run c4:client -- "What should I know about visiting Suzuka Circuit?"
 npm run c4:client -- "What is the weather in Tokyo right now?"
 ```
 
-The second one never touches the Python Worker. Its terminal stays quiet, because the triage agent had no reason to route there.
+The second never touches the Python Worker. Its terminal stays quiet, because the triage agent had no reason to route there.
 
 Click **Check** when you have run at least one question that reached the Python travel planner.
 

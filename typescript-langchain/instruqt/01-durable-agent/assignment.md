@@ -55,7 +55,6 @@ difficulty: basic
 timelimit: 2400
 enhanced_loading: null
 ---
-
 # The OpenAI Agents SDK, made durable
 
 > [!NOTE]
@@ -65,16 +64,14 @@ enhanced_loading: null
 > - [button label="Temporal UI" background="#444CE7"](tab-2) shows Event History.
 > - [button label="Editor" background="#444CE7"](tab-3) is VS Code, open on the whole workshop.
 
-## Where the code lives
-
-The [button label="Editor" background="#444CE7"](tab-3) tab opens `decouple-agents`. You work in `exercise/`, and every file path in this track starts there. `solution/` is the same tree, finished, for when you are stuck. The editor saves as you type and the Worker runs the TypeScript directly, so there is no save step and nothing to compile.
+The [button label="Editor" background="#444CE7"](tab-3) tab opens `decouple-agents`. You work in `exercise/`, where every file path in this track starts. `solution/` is the same tree, finished. Nothing to save or compile: the editor saves as you type and the Worker runs the TypeScript directly.
 
 > [!WARNING]
-> Both trees show in the file tree with identical filenames. Check the path in the editor's title bar before you type. Editing `solution/` leaves `exercise/` broken.
+> Both trees show identical filenames. Check the editor's title bar before you type. Editing `solution/` leaves `exercise/` broken.
 
 ## First, watch it break
 
-`exercise/src/challenge0-the-loop/agent-loop.ts` is a plain agent with no Temporal in it, just the `openai` client and two functions that fetch coordinates and weather. Open it in the [button label="Editor" background="#444CE7"](tab-3) tab and find this near the bottom:
+`exercise/src/challenge0-the-loop/agent-loop.ts` is a plain agent, no Temporal in it: the `openai` client and two functions that fetch coordinates and weather. Open it and find this near the bottom:
 
 ```ts,nocopy
 while (!done) {
@@ -88,9 +85,9 @@ while (!done) {
 }
 ```
 
-Those two `await`s are the only lines in the file that touch anything outside the process. Everything else is bookkeeping that lives in one Node process's heap for as long as that process runs. The conversation is a local variable.
+Those two `await`s are the only lines that leave the process. Everything else is bookkeeping in one Node heap, and the conversation is a local variable.
 
-Run it in the [button label="Worker" background="#444CE7"](tab-0) terminal. It compares three cities, prints a running token total per turn, and pauses a few seconds between turns so you have a window to interrupt. Press **Ctrl+C** once the total reaches three or four model calls.
+Run it in the [button label="Worker" background="#444CE7"](tab-0) terminal. It compares three cities and pauses a few seconds between turns. Press **Ctrl+C** once the running total reaches three or four model calls.
 
 ```bash,run
 npm run c0:loop
@@ -104,55 +101,52 @@ You get a receipt:
   tokens billed, then discarded   2016
 ```
 
-Three kinds of loss. The model calls completed and will be invoiced. The tool calls here were reads, so repeating them only wastes time, but swap the weather lookup for something that charges a card and that second line starts to matter. Prompt tokens climb every turn, because turn four re-sends turns one through three, so dying late costs more than dying early.
+Three kinds of loss. The model calls will be invoiced. These tool calls were reads, so repeating them only wastes time, but swap the weather lookup for something that charges a card and line two starts to matter. Prompt tokens climb every turn, because turn four re-sends turns one to three, so dying late costs more than dying early.
 
-Run it again and watch it start from turn one. The new process has never heard of the turns you already paid for, because `messages` went with the old heap.
+Run it again and watch it start from turn one. `messages` went with the old heap.
 
 ```bash,run
 npm run c0:loop
 ```
 
-The [button label="Temporal UI" background="#444CE7"](tab-2) tab is empty. Nothing you ran left a trace outside a process that no longer exists.
+The [button label="Temporal UI" background="#444CE7"](tab-2) tab is empty. Nothing you ran left a trace.
 
 ## The two TODOs
 
-Both sit on the line they change, and `exercise/README.md` has the index. The provider and the tool wrappers are already written for you.
+Both sit on the line they change; `exercise/README.md` has the index. The provider and tool wrappers are written for you.
 
-TODO 1 in `exercise/src/challenge1-durable-agent/workflows.ts`. Replace the SDK's `Runner` with `TemporalOpenAIRunner`. Same agent object, same loop, same tools, except the loop now runs inside a Workflow, its state lands in Event History, and every model and tool call goes out to an Activity.
+**TODO 1** in `exercise/src/challenge1-durable-agent/workflows.ts`. Replace the SDK's `Runner` with `TemporalOpenAIRunner`. Same agent, same loop, same tools, except the loop now runs inside a Workflow, its state lands in Event History, and every model and tool call goes out to an Activity.
 
-TODO 2a in `worker.ts` and TODO 2b in `client.ts`. Register the plugin in both places. On the Worker it installs the Activity that model calls are dispatched to, and without it the Workflow sends LLM calls nowhere. On the Client it carries the run configuration and trace context into the Workflow through a header set at start time, which the Worker's copy cannot do for it.
+**TODO 2a** in `worker.ts`, **TODO 2b** in `client.ts`. Register the plugin in both. The Worker's copy installs the Activity that model calls dispatch to; without it they go nowhere. The Client's copy carries run configuration and trace context in a header at start time, which the Worker cannot do for it.
 
 > Stuck? The same file under `solution/` is the answer.
 
-## Start the Worker
+## Run it
 
-In the [button label="Worker" background="#444CE7"](tab-0) terminal:
+Start the Worker in the [button label="Worker" background="#444CE7"](tab-0) terminal. It prints `Challenge 1 Worker polling c1-durable-agent-tq` and sits there polling.
 
 ```bash,run
 npm run c1:worker
 ```
 
-It prints `Challenge 1 Worker polling c1-durable-agent-tq` and then sits there, polling. Leave it and move on.
-
-> If it exits instead, read the error. A TypeScript error means an edit did not compile, and the file path in the message tells you which one.
-
-## Run it
-
-In the [button label="Client" background="#444CE7"](tab-1) terminal:
+Then ask it something in the [button label="Client" background="#444CE7"](tab-1) terminal. A few seconds later you get Barcelona's current conditions in plain text.
 
 ```bash,run
 npm run c1:client -- "What is the weather in Barcelona?"
 ```
 
-A few seconds later you get Barcelona's current conditions in plain text.
+<details>
+<summary>If it fails</summary>
 
-> If it fails inside the Workflow before any model call, TODO 1 is still open. The SDK's `Runner` reaches for the network from inside the Workflow sandbox, which a Workflow is not allowed to do.
+- **The Worker exits on start.** A TypeScript error, and the file path in the message says which edit.
+- **It fails inside the Workflow before any model call.** TODO 1 is still open. The SDK's `Runner` reaches for the network from inside the Workflow sandbox, which a Workflow is not allowed to do.
+- **The Workflow starts and then nothing happens.** TODO 2a is still open. Model calls are going to an Activity that no Worker registered, so they sit unclaimed.
 
-> If the Workflow starts and then nothing happens, TODO 2a is still open. Model calls are going to an Activity that no Worker registered, so they sit unclaimed.
+</details>
 
 ## Read the Event History
 
-Open the Workflow you just ran in the [button label="Temporal UI" background="#444CE7"](tab-2) tab. The loop is written down there:
+Open the Workflow in the [button label="Temporal UI" background="#444CE7"](tab-2) tab. The loop is written down there:
 
 - one `invokeModelActivity` per model turn, each its own Activity
 - one Activity per tool call, `getCoordinates` then `getWeather`
@@ -162,17 +156,15 @@ You wrote none of it. `TemporalOpenAIRunner` dispatched every one.
 
 ## Break it
 
-**1.** In the [button label="Client" background="#444CE7"](tab-1) terminal, start a question big enough to need several turns:
+**1.** Start a question big enough to need several turns:
 
 ```bash,run
 npm run c1:client -- "Compare the weather in Barcelona, Tokyo and Reykjavik right now."
 ```
 
-**2.** While it is still thinking, kill the Worker in the [button label="Worker" background="#444CE7"](tab-0) terminal with **Ctrl+C**. The entire agent runtime is now gone mid-conversation.
+**2.** While it is still thinking, kill the Worker with **Ctrl+C**. The entire agent runtime is now gone mid-conversation.
 
-**3.** Find the Workflow in the [button label="Temporal UI" background="#444CE7"](tab-2) tab. It is still **Running**, the Client is still waiting, and nothing has failed.
-
-**4.** Before you bring the Worker back, answer this:
+**3.** In the [button label="Temporal UI" background="#444CE7"](tab-2) tab the Workflow is still **Running**, the Client still waiting, nothing failed. Before you bring the Worker back:
 
 > The process holding the conversation is dead. When a new Worker picks this up, does the model get asked those first few questions a second time, and does the bill get paid twice?
 
@@ -187,13 +179,13 @@ That is the claim behind "durable agent". A crash costs you the step that was ru
 
 </details>
 
-**5.** Restart the Worker in the [button label="Worker" background="#444CE7"](tab-0) terminal:
+**4.** Restart the Worker:
 
 ```bash,run
 npm run c1:worker
 ```
 
-The conversation resumes where it stopped and the [button label="Client" background="#444CE7"](tab-1) terminal prints the comparison, from the same Workflow Execution you started before the crash.
+The conversation resumes and the [button label="Client" background="#444CE7"](tab-1) terminal prints the comparison, from the same Workflow Execution you started before the crash.
 
 ## What you built
 
