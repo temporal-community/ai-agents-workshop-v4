@@ -63,24 +63,14 @@ difficulty: basic
 timelimit: 2400
 enhanced_loading: null
 ---
-
 # Human in the loop
 
 > [!NOTE]
-> Your tabs.
-> - [button label="Worker" background="#444CE7"](tab-0) runs this challenge's Worker.
-> - [button label="Client" background="#444CE7"](tab-1) starts the request and is where you approve it.
-> - [button label="Temporal UI" background="#444CE7"](tab-2) shows Event History.
-> - [button label="Editor" background="#444CE7"](tab-3) is VS Code, open on the whole workshop.
-
-> [!WARNING]
-> You work in `exercise/`. `solution/` sits beside it with identical filenames, so check the editor's title bar before you type.
+> The four tabs from challenge 1: [button label="Worker" background="#444CE7"](tab-0), [button label="Client" background="#444CE7"](tab-1) which is also where you approve, [button label="Temporal UI" background="#444CE7"](tab-2), and [button label="Editor" background="#444CE7"](tab-3). You work in `exercise/`, so check the editor's title bar before you type.
 
 ## First, watch it misbehave
 
-Change nothing yet. The agent already has a `bookTrip` tool and nobody is supervising it.
-
-In the [button label="Worker" background="#444CE7"](tab-0) terminal:
+Change nothing yet. The agent already has a `bookTrip` tool and nobody is supervising it. Start the Worker:
 
 ```bash,run
 npm run c2:worker
@@ -94,24 +84,24 @@ npm run c2:client -- "Book me a trip to Barcelona on 2026-09-15."
 
 It asks `Approve the booking? [y/N]`. Answer **n**.
 
-Find that Workflow in the [button label="Temporal UI" background="#444CE7"](tab-2) tab. It is **Completed**, and its history holds a `bookTrip` Activity with a confirmation number in the result.
+Find that Workflow in the [button label="Temporal UI" background="#444CE7"](tab-2) tab. It is **Completed**, and its history holds a `bookTrip` Activity with a confirmation number.
 
 You said no and it booked anyway. The client asked you after the agent had already acted, because nothing in the Workflow was waiting for your answer.
 
 ## The three TODOs
 
-The resume branch is written for you. Read it first. It runs in the second Execution, and it makes the handoff you are about to write easier to follow.
+The resume branch is written for you. Read it first: it runs in the second Execution and makes your handoff easier to follow.
 
-TODO 3 in `exercise/src/challenge2-human-in-the-loop/workflows.ts`. One property on the `bookTrip` tool definition. With it the Agents SDK refuses to run the tool, ends the run early, and hands back an interruption describing what the model wanted to do.
+**TODO 3** in `exercise/src/challenge2-human-in-the-loop/workflows.ts`. One property on the `bookTrip` tool definition. With it the Agents SDK refuses to run the tool, ends the run early, and hands back an interruption describing what the model wanted to do.
 
-TODO 4 in the same file. Park, then hand off, in two lines.
+**TODO 4** in the same file. Park, then hand off, in two lines.
 
-- `condition()` completes the Workflow Task and the Worker walks away. Nothing polls, nothing is scheduled, and the state lives on the Temporal server.
-- `continueAsNew` closes this Execution and starts a fresh one under the same Workflow ID with a short new history, so a run that waited three days resumes as cheaply as one that waited three seconds.
+- `condition()` completes the Workflow Task and the Worker walks away. Nothing polls, nothing is scheduled, and the state lives on the server.
+- `continueAsNew` closes this Execution and starts a fresh one under the same Workflow ID with a short history, so a three-day wait resumes as cheaply as a three-second one.
 
-TODO 5 in `exercise/src/challenge2-human-in-the-loop/client.ts`. Deliver the verdict as a Signal. A Signal is one-way and does not wait for a reply, which is the right shape for "I approve this".
+**TODO 5** in `client.ts`. Deliver the verdict as a Signal. A Signal is one-way and does not wait for a reply, which is the right shape for "I approve this".
 
-> Stuck? The same files under `solution/` are the answer. Fell behind? Copy the previous challenge's finished code and carry on.
+> Stuck? `solution/` has the answers. Behind? Catch up with:
 >
 > ```bash,run
 > cp /root/workshop/decouple-agents/solution/src/challenge1-durable-agent/*.ts \
@@ -120,13 +110,11 @@ TODO 5 in `exercise/src/challenge2-human-in-the-loop/client.ts`. Deliver the ver
 
 ## Run it properly
 
-Press **Ctrl+C** in the [button label="Worker" background="#444CE7"](tab-0) terminal so the Worker picks up your edits, then:
+Press **Ctrl+C** in the [button label="Worker" background="#444CE7"](tab-0) terminal so it picks up your edits, then restart and ask again:
 
 ```bash,run
 npm run c2:worker
 ```
-
-In the [button label="Client" background="#444CE7"](tab-1) terminal:
 
 ```bash,run
 npm run c2:client -- "Book me a trip to Barcelona on 2026-09-15."
@@ -134,41 +122,32 @@ npm run c2:client -- "Book me a trip to Barcelona on 2026-09-15."
 
 Before you answer, check the [button label="Temporal UI" background="#444CE7"](tab-2) tab. The Workflow is **Running** with no pending Activity Tasks at all. It has stopped on purpose and is costing nothing.
 
-Answer **y** in the [button label="Client" background="#444CE7"](tab-1) terminal and the agent prints its confirmation.
+Answer **y** and the agent prints its confirmation.
 
 ## Read the Event History
 
 Find that Workflow ID in the [button label="Temporal UI" background="#444CE7"](tab-2) tab. Two Executions sit under it.
 
-The first one:
-
-- runs the model and the weather tools
-- has no `bookTrip` Activity, because the tool never executed
-- ends with `WorkflowExecutionSignaled`, your approval, then `WorkflowExecutionContinuedAsNew`
-
-The second one:
-
-- starts fresh, with the serialized run as its input
-- runs the `bookTrip` Activity exactly once
-- ends with one last model call composing the answer
+| | First Execution | Second Execution |
+|---|---|---|
+| Input | your question | the serialized run |
+| Model and weather tools | runs them | one last call, composing the answer |
+| `bookTrip` Activity | never executed | runs exactly once |
+| Ends with | `WorkflowExecutionSignaled`, your approval, then `WorkflowExecutionContinuedAsNew` | the answer |
 
 The gap before the Signal is however long you took to decide. It cost nothing.
 
 ## Break it
 
-**1.** In the [button label="Client" background="#444CE7"](tab-1) terminal, start a fresh request:
+**1.** Start a fresh request:
 
 ```bash,run
 npm run c2:client -- "Book me a trip to Tokyo on 2026-11-02."
 ```
 
-**2.** Answer **n**. The client prints the Workflow ID and the command to release it later. Copy that ID.
+**2.** Answer **n**, and copy the Workflow ID the client prints.
 
-**3.** Press **Ctrl+C** in the [button label="Worker" background="#444CE7"](tab-0) terminal. No Worker is running for this challenge now.
-
-**4.** The [button label="Temporal UI" background="#444CE7"](tab-2) tab still shows the Workflow as **Running**.
-
-**5.** Before you bring anything back, answer this:
+**3.** Press **Ctrl+C** in the [button label="Worker" background="#444CE7"](tab-0) terminal. No Worker is running for this challenge now, and the [button label="Temporal UI" background="#444CE7"](tab-2) tab still shows the Workflow as **Running**. Before you bring anything back:
 
 > No process is holding this conversation and no timer is counting down. What exactly is "Running"?
 
@@ -185,18 +164,18 @@ This is also why the human can take as long as they need. A system that gives up
 
 </details>
 
-**6.** Start a Worker again in the [button label="Worker" background="#444CE7"](tab-0) terminal:
+**4.** Start a Worker again:
 
 ```bash,run
 npm run c2:worker
 ```
 
-**7.** In the [button label="Client" background="#444CE7"](tab-1) terminal, release the parked run with the ID you copied:
+**5.** Release the parked run with the ID you copied:
 
 ```bash
 npm run c2:client -- --approve <workflow-id-from-step-2>
 ```
 
-Answer **y**. The booking goes through and the answer prints, in a brand new Worker process that has never seen this conversation.
+Answer **y**. The booking goes through in a brand new Worker process that has never seen this conversation.
 
 Click **Check** when you have approved at least one booking.

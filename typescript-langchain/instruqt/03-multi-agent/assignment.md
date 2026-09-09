@@ -57,18 +57,10 @@ difficulty: basic
 timelimit: 2400
 enhanced_loading: null
 ---
-
 # Multi-agent
 
 > [!NOTE]
-> Your tabs.
-> - [button label="Workers" background="#444CE7"](tab-0) runs one process with two Workers on two Task Queues.
-> - [button label="Client" background="#444CE7"](tab-1) asks a question.
-> - [button label="Temporal UI" background="#444CE7"](tab-2) shows Event History, where this challenge pays off.
-> - [button label="Editor" background="#444CE7"](tab-3) is VS Code, open on the whole workshop.
-
-> [!WARNING]
-> You work in `exercise/`. `solution/` sits beside it with identical filenames, so check the editor's title bar before you type.
+> Same tabs, except [button label="Workers" background="#444CE7"](tab-0) now runs one process with two Workers on two Task Queues. Then [button label="Client" background="#444CE7"](tab-1), [button label="Temporal UI" background="#444CE7"](tab-2) where this challenge pays off, and [button label="Editor" background="#444CE7"](tab-3). You work in `exercise/`, so check the editor's title bar before you type.
 
 ## The shape you are building
 
@@ -86,52 +78,48 @@ Every specialist is a Workflow Execution of its own, with its own history and re
 
 The `childWorkflowAsTool` helper in `shared/` is written for you. It uses `wf.uuid4()` rather than `Math.random()`, because Workflow code must produce the same values on replay as it did the first time.
 
-TODO 6 in `exercise/src/challenge3-multi-agent/workflows.ts`. The travel specialist, reached the same way as the weather one. Both specialists then sit on one queue as Child Workflows, one deployment owned by one team, independent of the orchestrator.
+**TODO 6** in `exercise/src/challenge3-multi-agent/workflows.ts`. The travel specialist, reached the same way as the weather one. Both then sit on one queue as Child Workflows: one deployment, one team, independent of the orchestrator.
 
-TODO 7 in the same file. Fan out. One tool, several cities, all their Child Workflows running at the same time. This is the one place in the workshop where the Workflow decides the concurrency instead of the model. The model calls the tool once, and what happens inside is ordinary deterministic code.
+**TODO 7** in the same file. Fan out: one tool, several cities, all their Child Workflows running at once. This is the one place in the workshop where the Workflow decides the concurrency instead of the model. The model calls the tool once; what happens inside is ordinary deterministic code.
 
-TODO 8 in `exercise/src/challenge3-multi-agent/worker.ts`. A second Worker on the specialists' Task Queue, carrying their Activities. It shares this process for convenience only, and is a separate deployment in every way that matters.
+**TODO 8** in `worker.ts`. A second Worker on the specialists' Task Queue, carrying their Activities. It shares this process for convenience only, and is a separate deployment in every way that matters.
 
-> Stuck? The same files under `solution/` are the answer. Fell behind? Copy the previous challenge's finished code and carry on.
+> Stuck? `solution/` has the answers. Behind? Catch up with:
 >
 > ```bash,run
 > cp /root/workshop/decouple-agents/solution/src/challenge2-human-in-the-loop/*.ts \
 >    /root/workshop/decouple-agents/exercise/src/challenge2-human-in-the-loop/
 > ```
 
-## Start the Workers
+## Run it
 
-In the [button label="Workers" background="#444CE7"](tab-0) terminal:
+Start the Workers. It prints `Challenge 3 Workers polling c3-orchestrator-tq and c3-specialists-tq` and keeps running.
 
 ```bash,run
 npm run c3:worker
 ```
 
-It prints `Challenge 3 Workers polling c3-orchestrator-tq and c3-specialists-tq` and keeps running.
-
-## Run it
-
-In the [button label="Client" background="#444CE7"](tab-1) terminal:
+Then in the [button label="Client" background="#444CE7"](tab-1) terminal:
 
 ```bash,run
 npm run c3:client -- "What's the weather in Monaco, and what should I know about visiting?"
 ```
 
-You get one answer combining conditions in Monaco and what the place is like.
+You get one answer, conditions in Monaco plus what the place is like.
 
-> If it hangs with no output for a minute, TODO 8 is the usual cause. With only the orchestrator Worker running, nobody polls the specialists' Task Queue, so every Child Workflow is scheduled and never picked up. A Workflow stuck in `Running` with a pending task and no Worker looks the same in production.
+> Hangs with no output for a minute? TODO 8 is the usual cause. With only the orchestrator Worker running, nobody polls the specialists' Task Queue, so every Child Workflow is scheduled and never picked up. A Workflow stuck in `Running` with a pending task and no Worker looks the same in production.
 
 ## Read the Event History
 
-Open the [button label="Temporal UI" background="#444CE7"](tab-2) tab. That one question produced three Executions.
+Open the [button label="Temporal UI" background="#444CE7"](tab-2) tab. That one question produced three Executions. The orchestrator's history holds:
 
-The orchestrator's history holds, once per specialist, `StartChildWorkflowExecution`, then `ChildWorkflowExecutionStarted`, then `ChildWorkflowExecutionCompleted`, plus the model call that decided the routing and the one that composed the answer.
+- the model call that decided the routing
+- per specialist, `StartChildWorkflowExecution`, `ChildWorkflowExecutionStarted`, `ChildWorkflowExecutionCompleted`
+- the model call that composed the answer
 
 Then open the two specialist Executions. A failure inside the weather specialist is a fact about the weather specialist, not about the request.
 
 ## Watch the fan-out
-
-In the [button label="Client" background="#444CE7"](tab-1) terminal:
 
 ```bash,run
 npm run c3:client -- "Compare the weather in Barcelona, Tokyo and Reykjavik."
@@ -152,17 +140,15 @@ Swap the `Promise.all` for an `await` in a `for` loop and those same events arri
 
 ## Break it
 
-**1.** In the [button label="Client" background="#444CE7"](tab-1) terminal, ask something that needs both specialists:
+**1.** Ask something that needs both specialists:
 
 ```bash,run
 npm run c3:client -- "What's the weather in Reykjavik, and what should I know about visiting Iceland?"
 ```
 
-**2.** While it is running, press **Ctrl+C** in the [button label="Workers" background="#444CE7"](tab-0) terminal. Both Workers die at once, orchestrator and specialists.
+**2.** While it runs, press **Ctrl+C** in the [button label="Workers" background="#444CE7"](tab-0) terminal. Both Workers die at once.
 
-**3.** In the [button label="Temporal UI" background="#444CE7"](tab-2) tab, all three Executions are still **Running**, each frozen at whatever step it had reached. They stopped at different points, because they are independent.
-
-**4.** Before you restart anything:
+**3.** All three Executions are still **Running**, each frozen at whatever step it had reached. They stopped at different points, because they are independent. Before you restart anything:
 
 > The orchestrator is waiting on a Child Workflow that is itself waiting on an Activity. Three histories, three positions. When Workers come back, who tells the orchestrator where to resume?
 
@@ -177,23 +163,21 @@ Written as three function calls in one process, a failure anywhere unwinds the w
 
 </details>
 
-**5.** Restart both Workers in the [button label="Workers" background="#444CE7"](tab-0) terminal:
+**4.** Restart both Workers:
 
 ```bash,run
 npm run c3:worker
 ```
 
-All three Executions resume, the orchestrator gets both answers, and the [button label="Client" background="#444CE7"](tab-1) terminal prints the combined reply.
+All three resume, the orchestrator gets both answers, and the [button label="Client" background="#444CE7"](tab-1) terminal prints the combined reply.
 
 ## Try one more prompt
-
-In the [button label="Client" background="#444CE7"](tab-1) terminal:
 
 ```bash,run
 npm run c3:client -- "What should I know about visiting Suzuka Circuit?"
 ```
 
-That one needs only the travel specialist, and the orchestrator's history holds one `StartChildWorkflowExecution` rather than two. The triage agent routed to the one specialist the question needed.
+That one needs only the travel specialist, so the orchestrator's history holds one `StartChildWorkflowExecution` rather than two.
 
 Click **Check** when you have run at least one question through both specialists.
 
