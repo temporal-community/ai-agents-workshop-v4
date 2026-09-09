@@ -1,0 +1,48 @@
+# Instruqt Track helpers for temporal-ai-agents-typescript.
+# Run these from inside `typescript/instruqt/`, which is where every `instruqt`
+# subcommand expects to find track.yml, config.yml and the challenge folders.
+
+default:
+    @just --list
+
+# One-time: register the slug with Instruqt before the first deploy.
+# Creates the track in maintenance mode; nothing is published to attendees.
+create:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    slug=$(grep -E '^slug:' track.yml | head -1 | awk '{print $2}' | tr -d '"')
+    title=$(grep -E '^title:' track.yml | head -1 | sed -E 's/^title:[[:space:]]*//' | sed -E 's/^"(.*)"$/\1/')
+    tmp=$(mktemp -d)
+    (cd "$tmp" && instruqt track create "$slug" --title "$title")
+    rm -rf "$tmp"
+    echo "Registered slug '$slug' (maintenance mode)."
+    echo "Deploying is a human step - see the note at the bottom of this file."
+
+pull:
+    instruqt track pull
+
+validate:
+    instruqt track validate
+
+test:
+    instruqt track test
+
+# Verify every [button ...](tab-N) reference against the tab it points at.
+# tab-N is a zero-indexed POSITION, not an id: reorder a tab list and every
+# button in that assignment silently points somewhere else, with no error.
+check-tabs:
+    ../scripts/check-tab-refs.sh
+
+clean-remote:
+    find . -name "*.remote" -delete
+
+# Deploying to Instruqt is deliberately not a recipe here.
+#
+# The first deploy assigns the track id and every tab id, and those ids must
+# then be committed so they stay stable across later deploys:
+#
+#     git add typescript/instruqt/ && git commit -m 'Pin Instruqt track and tab ids'
+#
+# Deploys are also how a live track gets changed under attendees who are in the
+# middle of it. Both are human decisions, so they stay a human's `instruqt`
+# invocation rather than a one-word `just` recipe.

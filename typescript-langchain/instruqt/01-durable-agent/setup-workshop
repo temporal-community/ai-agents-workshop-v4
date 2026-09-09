@@ -1,0 +1,16 @@
+#!/bin/bash
+# ABOUTME: Challenge 1 setup. Clears any Worker left over from an earlier
+# challenge so this challenge's Task Queue is served by exactly one process.
+#
+# One pkill per pattern, always. `pkill -f "a|b"` is a GNU-ism: it matches the
+# literal string "a|b" on macOS, silently killing nothing, so an alternation
+# that "works in CI" quietly stops working on a laptop.
+set -euo pipefail
+
+pkill -f "challenge1-durable-agent/worker.ts" 2>/dev/null || true
+pkill -f "challenge2-human-in-the-loop/worker.ts" 2>/dev/null || true
+pkill -f "challenge3-multi-agent/worker.ts" 2>/dev/null || true
+pkill -f "challenge4-heterogeneous-agents/worker.ts" 2>/dev/null || true
+pkill -f "python-travel-planner" 2>/dev/null || true
+
+echo "Challenge 1 ready."

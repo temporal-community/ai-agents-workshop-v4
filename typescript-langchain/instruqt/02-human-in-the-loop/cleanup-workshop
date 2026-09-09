@@ -1,0 +1,4 @@
+#!/bin/bash
+# ABOUTME: Challenge 2 cleanup.
+pkill -f "challenge2-human-in-the-loop/worker.ts" 2>/dev/null || true
+echo "Challenge 2 cleanup: OK"

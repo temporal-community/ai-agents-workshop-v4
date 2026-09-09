@@ -1,0 +1,17 @@
+[project]
+name = "python-travel-planner"
+version = "0.1"
+description = "LangChain Deep Agents travel planner, called from a TypeScript orchestrator as a Temporal Child Workflow"
+authors = [{ name = "Temporal Technologies Inc", email = "sdk@temporal.io" }]
+# Deep Agents sets this floor, not us. On 3.10 the dependency group resolves to
+# nothing and `uv sync` silently installs none of the packages below.
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    # The deepagents extra pulls deepagents + langgraph + langchain.
+    "temporalio[deepagents]==1.32.0",
+    # NOT pulled by the extra. Without it the failure appears at model-resolution
+    # time, inside the first Activity, as an ImportError - not at install time.
+    "langchain-openai>=0.2",
+    "httpx>=0.27",
+]

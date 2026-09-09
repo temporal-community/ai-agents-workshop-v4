@@ -1,0 +1,4 @@
+#!/bin/bash
+# ABOUTME: Track-level cleanup. The sandbox is destroyed wholesale, so there is
+# nothing that needs tearing down by hand.
+echo "Track cleanup: OK"

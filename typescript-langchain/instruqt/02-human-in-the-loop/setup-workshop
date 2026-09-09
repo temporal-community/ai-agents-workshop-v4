@@ -1,0 +1,12 @@
+#!/bin/bash
+# ABOUTME: Challenge 2 setup. Clears Workers left over from other challenges.
+# One pkill per pattern: `pkill -f "a|b"` matches the literal string on macOS.
+set -euo pipefail
+
+pkill -f "challenge1-durable-agent/worker.ts" 2>/dev/null || true
+pkill -f "challenge2-human-in-the-loop/worker.ts" 2>/dev/null || true
+pkill -f "challenge3-multi-agent/worker.ts" 2>/dev/null || true
+pkill -f "challenge4-heterogeneous-agents/worker.ts" 2>/dev/null || true
+pkill -f "python-travel-planner" 2>/dev/null || true
+
+echo "Challenge 2 ready."

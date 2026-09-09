@@ -1,0 +1,4 @@
+#!/bin/bash
+# ABOUTME: Challenge 3 cleanup.
+pkill -f "challenge3-multi-agent/worker.ts" 2>/dev/null || true
+echo "Challenge 3 cleanup: OK"
