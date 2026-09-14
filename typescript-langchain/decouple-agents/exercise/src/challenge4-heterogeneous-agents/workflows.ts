@@ -53,7 +53,7 @@ export async function triageAgentWorkflow(request: AgentRequest): Promise<string
     workflowExecutionTimeout: "5 minutes",
   });
 
-  // TODO 9: Reach the Python specialist. Replace the throw below with:
+  // TODO 8: Reach the Python specialist. Replace the throw below with:
   //
   //   const response = await wf.executeChild<PythonTravelPlannerWorkflow>(
   //     PYTHON_TRAVEL_PLANNER_WORKFLOW,
@@ -78,7 +78,7 @@ export async function triageAgentWorkflow(request: AgentRequest): Promise<string
       "Delegate a destination or country question to the travel specialist. Pass the full question in plain English.",
     parameters: z.object({ question: z.string().describe("The travel question, in plain English") }),
     execute: async ({ question }) => {
-      throw new Error(`TODO 9: reach the Python travel planner as a Child Workflow (${question})`);
+      throw new Error(`TODO 8: reach the Python travel planner as a Child Workflow (${question})`);
     },
   });
 

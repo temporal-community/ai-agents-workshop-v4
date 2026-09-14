@@ -19,18 +19,31 @@ async function run(): Promise<void> {
       bundlerOptions: agentsBundlerOptions,
     });
 
-    // TODO 8: Create a second Worker on `SPECIALIST_TASK_QUEUE` with the same
-    // `workflowsPath`, `plugins` and `bundlerOptions`, plus
-    // `activities: { ...weatherActivities, ...travelActivities }`. Then run both
-    // with `await Promise.all([orchestratorWorker.run(), specialistWorker.run()])`
-    // in place of the single `.run()` below.
+    // Read this one rather than write it — it is the deployment boundary of
+    // this challenge, in code.
     //
-    // The specialists are a separate deployment: their own queue, their own
-    // Activities. With only the orchestrator running, every Child Workflow is
-    // scheduled and never picked up — the lab hangs with no error, which is
-    // exactly what an unpolled Task Queue looks like in production.
+    // The specialist Worker polls its own Task Queue and carries its own
+    // Activities. The orchestrator Worker above registers none of them: it
+    // reaches the specialists only as Child Workflows, so the two can be built,
+    // deployed and scaled by different teams. They share this process because
+    // one terminal is easier than two, and for no other reason.
+    //
+    // Delete this Worker and nothing errors. Every Child Workflow is scheduled
+    // onto a queue nobody polls, so it sits in `Running` forever and the client
+    // hangs with no output — exactly what an unpolled Task Queue looks like in
+    // production.
+    const specialistWorker = await Worker.create({
+      connection,
+      taskQueue: SPECIALIST_TASK_QUEUE,
+      workflowsPath: require.resolve('./workflows'),
+      activities: { ...weatherActivities, ...travelActivities },
+      plugins: [openAIAgentsPlugin()],
+      bundlerOptions: agentsBundlerOptions,
+    });
+
+    // Both Workers run in this process, so both queues are polled at once.
     console.log(`Challenge 3 Workers polling ${ORCHESTRATOR_TASK_QUEUE} and ${SPECIALIST_TASK_QUEUE}`);
-    await orchestratorWorker.run();
+    await Promise.all([orchestratorWorker.run(), specialistWorker.run()]);
   } finally {
     await connection.close();
   }

@@ -96,7 +96,7 @@ Open the [button label="Architecture" background="#444CE7"](tab-5) tab: three Wo
 - `worker.py` runs a Temporal Python Worker on `c4-python-travel-planner-tq`, carrying `DeepAgentsPlugin`.
 
 <details>
-<summary>Two details in there worth knowing, though TODO 9 does not depend on them</summary>
+<summary>Two details in there worth knowing, though TODO 8 does not depend on them</summary>
 
 The agent loop runs inside the Workflow. `create_temporal_deep_agent` builds the agent in Workflow code, the loop replays deterministically, and every model call and I/O tool call leaves as an Activity.
 
@@ -108,7 +108,7 @@ The model is named, never built. The Workflow ships the string `openai:gpt-4o` a
 
 ## The one TODO
 
-**TODO 9** in `exercise/src/challenge4-heterogeneous-agents/workflows.ts`. Reach the Python specialist.
+**TODO 8** in `exercise/src/challenge4-heterogeneous-agents/workflows.ts`. Reach the Python specialist.
 
 Read `api.ts` first. It is finished, and it is the entire agreement between the two languages: a Workflow type, a Task Queue, and two field shapes. No compiler sees both sides, so getting one of those four names wrong fails at run time in the payload converter.
 
