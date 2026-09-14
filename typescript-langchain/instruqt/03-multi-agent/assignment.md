@@ -74,7 +74,7 @@ Several Workflow Executions per question, on two Task Queues.
 
 Every specialist is a Workflow Execution of its own, with its own history and retries. The orchestrator's agent code sees only tools.
 
-## The three TODOs
+## The two TODOs
 
 The `childWorkflowAsTool` helper in `shared/` is written for you. It uses `wf.uuid4()` rather than `Math.random()`, because Workflow code must produce the same values on replay as it did the first time.
 
@@ -82,14 +82,29 @@ The `childWorkflowAsTool` helper in `shared/` is written for you. It uses `wf.uu
 
 **TODO 7** in the same file. Fan out: one tool, several cities, all their Child Workflows running at once. This is the one place in the workshop where the Workflow decides the concurrency instead of the model. The model calls the tool once; what happens inside is ordinary deterministic code.
 
-**TODO 8** in `worker.ts`. A second Worker on the specialists' Task Queue, carrying their Activities. It shares this process for convenience only, and is a separate deployment in every way that matters.
-
 > Stuck? `solution/` has the answers. Behind? Catch up with:
 >
 > ```bash,run
 > cp /root/workshop/decouple-agents/solution/src/challenge2-human-in-the-loop/*.ts \
 >    /root/workshop/decouple-agents/exercise/src/challenge2-human-in-the-loop/
 > ```
+
+## Read the second Worker
+
+`exercise/src/challenge3-multi-agent/worker.ts` is already written. Open it anyway — the split it makes is the whole point of this challenge.
+
+Two `Worker.create` calls, two Task Queues. The specialist Worker carries `weatherActivities` and `travelActivities`; the orchestrator Worker registers no Activities at all, because it reaches the specialists only as Child Workflows. Nothing but this one file knows they share a process, and `Promise.all` at the bottom is what keeps both queues polled.
+
+> Delete the specialist Worker and nothing errors. What happens instead?
+
+<details>
+<summary>Answer</summary>
+
+Every Child Workflow is scheduled onto a queue nobody polls. The Executions sit in `Running` with a pending Workflow Task, the orchestrator waits on children that never start, and the client hangs with no output and no error.
+
+That is what an unpolled Task Queue looks like in production too: healthy-looking Executions, a queue with no Worker behind it. The [button label="Temporal UI" background="#444CE7"](tab-2) tab tells you within seconds; the logs never will.
+
+</details>
 
 ## Run it
 
@@ -107,7 +122,7 @@ npm run c3:client -- "What's the weather in Monaco, and what should I know about
 
 You get one answer, conditions in Monaco plus what the place is like.
 
-> Hangs with no output for a minute? TODO 8 is the usual cause. With only the orchestrator Worker running, nobody polls the specialists' Task Queue, so every Child Workflow is scheduled and never picked up. A Workflow stuck in `Running` with a pending task and no Worker looks the same in production.
+> Hangs with no output for a minute? Check the [button label="Workers" background="#444CE7"](tab-0) terminal actually printed both queue names. One Worker polling means the Child Workflows are scheduled and never picked up, and the client waits without an error.
 
 ## Read the Event History
 
