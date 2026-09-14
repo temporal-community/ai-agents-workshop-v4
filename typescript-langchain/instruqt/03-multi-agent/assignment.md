@@ -91,18 +91,18 @@ The `childWorkflowAsTool` helper in `shared/` is written for you. It uses `wf.uu
 
 ## Read the second Worker
 
-`exercise/src/challenge3-multi-agent/worker.ts` is already written. Open it anyway — the split it makes is the whole point of this challenge.
+`worker.ts` is written for you. Open it.
 
-Two `Worker.create` calls, two Task Queues. The specialist Worker carries `weatherActivities` and `travelActivities`; the orchestrator Worker registers no Activities at all, because it reaches the specialists only as Child Workflows. Nothing but this one file knows they share a process, and `Promise.all` at the bottom is what keeps both queues polled.
+Two `Worker.create` calls, two Task Queues. The specialist Worker registers the specialists' Activities. The orchestrator Worker registers none, because it reaches the specialists only as Child Workflows. The `Promise.all` at the bottom keeps both queues polled.
 
 > Delete the specialist Worker and nothing errors. What happens instead?
 
 <details>
 <summary>Answer</summary>
 
-Every Child Workflow is scheduled onto a queue nobody polls. The Executions sit in `Running` with a pending Workflow Task, the orchestrator waits on children that never start, and the client hangs with no output and no error.
+Every Child Workflow is scheduled onto a queue nobody polls, so it sits in `Running` and the client waits with no output.
 
-That is what an unpolled Task Queue looks like in production too: healthy-looking Executions, a queue with no Worker behind it. The [button label="Temporal UI" background="#444CE7"](tab-2) tab tells you within seconds; the logs never will.
+An unpolled Task Queue looks the same in production. The [button label="Temporal UI" background="#444CE7"](tab-2) tab shows it in seconds. Nothing in the logs says so.
 
 </details>
 
@@ -122,7 +122,7 @@ npm run c3:client -- "What's the weather in Monaco, and what should I know about
 
 You get one answer, conditions in Monaco plus what the place is like.
 
-> Hangs with no output for a minute? Check the [button label="Workers" background="#444CE7"](tab-0) terminal actually printed both queue names. One Worker polling means the Child Workflows are scheduled and never picked up, and the client waits without an error.
+> Hangs with no output? Check that the [button label="Workers" background="#444CE7"](tab-0) terminal printed both queue names.
 
 ## Read the Event History
 

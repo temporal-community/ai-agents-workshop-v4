@@ -19,19 +19,15 @@ async function run(): Promise<void> {
       bundlerOptions: agentsBundlerOptions,
     });
 
-    // Read this one rather than write it — it is the deployment boundary of
-    // this challenge, in code.
-    //
-    // The specialist Worker polls its own Task Queue and carries its own
-    // Activities. The orchestrator Worker above registers none of them: it
-    // reaches the specialists only as Child Workflows, so the two can be built,
-    // deployed and scaled by different teams. They share this process because
-    // one terminal is easier than two, and for no other reason.
+    // The specialist Worker polls its own Task Queue and registers the
+    // specialists' Activities. The orchestrator Worker above registers none of
+    // them, because it reaches the specialists only as Child Workflows. That
+    // boundary is what lets two teams deploy on their own schedules. Sharing
+    // one process here only saves a terminal.
     //
     // Delete this Worker and nothing errors. Every Child Workflow is scheduled
-    // onto a queue nobody polls, so it sits in `Running` forever and the client
-    // hangs with no output — exactly what an unpolled Task Queue looks like in
-    // production.
+    // onto a queue nobody polls, so it sits in `Running` and the client waits
+    // with no output.
     const specialistWorker = await Worker.create({
       connection,
       taskQueue: SPECIALIST_TASK_QUEUE,
