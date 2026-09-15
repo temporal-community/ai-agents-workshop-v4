@@ -194,6 +194,15 @@ npm run c3:client -- "What should I know about visiting Suzuka Circuit?"
 
 That one needs only the travel specialist, so the orchestrator's history holds one `StartChildWorkflowExecution` rather than two.
 
+## Didn't finish?
+
+Copy the working files over your own and carry on. This replaces everything you edited in `challenge3-multi-agent/`, so restart the Worker afterwards.
+
+```bash,run
+cp /root/workshop/decouple-agents/solution/src/challenge3-multi-agent/*.ts \
+   /root/workshop/decouple-agents/exercise/src/challenge3-multi-agent/
+```
+
 Click **Check** when you have run at least one question through both specialists.
 
 ---

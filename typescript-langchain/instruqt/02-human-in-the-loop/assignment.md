@@ -178,4 +178,17 @@ npm run c2:client -- --approve <workflow-id-from-step-2>
 
 Answer **y**. The booking goes through in a brand new Worker process that has never seen this conversation.
 
+## Didn't finish?
+
+Copy the working files over your own and carry on. This replaces everything you edited in `challenge2-human-in-the-loop/`, so restart the Worker afterwards.
+
+```bash,run
+cp /root/workshop/decouple-agents/solution/src/challenge2-human-in-the-loop/*.ts \
+   /root/workshop/decouple-agents/exercise/src/challenge2-human-in-the-loop/
+```
+
 Click **Check** when you have approved at least one booking.
+
+---
+
+Please share your feedback so we can make better content for you. The **Feedback** tab takes a few seconds, and it is how we find out which parts of this landed.

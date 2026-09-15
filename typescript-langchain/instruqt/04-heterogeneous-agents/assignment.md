@@ -221,6 +221,15 @@ npm run c4:client -- "What is the weather in Tokyo right now?"
 
 The second never touches the Python Worker. Its terminal stays quiet, because the triage agent had no reason to route there.
 
+## Didn't finish?
+
+Copy the working files over your own and carry on. This replaces everything you edited in `challenge4-heterogeneous-agents/`, so restart the Worker afterwards.
+
+```bash,run
+cp /root/workshop/decouple-agents/solution/src/challenge4-heterogeneous-agents/*.ts \
+   /root/workshop/decouple-agents/exercise/src/challenge4-heterogeneous-agents/
+```
+
 Click **Check** when you have run at least one question that reached the Python travel planner.
 
 ---

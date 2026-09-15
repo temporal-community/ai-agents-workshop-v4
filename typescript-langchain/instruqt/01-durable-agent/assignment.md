@@ -196,4 +196,17 @@ The conversation resumes and the [button label="Client" background="#444CE7"](ta
 | Retries on a failing tool | you write them | the Activity's retry policy |
 | Lines of agent code changed | | the `Runner` you construct |
 
+## Didn't finish?
+
+Copy the working files over your own and carry on. This replaces everything you edited in `challenge1-durable-agent/`, so restart the Worker afterwards.
+
+```bash,run
+cp /root/workshop/decouple-agents/solution/src/challenge1-durable-agent/*.ts \
+   /root/workshop/decouple-agents/exercise/src/challenge1-durable-agent/
+```
+
 Click **Check** when your agent has answered at least one question.
+
+---
+
+Please share your feedback so we can make better content for you. The **Feedback** tab takes a few seconds, and it is how we find out which parts of this landed.
