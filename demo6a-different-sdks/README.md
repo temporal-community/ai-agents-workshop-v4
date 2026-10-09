@@ -92,13 +92,19 @@ User-approved, deferred:
 
 Would be added as a `@activity.defn` activity wired via `activity_as_tool(...)` on the F1 expert agent.
 
-## Prerequisites
+## Complete the exercise
 
-- **Python 3.10+**
-- **uv** — `brew install uv` on macOS
-- **Temporal CLI** — `brew install temporal` on macOS
-- **OpenAI API key** — `export OPENAI_API_KEY=sk-...`
-- **F1 MCP server** — installed locally and reachable via `F1_MCP_SERVER_HOME`. See [demo 3's install instructions](../demo3-mcp/README.md#install-the-f1-mcp-server) for the one-time setup; the same install is reused here.
+`exercise/` ships with the key code commented out. Run it untouched and the
+workflow does nothing, so do this first:
+
+- `travel_planner_activity.py` — uncomment the body that lazy-imports the Strands travel planner.
+- `personal_assistant.py` — uncomment the travel planner block and its `travel_tool` entry.
+
+Search for `TODO` in each file, uncomment the block beneath it, and delete any
+`pass` placeholder. Then continue below.
+
+To skip ahead and see the finished behaviour, run the same commands from
+`solution/` instead of `exercise/`.
 
 ## Running
 

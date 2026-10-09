@@ -25,12 +25,18 @@ The workflow loop:
 
 Temporal provides durable execution — if the worker crashes mid-loop, the workflow replays from history and resumes where it left off without re-executing completed activities.
 
-## Prerequisites
+## Complete the exercise
 
-- **Python 3.10+**
-- **uv** — `brew install uv` (macOS) or see [uv docs](https://docs.astral.sh/uv/)
-- **Temporal CLI** — `brew install temporal` (macOS) or see [Temporal CLI docs](https://docs.temporal.io/cli)
-- **OpenAI API key** — set as `OPENAI_API_KEY` environment variable
+`exercise/` ships with the key code commented out. Run it untouched and the
+workflow does nothing, so do this first:
+
+- `workflows/agent.py` — uncomment the agentic loop.
+
+Search for `TODO` in each file, uncomment the block beneath it, and delete any
+`pass` placeholder. Then continue below.
+
+To skip ahead and see the finished behaviour, run the same commands from
+`solution/` instead of `exercise/`.
 
 ## Running
 
