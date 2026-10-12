@@ -96,7 +96,7 @@ The Python caller and the Java handler share zero code. Every string name and JS
 
 | | Python caller | Java handler |
 |---|---|---|
-| Endpoint name | `endpoint="travel-planner"` | worker on `travel-planner-agent-tq` |
+| Endpoint → queue | `endpoint="travel-planner"` | setup registers that name onto `travel-planner-agent-tq` |
 | Service name | `class TravelPlannerService` | `@Service(name = "TravelPlannerService")` |
 | Operation name | attr `ask_travel_planner` | `@Operation(name = "ask_travel_planner")` |
 | Payload shapes | Pydantic `AskRequest{question}` / `AskResponse{answer}` | POJOs with `@JsonProperty("question")` / `("answer")` |
