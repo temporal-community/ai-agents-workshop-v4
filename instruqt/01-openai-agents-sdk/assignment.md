@@ -3,7 +3,8 @@ slug: openai-agents-sdk
 id: ousfuoqogywe
 type: challenge
 title: OpenAI Agents SDK + Temporal
-teaser: The same agent, but the SDK drives the loop. Durability becomes automatic.
+teaser: Build an agent with the OpenAI Agents SDK while Temporal makes every LLM
+  and tool call durable.
 notes:
 - type: text
   contents: |-

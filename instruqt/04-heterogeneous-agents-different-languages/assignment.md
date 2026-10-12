@@ -3,8 +3,8 @@ slug: heterogeneous-agents-different-languages
 id: vm5iwoklkhqc
 type: challenge
 title: Heterogeneous Agents - Different Languages
-teaser: The travel planner moves to Java and Spring AI. Per-step durability across
-  a language boundary, over Nexus.
+teaser: A Java Spring AI travel planner joins the Python specialists over Nexus,
+  with per-step durability.
 notes:
 - type: text
   contents: |-
