@@ -81,6 +81,7 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 - `tools_workflow.py` - an `ask_user` `@function_tool` is defined inside `run()` as a closure. It sets `self._input_needed = True` and blocks on `await workflow.wait_condition(...)`. The signal handler flips the flag to unblock it.
 - `start_workflow.py` - polls queries every 2 seconds. When `is_input_needed` is True, it prints the question, reads your response, and sends it as a signal.
+- `worker.py` and `tools_workflow.py` also give the agent Formula 1 race data through an MCP server named `f1-data`. Each MCP call is its own activity. That wiring is already in place; the code you write here is the pause.
 
 > [!NOTE]
 > **Hands-on:** Do your coding in the `exercise/` directory. Want to see the working code? Peek at `solution/`.
