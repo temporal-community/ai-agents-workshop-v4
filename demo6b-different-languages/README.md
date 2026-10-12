@@ -136,7 +136,3 @@ uv run python -m start_workflow "What's the weather at the next F1 race and what
 ## Per-worker plugin configuration (Python side)
 
 Same split as the [multi-agent orchestrator](../demo5-multi-agent/README.md#per-worker-plugin-configuration): `worker_pa.py` keeps `add_temporal_spans=True` (trace context flows from the starter through the weather child workflow), while `worker_f1.py` uses `add_temporal_spans=False` because the contrib doesn't yet propagate trace context across Nexus. The Java travel planner, also behind Nexus, likewise appears as its own trace root in the OpenAI dashboard — expected, not a bug. See [`docs/research/openai-agents-plugin-starter-trace-requirement.md`](../docs/research/openai-agents-plugin-starter-trace-requirement.md).
-
-## Note on running this alongside the different-SDKs workshop
-
-`demo6a-different-sdks` reuses the `orchestrator-tq`, `weather-agent-tq`, and `f1-expert-agent-tq` task-queue names. Run one workshop at a time so the workers do not compete for the same queues.
