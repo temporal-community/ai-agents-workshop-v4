@@ -182,6 +182,18 @@ This is what makes human-in-the-loop practical. Human attention is the most expe
 
 **5. Let it finish.** Toggle **Weather** back on in the [button label="Network Control Panel" background="#444CE7"](tab-3). The activity succeeds on its next attempt and the agent answers using the destination you typed before the outage.
 
+## Try the Formula 1 Tools
+
+Click the [button label="Starter" background="#444CE7"](tab-1) terminal and run another workflow:
+
+```bash,run
+uv run python -m start_workflow "What's the weather like for the race I'm going to?"
+```
+
+When the agent asks which race, answer `the next race`.
+
+The agent uses the Formula 1 MCP tools to find the race location, then calls the weather tools for that location. In the [button label="Temporal UI" background="#444CE7"](tab-2) tab, look for both `f1-data-call-tool-v2` and the weather activities in the same workflow history.
+
 ## Reconnect to a Waiting Workflow
 
 If you interrupt the worker with **Ctrl+C** while the agent is waiting, the workflow keeps running on the server. Find the workflow ID in the [button label="Temporal UI" background="#444CE7"](tab-2), then reconnect by starting the worker again and running the starter with the workflow ID:
