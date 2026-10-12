@@ -2,7 +2,7 @@
 slug: multi-agent
 id: rxgcngqixygm
 type: challenge
-title: 'Demo 5: Multi-Agent Orchestration'
+title: Multi-Agent Orchestration
 teaser: Three agents, three workflows. A personal assistant delegates to specialists
   via child workflow and Nexus.
 notes:
@@ -10,7 +10,7 @@ notes:
   contents: |-
     # What if each specialist were its own workflow?
 
-    Demo 4 was one workflow, one agent. Demo 5 introduces agent-as-workflow:
+    The human-in-the-loop agent was one workflow, one agent. This challenge introduces agent-as-workflow:
     each specialist is a real Temporal workflow execution, not an inline function.
 
     Two different invocation patterns. Two different visibility profiles in
@@ -72,7 +72,7 @@ timelimit: 1800
 enhanced_loading: null
 ---
 
-# Demo 5: Multi-Agent Orchestration
+# Multi-Agent Orchestration
 
 ## See the Big Picture First
 

@@ -1,4 +1,4 @@
-# ABOUTME: Worker for demo4 — same structure as demo3 (weather + F1 MCP), new task queue.
+# ABOUTME: Worker — weather activities plus an F1 MCP provider, on its own task queue.
 # HITL state lives inside the workflow; no additional worker wiring needed.
 
 import asyncio

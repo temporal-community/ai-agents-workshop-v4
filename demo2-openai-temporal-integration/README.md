@@ -1,12 +1,10 @@
-# Demo 2 - OpenAI Agents SDK + Temporal Integration
+# OpenAI Agents SDK + Temporal Integration
 
-The same agentic loop as demo1, reimplemented using the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) and Temporal's `temporalio.contrib.openai_agents` integration. The integration makes the Agents SDK's built-in tool calling loop durable by routing LLM calls and tool executions through Temporal activities transparently.
+Build a durable weather agent using the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) and Temporal's `temporalio.contrib.openai_agents` integration. The integration makes the SDK's built-in tool-calling loop durable by routing LLM calls and tool executions through Temporal activities transparently.
 
-## What's different from demo1
+## The agentic loop
 
-In demo1, we manually built the agentic loop: an explicit `while True` loop in the workflow that calls an LLM activity, checks for tool calls, dispatches them via a dynamic activity, and repeats. We also hand-wrote tool schemas using Pydantic models and OpenAI's internal `to_strict_json_schema` helper.
-
-In demo2, the OpenAI Agents SDK handles all of that. The workflow's `run` method is one `Runner.run(...)` call:
+An agent needs to call the model, inspect its response, run any requested tools, return those results to the model, and repeat until the model produces a final answer. The OpenAI Agents SDK's `Runner` owns that loop, so the workflow's `run` method is one `Runner.run(...)` call:
 
 ```python
 result = await Runner.run(agent, input=question)
@@ -24,13 +22,11 @@ The SDK's `Runner` drives the tool calling loop. Under the hood, the `OpenAIAgen
 
 ### Trade-off: tool coupling
 
-In demo1, the `tools/` directory contains plain Python functions plus lightweight Pydantic request models — no Temporal imports. The `dynamic_tool_activity` bridges them to Temporal, keeping tool logic decoupled from infrastructure.
-
-In demo2, the integration requires tools to be Temporal activities (`@activity.defn`). The `activity_as_tool` helper only accepts activity functions. This means the tools module now contains Temporal-specific code. You get a simpler workflow, but tools are no longer portable outside of Temporal.
+The integration requires tools to be Temporal activities (`@activity.defn`). The `activity_as_tool` helper only accepts activity functions, so the tools module contains Temporal-specific code. This gives the workflow a simple, durable tool-calling loop, but the tool functions are no longer portable outside Temporal without an adapter.
 
 ### Tools
 
-Same tools as demo1:
+The agent has four weather-related tools:
 
 | Tool | API | Purpose |
 |------|-----|---------|
@@ -99,4 +95,4 @@ uv run python -m start_workflow "Compare the weather in London and Sydney right 
 
 ### Observing the workflow
 
-View running workflows in the Temporal Web UI at [http://localhost:8233](http://localhost:8233). Each LLM call and tool execution appears as a separate activity in the workflow history, just like demo1.
+View running workflows in the Temporal Web UI at [http://localhost:8233](http://localhost:8233). Each LLM call and tool execution appears as a separate activity in the workflow history, so each step is individually visible, and a failed step is retried on its own.

@@ -1,4 +1,4 @@
-# ABOUTME: Interactive starter for demo4 — polls for agent questions and signals user input back.
+# ABOUTME: Interactive starter — polls for agent questions and signals user input back.
 # Supports --workflow-id <id> to reconnect to an existing (waiting) workflow.
 
 import asyncio

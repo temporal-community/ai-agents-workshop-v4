@@ -1,12 +1,28 @@
-# Demo 4 - Human in the Loop
+# Human in the Loop
 
-Extends demo3 by adding the ability for the agent to ask the user questions mid-execution. The LLM decides when it needs clarification and uses an `ask_user` tool to pause the workflow, get input from the user, and continue.
+Builds on the OpenAI Agents SDK weather agent in two ways. The agent can look up Formula 1 race data through a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) tool server and chain it with those weather tools. It can also pause mid-execution to ask you a question, wait for your answer, and continue.
 
-## What's different from demo3
+## What this adds
 
-Demo3's agent runs to completion without any user interaction after the initial goal. Demo4 adds a human-in-the-loop pattern: the agent can pause, ask the user a question, wait for their response, and continue with that information.
+The OpenAI Agents SDK weather agent exposes four weather tools as Temporal activities, wrapped via `activity_as_tool(...)` so the SDK's `Runner` can call them. Once you give it a goal, it runs to completion on its own.
 
-### How it works
+This demo keeps those weather tools and adds:
+
+- **An F1 MCP server.** An external tool server, `f1-mcp-server`, provides race schedules, results, and standings. Temporal's `StatelessMCPServerProvider` dispatches each MCP operation (`listTools`, `callTool`) as its own activity, so those calls are durable, retryable, and visible in workflow history next to the weather activities.
+- **Human-in-the-loop.** The agent can pause, ask you a question, wait for your response, and continue with that information. Several prompts below are ambiguous on purpose ("which race?", "which Portland?") so you can see the pause.
+
+### F1 tools via MCP
+
+The F1 MCP server is **a local subprocess**, not a remote service. The worker spawns it on demand and communicates with it over **stdio** (line-delimited JSON-RPC on the child process's stdin/stdout). No HTTP, no port, no separate server to keep running. When a workflow tick needs an F1 tool, the contrib's stateless provider connects, calls, and cleans up — the subprocess lives only for the duration of one MCP operation.
+
+- **`StatelessMCPServerProvider`** (from `temporalio.contrib.openai_agents`) — registered on the worker under the name `"f1-data"`. Each `list_tools()` / `call_tool()` becomes a Temporal activity that connects, calls, and cleans up. No persistent connection between workflow ticks.
+- **`stateless_mcp_server("f1-data")`** (workflow-side) — returns a handle that the agent passes to `Agent(mcp_servers=[...])`. Calls go through the activities the provider registered.
+- **`MCPServerStdio`** — the Agents SDK's stdio transport. Configured here to launch `bash -c "source $F1_MCP_SERVER_HOME/.venv/bin/activate && node $F1_MCP_SERVER_HOME/build/index.js"` so the F1 server's Node entrypoint can shell out to Python (FastF1).
+- **`OpenAIAgentsPlugin(mcp_server_providers=[...])`** — wires the provider's activities into the worker automatically. No manual activity registration for MCP.
+
+The weather tools and the F1 tools both run as Temporal activities. Each MCP call is a durable, observable unit in the workflow history, with retry policy support.
+
+### Human in the loop
 
 The HITL mechanism uses three Temporal primitives — an in-workflow tool, a signal, and two queries:
 
@@ -38,7 +54,29 @@ uv run python -m start_workflow --workflow-id hitl-agent-<uuid>
 
 ### Tools
 
-Same tools as demo3 (4 weather activities + 8 F1 MCP tools), **plus** one new in-workflow tool:
+**Weather tools (the same four activities):**
+
+| Tool | API | Purpose |
+|------|-----|---------|
+| `get_ip_address` | icanhazip.com | Get the caller's public IP address |
+| `get_location_info` | ip-api.com | Get city, country, lat/lon for an IP address |
+| `get_coordinates` | Open-Meteo Geocoding | Get lat/lon for a city name |
+| `get_weather` | Open-Meteo Forecast | Get current temperature, weather code, and wind speed |
+
+**F1 tools (provided by the MCP server):**
+
+| Tool | Purpose |
+|------|---------|
+| `get_event_schedule` | F1 race calendar for a season |
+| `get_event_info` | Details about a specific Grand Prix |
+| `get_session_results` | Race / qualifying / practice session results |
+| `get_driver_info` | Driver information for a session |
+| `analyze_driver_performance` | Lap times and performance metrics |
+| `compare_drivers` | Compare multiple drivers in a session |
+| `get_telemetry` | Vehicle telemetry for a lap |
+| `get_championship_standings` | Driver and constructor standings |
+
+**In-workflow tool (new in this demo):**
 
 | Tool | Kind | Purpose |
 |------|------|---------|
@@ -48,9 +86,53 @@ Same tools as demo3 (4 weather activities + 8 F1 MCP tools), **plus** one new in
 
 - **Python 3.10+**
 - **uv** — `brew install uv` (macOS) or see [uv docs](https://docs.astral.sh/uv/)
+- **Node.js 18+** — needed to run the F1 MCP server's TypeScript entrypoint
 - **Temporal CLI** — `brew install temporal` (macOS) or see [Temporal CLI docs](https://docs.temporal.io/cli)
 - **OpenAI API key** — set as `OPENAI_API_KEY` environment variable
-- **F1 MCP server** — installed locally and reachable via `F1_MCP_SERVER_HOME`. See [demo 3's install instructions](../demo3-mcp/README.md#install-the-f1-mcp-server) for the one-time setup; the same install is reused here.
+- **F1 MCP server** — installed locally, see [Install the F1 MCP server](#install-the-f1-mcp-server) below
+
+## Install the F1 MCP server
+
+This is a one-time setup. The worker launches the server as a local subprocess each time it needs to call an F1 tool, but the server itself is a Node.js + Python hybrid that you have to clone, build, and provision a Python venv for ahead of time.
+
+### 1. Clone the repository
+
+Pick a directory you'd like to keep the server in. Anywhere is fine; the worker locates it via the `F1_MCP_SERVER_HOME` environment variable below.
+
+```bash
+git clone https://github.com/rakeshgangwar/f1-mcp-server.git
+cd f1-mcp-server
+```
+
+### 2. Build the Node.js side
+
+```bash
+npm install
+npm run build
+```
+
+This produces the `build/index.js` entrypoint that the worker spawns.
+
+### 3. Provision the Python side
+
+The Node.js entrypoint shells out to `python3` (within the activated venv) to run [FastF1](https://github.com/theOehrly/Fast-F1) for the actual data lookups. Create a venv inside the project and install the Python deps:
+
+```bash
+uv venv
+source .venv/bin/activate
+uv pip install fastf1 pandas numpy
+deactivate
+```
+
+The worker activates this venv on each invocation via the launch command shown in the [F1 tools via MCP](#f1-tools-via-mcp) section above.
+
+### 4. Point the worker at the install location
+
+```bash
+export F1_MCP_SERVER_HOME=/absolute/path/to/f1-mcp-server
+```
+
+If you leave it unset, the worker falls back to `~/Projects/Temporal/AI/MCP/f1-mcp-server`. Add the export to your shell profile if you want a different location persisted across sessions. The worker reads this variable at startup and bakes it into the `MCPServerStdio` launch command.
 
 ## Running
 
@@ -80,7 +162,7 @@ uv sync
 uv run python -m worker
 ```
 
-Polls the `hitl-agent-python-task-queue` task queue. Leave this running.
+The worker connects with the `OpenAIAgentsPlugin` (configured with the F1 MCP provider), registers `AgentWorkflow`, the four weather activities, and the auto-generated MCP activities, then polls the `hitl-agent-python-task-queue` task queue. Leave this running.
 
 ### 5. Start a workflow
 

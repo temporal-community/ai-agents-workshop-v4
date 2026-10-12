@@ -2,7 +2,7 @@
 slug: human-in-the-loop
 id: rdwjlkm5nqgh
 type: challenge
-title: 'Demo 4: Human-in-the-Loop'
+title: Human-in-the-Loop
 teaser: The agent pauses mid-execution to ask you a question. A Temporal signal resumes
   it.
 notes:
@@ -67,7 +67,7 @@ timelimit: 1800
 enhanced_loading: null
 ---
 
-# Demo 4: Human-in-the-Loop
+# Human-in-the-Loop
 
 ## See the Big Picture First
 

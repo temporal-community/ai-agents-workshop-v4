@@ -1,4 +1,4 @@
-// ABOUTME: Implements the travel tools by calling the same public REST APIs as the Python Strands agent.
+// ABOUTME: Implements the travel tools by calling Wikipedia's REST summary API and REST Countries.
 // Wikipedia REST summary + REST Countries. Returns raw JSON/text for the model to interpret.
 package io.temporal.ai.workshop.travel.tools;
 

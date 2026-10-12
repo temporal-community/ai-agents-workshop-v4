@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Demo 6b · Cross-Language Multi-Agent Orchestration</title>
+<title>Cross-Language Multi-Agent Orchestration</title>
 <style>
   :root {
     --bg: #eef1f5; --bg-grid: #e2e7ee; --panel: #ffffff; --panel-2: #f7f9fc;
@@ -233,7 +233,7 @@
 
 <div class="wrap">
   <header class="masthead">
-    <p class="eyebrow">Demo 6b · Temporal · Python + Java</p>
+    <p class="eyebrow">Temporal · Python + Java</p>
     <h1>Cross-Language Multi-Agent Orchestration</h1>
   </header>
 
@@ -535,7 +535,7 @@ const NODES = [
     code:"public class TravelPlannerAgentWorkflowImpl\n        implements TravelPlannerAgentWorkflow {\n    @Override\n    public AskResponse run(AskRequest request) {",
     name:"TravelPlannerAgentWorkflowImpl", sub:".run(AskRequest) → AskResponse",
     file:"travel-planner-java/.../TravelPlannerAgentWorkflowImpl.java:14", tq:"travel-planner-agent-tq",
-    desc:"The Java travel-planner agent workflow. Builds a Spring AI ChatClient via TemporalChatClient and runs a per-step durable loop: every LLM call becomes a ChatModelActivity and every tool call becomes its own activity. This per-step durability is the payoff over demo 6a's single coarse activity.",
+    desc:"The Java travel-planner agent workflow. Builds a Spring AI ChatClient via TemporalChatClient and runs a per-step durable loop: every LLM call becomes a ChatModelActivity and every tool call becomes its own activity. This per-step durability is the payoff of giving the travel planner its own workflow instead of wrapping the whole agent in one coarse activity.",
     members:["@WorkflowInit(TravelPlannerService.AskRequest)","run(request) → AskResponse","TemporalChatClient.builder(activityChatModel)","defaultTools(travelTools)"],
     snippet:[['c','// TravelPlannerAgentWorkflowImpl.java'],['nl'],['p','this.chatClient = TemporalChatClient'],['nl'],['p','  .'],['fn','builder'],['p','(activityChatModel)'],['nl'],['p','  .'],['fn','defaultSystem'],['p','(SYSTEM_PROMPT)'],['nl'],['p','  .'],['fn','defaultTools'],['p','(travelTools).build();']] },
   { id:"chatclient", x:1206, y:696, w:548, h:60, hue:"java", type:"Spring AI · Java",
@@ -569,7 +569,7 @@ const NODES = [
   { id:"travel_api", x:1206, y:1070, w:440, h:60, hue:"muted", type:"external",
     name:"Wikipedia + REST Countries", sub:"HttpHelper.get(...)",
     file:"travel-planner-java/.../tools/TravelToolsImpl.java", tq:"—",
-    desc:"Free public REST APIs the Java travel tools call: Wikipedia REST summary and REST Countries. Same endpoints the demo 6a Python travel agent used.",
+    desc:"Free public REST APIs the Java travel tools call: Wikipedia REST summary and REST Countries.",
     members:["en.wikipedia.org/api/rest_v1/page/summary/{title}","restcountries.com/v3.1/name/{name}"] },
 ];
 

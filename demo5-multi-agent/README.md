@@ -1,4 +1,4 @@
-# Demo 5 - Multi-agent orchestration
+# Multi-agent orchestration
 
 Three OpenAI Agents SDK agents wired together through Temporal: a **personal-assistant** orchestrator delegates to two specialists — a **weather forecaster** and an **F1 expert**. Each specialist runs in its own Temporal workflow execution. The orchestrator invokes one via a **child workflow** and the other via **Nexus**, so the demo shows both cross-workflow primitives side by side.
 
@@ -28,9 +28,9 @@ Three OpenAI Agents SDK agents wired together through Temporal: a **personal-ass
 
 All three Workers run in a single Python process via `asyncio.gather(...)`. They poll three distinct task queues, so the routing in the Temporal UI is explicit. Splitting them across processes (or even hosts) would be a one-line change — nothing else cares.
 
-## What's different from demo4
+## What's new
 
-Demo4 was one workflow with one agent. Demo5 introduces **agent-as-workflow-as-tool**: each specialist is a real Temporal workflow execution, not an inline function. That gets you durability, retries, and independent visibility per sub-agent.
+The human-in-the-loop agent was one workflow with one agent. This one introduces **agent-as-workflow-as-tool**: each specialist is a real Temporal workflow execution, not an inline function. That gets you durability, retries, and independent visibility per sub-agent.
 
 The orchestrator uses two different patterns to call its specialists:
 
@@ -63,7 +63,7 @@ Both would be added as `@activity.defn` activities and wired via `activity_as_to
 - **uv** — `brew install uv` on macOS
 - **Temporal CLI** — `brew install temporal` on macOS
 - **OpenAI API key** — `export OPENAI_API_KEY=sk-...`
-- **F1 MCP server** — installed locally and reachable via `F1_MCP_SERVER_HOME`. See [demo 3's install instructions](../demo3-mcp/README.md#install-the-f1-mcp-server) for the one-time setup; the same install is reused here.
+- **F1 MCP server** — installed locally and reachable via `F1_MCP_SERVER_HOME`. See the [human-in-the-loop install instructions](../demo4-hitl/README.md#install-the-f1-mcp-server) for the one-time setup; the same install is reused here.
 
 ## Running
 

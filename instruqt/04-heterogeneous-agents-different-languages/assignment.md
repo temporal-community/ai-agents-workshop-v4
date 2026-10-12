@@ -2,7 +2,7 @@
 slug: heterogeneous-agents-different-languages
 id: vm5iwoklkhqc
 type: challenge
-title: 'Demo 6b: Heterogeneous Agents - Different Languages'
+title: Heterogeneous Agents - Different Languages
 teaser: The travel planner moves to Java and Spring AI. Per-step durability across
   a language boundary, over Nexus.
 notes:
@@ -10,9 +10,8 @@ notes:
   contents: |-
     # What if a specialist was written in a completely different language?
 
-    Demo 6a showed different frameworks, same language. Demo 6b shows a
-    different language entirely: the travel planner is reimplemented in
-    Java with Spring AI.
+    The multi-agent specialists are both Python. This challenge adds a travel
+    planner written in Java with Spring AI.
 
     The Python orchestrator reaches it over Nexus - the same boundary it
     already uses for the F1 expert. The Java side shares no code with
@@ -21,14 +20,12 @@ notes:
   contents: |-
     # The payoff: per-step durability across the language boundary
 
-    In demo 6a the Strands travel planner was one opaque activity. The
-    entire loop lived inside one event.
+    One way to add a specialist is to wrap its whole loop in one
+    activity. That entire conversation is a single event.
 
-    In demo 6b the Spring AI travel planner gets per-step durability.
-    Every LLM call and every tool call is its own Temporal activity -
-    exactly like the OpenAI Agents SDK specialists.
-
-    Compare the two histories side by side.
+    This travel planner gets per-step durability. Every LLM call and
+    every tool call is its own Temporal activity - exactly like the
+    OpenAI Agents SDK specialists.
 tabs:
 - id: jk6wyakcueq7
   title: Java Worker
@@ -77,7 +74,7 @@ timelimit: 2400
 enhanced_loading: null
 ---
 
-# Demo 6b: Heterogeneous Agents - Different Languages
+# Heterogeneous Agents - Different Languages
 
 ## See the Big Picture First
 
@@ -85,12 +82,11 @@ Before you touch code, open the [button label="Architecture" background="#444CE7
 
 The rose path is the one that matters here: the travel planner is reached over a **cross-language Nexus boundary** (Python to Java). Click any box to trace what it calls, or press **Play data flow** to watch a request fan out to all three specialists and back.
 
-## What Changed from 6a
+## Two Ways to Host the Travel Planner
 
-| | demo6a | demo6b |
+| | One activity wrapping the loop | This demo |
 |---|---|---|
-| Travel planner language | Python | Java |
-| Travel planner framework | Strands Agents SDK | Spring AI |
+| Agent framework | any SDK, no Temporal integration | Spring AI + Temporal integration |
 | Invocation from orchestrator | direct activity | Nexus operation |
 | Durability of travel agent | coarse (whole loop = one activity) | per-step (each LLM/tool call = one activity) |
 
@@ -164,28 +160,28 @@ Click the [button label="Starter" background="#444CE7"](tab-3) terminal.
 uv run python -m start_workflow "What should I know about visiting Monaco?"
 ```
 
-You should see travel advice about Monaco after a few seconds - now served by the Java worker instead of the demo6a Strands agent.
+You should see travel advice about Monaco after a few seconds, served by the Java worker.
 
-> **Predict before you look:** demo 6a's travel planner showed up as one opaque `ScheduleActivityTask` event. Given that the Java side uses Spring AI (not the Strands SDK), do you expect the same single-event shape, or something closer to the OpenAI Agents SDK's per-step activities? Check the next section.
+> **Predict before you look:** the weather and F1 specialists you have already run show one Temporal activity per LLM call and per tool call. A travel planner wrapped as a single activity would show up as one opaque `ScheduleActivityTask`. This Java side uses Spring AI with Temporal's integration. Which shape do you expect? Check the next section.
 
 ## The Key Comparison
 
 Open the [button label="Temporal UI" background="#444CE7"](tab-4) tab.
 
-In the **orchestrator** history, the travel planner path now shows `NexusOperationScheduled` / `NexusOperationCompleted` instead of a single opaque activity event.
+In the **orchestrator** history, the travel planner path shows `NexusOperationScheduled` / `NexusOperationCompleted`.
 
 Then find the **`TravelPlannerAgentWorkflow`** on `travel-planner-agent-tq`. Its history shows per-step activities: a `ChatModelActivity` for each LLM call, individual activities for each tool call. That's Spring AI giving the Java agent the same per-step durability the OpenAI Agents SDK gives the Python agents.
 
 <div style="border:1px solid #333;border-radius:8px;padding:16px;background:#111;color:#eee;font-family:sans-serif;max-width:680px;margin:16px 0;">
-<div style="font-size:13px;color:#8b8fa3;margin-bottom:12px;">🖱️ TRY ME: expand each demo to see how the travel planner's durability changed</div>
+<div style="font-size:13px;color:#8b8fa3;margin-bottom:12px;">🖱️ TRY ME: expand each option to see how the travel planner's durability changes</div>
 <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;">
   <details style="flex:1;min-width:240px;background:#5f1e3a;border-radius:8px;">
-    <summary style="padding:12px;cursor:pointer;text-align:center;">demo 6a<br><small>Python · Strands · direct activity</small></summary>
-    <div style="padding:0 12px 12px;font-size:13px;color:#c8ccd8;">Python + Strands, called as a direct activity. Whole loop = one ScheduleActivityTask: ask_travel_planner. A worker crash mid-loop restarts the entire travel-planning conversation from scratch.</div>
+    <summary style="padding:12px;cursor:pointer;text-align:center;">One activity<br><small>whole loop = one event</small></summary>
+    <div style="padding:0 12px 12px;font-size:13px;color:#c8ccd8;">The travel planner called as a direct activity. Whole loop = one opaque ScheduleActivityTask. A worker crash mid-loop restarts the entire travel-planning conversation from scratch.</div>
   </details>
   <div style="font-size:20px;color:#8b8fa3;align-self:center;">→</div>
   <details style="flex:1;min-width:240px;background:#1e5f3a;border-radius:8px;">
-    <summary style="padding:12px;cursor:pointer;text-align:center;">demo 6b<br><small>Java · Spring AI · Nexus</small></summary>
+    <summary style="padding:12px;cursor:pointer;text-align:center;">This demo<br><small>Java · Spring AI · Nexus</small></summary>
     <div style="padding:0 12px 12px;font-size:13px;color:#c8ccd8;">Java + Spring AI, called over Nexus — the same boundary the F1 expert already uses. The orchestrator sees NexusOperationScheduled/Completed, and the TravelPlannerAgentWorkflow's own history shows a ChatModelActivity per LLM call and a separate activity per tool call. A worker crash mid-loop only retries the step that was running.</div>
   </details>
 </div>
@@ -224,7 +220,7 @@ No. The Nexus result is recorded in the Python orchestrator's history, and repla
 
 Worth being precise about what makes this true. It is not that Nexus is special: it is that the **completion is an event**, the same way an activity result or a signal is. Every mechanism in this workshop reduces to that one idea.
 
-And the Java side has the property demo 6a's Strands agent lacked. Because Spring AI's `@Tool` methods are also `@ActivityInterface` methods, a failure *inside* the travel agent retries only the step that failed - not the whole conversation. Same specialist role as 6a, opposite durability shape, and the orchestrator's code barely changed.
+And the Java side has the property a single-activity wrapper lacks. Because Spring AI's `@Tool` methods are also `@ActivityInterface` methods, a failure *inside* the travel agent retries only the step that failed - not the whole conversation. Same specialist role, opposite durability shape, and the orchestrator still just calls one operation.
 </details>
 
 **5. Let it finish.** Toggle **Weather** back on in the [button label="Network Control Panel" background="#444CE7"](tab-5). The weather activity succeeds, and the [button label="Starter" background="#444CE7"](tab-3) prints one answer assembled from a Python child workflow, a Python Nexus service, and a Java Nexus service - none of which ran twice.

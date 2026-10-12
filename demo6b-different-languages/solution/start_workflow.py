@@ -1,4 +1,4 @@
-# ABOUTME: CLI starter for demo6b — submits a single PersonalAssistantWorkflow execution.
+# ABOUTME: CLI starter — submits a single PersonalAssistantWorkflow execution.
 # Targets the orchestrator task queue; the orchestrator fans out via child workflow (weather)
 # + Nexus to a Python F1 expert + Nexus to a Java (Spring AI) travel planner.
 
