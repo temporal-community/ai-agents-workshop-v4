@@ -20,12 +20,10 @@ notes:
     Temporal activity - automatically.
 - type: text
   contents: |-
-    # The trade-off
+    # How the tools fit
 
-    Tools must now be @activity.defn functions rather than plain Python.
-    They gain durability but they're no longer Temporal-agnostic.
-
-    The developer writes standard SDK code. Temporal durability is free.
+    Tools are `@activity.defn` functions, so each tool call is a durable,
+    retryable activity. The workflow itself stays ordinary Agents SDK code.
 tabs:
 - id: 98pg61tkght1
   title: Worker
@@ -68,11 +66,11 @@ enhanced_loading: null
 > - [button label="Network Control Panel" background="#444CE7"](tab-3) - toggle external services off to force failures
 > - [button label="Editor" background="#444CE7"](tab-4) - VS Code, opened on this demo's folder
 
-## What Changed
+## The agent
 
 Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in `demo2-openai-temporal-integration`:
 
-- `tools_workflow.py` - the entire agentic loop is now one line: `result = await Runner.run(agent, input=question)`
+- `tools_workflow.py` - the agentic loop is one line: `result = await Runner.run(agent, input=question)`
 - `tool_activities.py` - tools are `@activity.defn` functions. `activity_as_tool(...)` wraps each one for the SDK.
 - `worker.py` - the `OpenAIAgentsPlugin` is registered on both client and worker. It installs the model-execution activity and interceptors automatically.
 
@@ -109,9 +107,7 @@ You should see a final answer describing Tokyo's current weather, printed after 
 
 ## Watch the Event History
 
-Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab. Look at a completed workflow. `invoke_model_activity` appears as its own named entry - the SDK's model calls are now first-class Temporal activities alongside the tool calls.
-
-> **Compare to a self-made loop:** write the loop yourself and this same history shows one LLM-call activity per iteration, each dispatched by your own code. Here it's `invoke_model_activity` entries instead - same idea, but the SDK's `Runner.run()` is what's calling them, not your `while True` loop. Same durability, one line of code.
+Click the [button label="Temporal UI" background="#444CE7"](tab-2) tab. Look at a completed workflow. `invoke_model_activity` is its own entry for each model call, next to the tool-call activities. `Runner.run()` is what schedules them.
 
 ## Break It: The Durability Test
 
@@ -162,7 +158,7 @@ A self-made loop and the OpenAI Agents SDK build the same agent with the same du
 
 ### Who writes the loop
 
-Self-made loop - you write it by hand:
+If you were writing the loop yourself, it would look like this:
 
 ```python,nocopy
 while True:
@@ -175,7 +171,7 @@ while True:
         return llm_result.output_text
 ```
 
-OpenAI Agents SDK - the `Runner` owns the loop:
+With the OpenAI Agents SDK, the `Runner` owns the loop:
 
 ```python,nocopy
 result = await Runner.run(agent, input=question)
@@ -184,7 +180,7 @@ return result.final_output
 
 ### Lines of orchestration code
 
-A self-made loop also needs a tool-dispatch helper, part of the ~50 lines you maintain:
+You would also write a tool-dispatch helper, part of those ~50 lines:
 
 ```python,nocopy
 async def _handle_function_call(self, item, llm_result, input_list):
@@ -195,7 +191,7 @@ async def _handle_function_call(self, item, llm_result, input_list):
     return tool_output
 ```
 
-The SDK replaces all of it with one call:
+The SDK does that work in one call:
 
 ```python,nocopy
 result = await Runner.run(agent, input=question)
@@ -203,14 +199,14 @@ result = await Runner.run(agent, input=question)
 
 ### Durability
 
-Self-made loop - you make each LLM call and tool call durable by dispatching it as an activity yourself:
+You would make each LLM call and tool call durable by dispatching it as an activity:
 
 ```python,nocopy
 llm_result = await workflow.execute_activity(openai_responses.create, ...)
 tool_output = await workflow.execute_activity(item.name, args, ...)
 ```
 
-OpenAI Agents SDK - the wrapper turns each tool into an activity:
+With the OpenAI Agents SDK, the wrapper turns each tool into an activity:
 
 ```python,nocopy
 tools=[
