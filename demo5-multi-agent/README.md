@@ -26,7 +26,7 @@ Three OpenAI Agents SDK agents wired together through Temporal: a **personal-ass
             └──────────────────────────┘         └─────────────────────────┘
 ```
 
-All three Workers run in a single Python process via `asyncio.gather(...)`. They poll three distinct task queues, so the routing in the Temporal UI is explicit. Splitting them across processes (or even hosts) would be a one-line change — nothing else cares.
+Two processes poll three task queues. `worker_pa.py` runs the orchestrator and the weather agent in one process, via `asyncio.gather(...)`, on `orchestrator-tq` and `weather-agent-tq`. `worker_f1.py` runs the F1 expert on `f1-expert-agent-tq`. Any worker polling the right task queue can run the work. Moving the weather agent or the F1 expert to another process, or another host, leaves the workflows and the event history the same.
 
 ## What's new
 

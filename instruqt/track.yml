@@ -11,7 +11,7 @@ description: |-
   signals, multi-agent orchestration with child workflows and Nexus, and
   finally heterogeneous agents spanning different frameworks and languages.
 
-  Each demo adds exactly one capability so you can see before and after
+  Each challenge builds on the last so you can see the architecture evolve
   in the Temporal Web UI.
 icon: ""
 tags:

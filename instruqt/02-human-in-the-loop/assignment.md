@@ -81,6 +81,7 @@ Click the [button label="Editor" background="#444CE7"](tab-4) tab. Key files in 
 
 - `tools_workflow.py` - an `ask_user` `@function_tool` is defined inside `run()` as a closure. It sets `self._input_needed = True` and blocks on `await workflow.wait_condition(...)`. The signal handler flips the flag to unblock it.
 - `start_workflow.py` - polls queries every 2 seconds. When `is_input_needed` is True, it prints the question, reads your response, and sends it as a signal.
+- `worker.py` and `tools_workflow.py` also give the agent Formula 1 race data through an MCP server named `f1-data`. Each MCP call is its own activity. That wiring is already in place; the code you write here is the pause.
 
 > [!NOTE]
 > **Hands-on:** Do your coding in the `exercise/` directory. Want to see the working code? Peek at `solution/`.
@@ -180,6 +181,18 @@ This is what makes human-in-the-loop practical. Human attention is the most expe
 </details>
 
 **5. Let it finish.** Toggle **Weather** back on in the [button label="Network Control Panel" background="#444CE7"](tab-3). The activity succeeds on its next attempt and the agent answers using the destination you typed before the outage.
+
+## Try the Formula 1 Tools
+
+Click the [button label="Starter" background="#444CE7"](tab-1) terminal and run another workflow:
+
+```bash,run
+uv run python -m start_workflow "What's the weather like for the race I'm going to?"
+```
+
+When the agent asks which race, answer `the next race`.
+
+The agent uses the Formula 1 MCP tools to find the race location, then calls the weather tools for that location. In the [button label="Temporal UI" background="#444CE7"](tab-2) tab, look for both `f1-data-call-tool-v2` and the weather activities in the same workflow history.
 
 ## Reconnect to a Waiting Workflow
 
