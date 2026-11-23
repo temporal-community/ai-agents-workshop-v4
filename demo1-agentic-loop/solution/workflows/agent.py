@@ -62,9 +62,12 @@ class AgentWorkflow:
 
 
     async def _handle_function_call(self, item, llm_result, input_list):
-        # serialize the LLM output - the decision the LLM made to call a tool
+        # serialize the LLM output - the decision the LLM made to call a tool,
+        # plus the reasoning item a reasoning model requires alongside it
         input_list += [
-            item.model_dump() if hasattr(item, "model_dump") else item
+            i.model_dump() if hasattr(i, "model_dump") else i
+            for i in llm_result.output
+            if i.type == "reasoning" or i is item
         ]
         # execute dynamic activity with the tool name chosen by the LLM
         # and the arguments crafted by the LLM
