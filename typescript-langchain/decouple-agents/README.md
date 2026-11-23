@@ -33,7 +33,7 @@ Model credentials arrive from the environment. Never hardcode a key.
 ```bash
 export OPENAI_API_KEY=...          # injected by the lab
 export OPENAI_BASE_URL=...         # optional; any OpenAI-compatible endpoint
-export OPENAI_MODEL=gpt-4o         # optional, defaults to gpt-4o
+export OPENAI_MODEL=gpt-6-luna         # optional, defaults to gpt-6-luna
 ```
 
 `OPENAI_API_KEY` and `OPENAI_BASE_URL` are read in the Worker and Client processes.

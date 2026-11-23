@@ -27,7 +27,7 @@ TypeScript and Python share no code. These strings are the entire agreement:
 uv sync
 export OPENAI_API_KEY=...      # injected by the lab
 export OPENAI_BASE_URL=...     # optional; any OpenAI-compatible endpoint
-export OPENAI_MODEL=gpt-4o     # optional
+export OPENAI_MODEL=gpt-6-luna     # optional
 uv run python worker.py
 ```
 

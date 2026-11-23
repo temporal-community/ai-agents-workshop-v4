@@ -15,7 +15,9 @@ spring:
       api-key: ${OPENAI_API_KEY:}
       chat:
         options:
-          model: gpt-4o
+          model: gpt-6-luna
+          # gpt-6-luna takes tools on Chat Completions only without reasoning.
+          reasoning-effort: none
   temporal:
     namespace: default
     connection:

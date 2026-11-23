@@ -44,7 +44,7 @@ class ToolsWorkflow:
         agent = Agent(
             name="Agent",
             instructions=SYSTEM_PROMPT,
-            model="gpt-4o",
+            model="gpt-6-luna",
             tools=[
                 activity_as_tool(
                     get_ip_address, start_to_close_timeout=timedelta(seconds=30)

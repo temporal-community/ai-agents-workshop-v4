@@ -182,7 +182,7 @@ The workshop code is unchanged: it uses the OpenAI SDK normally. The trick is `O
 | `LITELLM_KEY_DURATION` | `1d` | TTL of each minted key |
 | `LITELLM_MAX_BUDGET` | `5` | Per-key spend cap in USD |
 | `INSTRUQT_LITELLM_TRACK_ID` | the track slug (`INSTRUQT_TRACK_SLUG`) | Track id sent to the broker |
-| `OPENAI_MODEL` | `gpt-4o` | Model the demos request through the gateway |
+| `OPENAI_MODEL` | `gpt-6-luna` | Model the demos request through the gateway |
 | `LITELLM_PROXY_HOST` | `litellm-instruqt.tmprl-demo.cloud` | Gateway host the proxy panel toggles |
 
 #### Why per-attendee keys (not one shared OpenAI key)

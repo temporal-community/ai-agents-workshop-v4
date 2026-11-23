@@ -51,7 +51,7 @@ class AgentWorkflow:
         agent = Agent(
             name="Agent",
             instructions=SYSTEM_PROMPT.format(date=today),
-            model="gpt-4o",
+            model="gpt-6-luna",
             # TODO: Uncomment mcp_servers below to hand the agent the F1 MCP
             # server registered on the worker. Each MCP tool call the agent makes
             # then becomes its own durable, retryable Temporal activity.

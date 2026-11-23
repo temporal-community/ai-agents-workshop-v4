@@ -80,7 +80,7 @@ class PersonalAssistantWorkflow:
         agent = Agent(
             name="PersonalAssistant",
             instructions=SYSTEM_PROMPT.format(date=today),
-            model="gpt-4o",
+            model="gpt-6-luna",
             # TODO: Uncomment the two entries below to wire both specialist tools
             # into the orchestrator once you have built them above.
             tools=[

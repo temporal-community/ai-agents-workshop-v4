@@ -56,7 +56,7 @@ class F1ExpertAgentWorkflow:
         agent = Agent(
             name="F1Expert",
             instructions=SYSTEM_PROMPT.format(date=today),
-            model="gpt-4o",
+            model="gpt-6-luna",
             mcp_servers=[f1],
         )
         result = await Runner.run(agent, input=request.question)

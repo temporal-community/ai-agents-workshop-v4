@@ -64,7 +64,9 @@ def build_agent() -> Agent:
     return Agent(
         model=OpenAIModel(
             client_args=client_args,
-            model_id=os.environ.get("OPENAI_MODEL", "gpt-4o"),
+            model_id=os.environ.get("OPENAI_MODEL", "gpt-6-luna"),
+            # gpt-6-luna takes tools on Chat Completions only without reasoning.
+            params={"reasoning_effort": "none"},
         ),
         tools=[wikipedia_summary, country_info],
         system_prompt=SYSTEM_PROMPT,

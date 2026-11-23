@@ -121,6 +121,8 @@ async function callModel(messages: ChatMessage[]): Promise<ModelResponse> {
     model: MODEL,
     messages,
     tools: TOOLS,
+    // gpt-6-luna takes tools on Chat Completions only without reasoning.
+    reasoning_effort: 'none',
   });
 
   // Counted only once the response is in hand, so the numbers below and the
@@ -216,7 +218,7 @@ function preview(text: string, width = 96): string {
 
 // ─── Configuration, read from the environment the lab injects ────────────────
 
-const MODEL = process.env.OPENAI_MODEL ?? 'gpt-4o';
+const MODEL = process.env.OPENAI_MODEL ?? 'gpt-6-luna';
 
 function createClient(): OpenAI {
   const apiKey = process.env.OPENAI_API_KEY;

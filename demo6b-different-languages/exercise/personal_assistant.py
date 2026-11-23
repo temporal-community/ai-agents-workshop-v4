@@ -102,7 +102,7 @@ class PersonalAssistantWorkflow:
         agent = Agent(
             name="PersonalAssistant",
             instructions=SYSTEM_PROMPT.format(date=today),
-            model="gpt-4o",
+            model="gpt-6-luna",
             # TODO: Uncomment the travel_tool entry below once you uncomment its
             # definition above.
             tools=[

@@ -42,7 +42,7 @@ class WeatherAgentWorkflow:
         agent = Agent(
             name="WeatherAgent",
             instructions=SYSTEM_PROMPT.format(date=today),
-            model="gpt-4o",
+            model="gpt-6-luna",
             tools=[
                 # Wraps a Temporal activity as an agent-SDK tool call, so every tool invocation becomes a durable, retryable Temporal activity.
                 activity_as_tool(

@@ -54,7 +54,11 @@ Use the provided tools as needed. Answer concisely as plain text.
 
 def build_agent() -> Agent:
     return Agent(
-        model=OpenAIModel(model_id="gpt-4o"),
+        model=OpenAIModel(
+            model_id="gpt-6-luna",
+            # gpt-6-luna takes tools on Chat Completions only without reasoning.
+            params={"reasoning_effort": "none"},
+        ),
         tools=[wikipedia_summary, country_info],
         system_prompt=SYSTEM_PROMPT,
         callback_handler=None,  # silence Strands' default stdout printing

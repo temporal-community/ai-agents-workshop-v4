@@ -11,7 +11,7 @@ import type { ModelProvider } from '@openai/agents-core';
  * Workflow sandbox has no environment.
  */
 export function modelName(): string {
-  return process.env.OPENAI_MODEL ?? 'gpt-4o';
+  return process.env.OPENAI_MODEL ?? 'gpt-6-luna';
 }
 
 /**

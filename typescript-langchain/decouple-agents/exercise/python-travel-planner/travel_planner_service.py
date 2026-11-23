@@ -26,7 +26,7 @@ TASK_QUEUE = "c4-python-travel-planner-tq"
 @dataclass
 class AskRequest:
     question: str
-    model: str = "gpt-4o"
+    model: str = "gpt-6-luna"
 
 
 @dataclass
