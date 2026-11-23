@@ -20,7 +20,7 @@ LITELLM_ENV_FILE="/root/.litellm-env"
 export INSTRUQT_BROKER_URL="${INSTRUQT_BROKER_URL:-https://litellm-broker-instruqt.tmprl-demo.cloud}"
 export INSTRUQT_BROKER_KEY_ID="${INSTRUQT_BROKER_KEY_ID:-v1}"
 export INSTRUQT_LITELLM_TRACK_ID="${INSTRUQT_LITELLM_TRACK_ID:-${INSTRUQT_TRACK_SLUG:-testing-temporal-python-ai-agents-v2}}"
-export OPENAI_MODEL="${OPENAI_MODEL:-gpt-4o}"
+export OPENAI_MODEL="${OPENAI_MODEL:-gpt-6-luna}"
 
 LITELLM_PROXY_HOST="${LITELLM_PROXY_HOST:-litellm-instruqt.tmprl-demo.cloud}"
 

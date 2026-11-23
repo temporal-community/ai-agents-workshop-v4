@@ -79,7 +79,7 @@ class PersonalAssistantWorkflow:
         agent = Agent(
             name="PersonalAssistant",
             instructions=SYSTEM_PROMPT.format(date=today),
-            model="gpt-4o",
+            model="gpt-6-luna",
             tools=[weather_tool, f1_tool],
         )
         result = await Runner.run(agent, input=question)

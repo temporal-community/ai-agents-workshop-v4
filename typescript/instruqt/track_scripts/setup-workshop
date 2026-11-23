@@ -46,7 +46,7 @@ export INSTRUQT_LITELLM_TRACK_ID="${INSTRUQT_LITELLM_TRACK_ID:-${INSTRUQT_TRACK_
 # Model every challenge asks the gateway for. The TypeScript clients read
 # OPENAI_MODEL and pass the name into the Workflow as data (Workflow code runs
 # in a deterministic sandbox and cannot read the environment).
-export OPENAI_MODEL="${OPENAI_MODEL:-gpt-4o}"
+export OPENAI_MODEL="${OPENAI_MODEL:-gpt-6-luna}"
 
 WORKSHOP_DIR=/root/workshop/decouple-agents
 

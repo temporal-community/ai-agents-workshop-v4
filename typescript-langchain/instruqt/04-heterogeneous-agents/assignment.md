@@ -100,7 +100,7 @@ Open the [button label="Architecture" background="#444CE7"](tab-5) tab: three Wo
 
 The agent loop runs inside the Workflow. `create_temporal_deep_agent` builds the agent in Workflow code, the loop replays deterministically, and every model call and I/O tool call leaves as an Activity.
 
-The model is named, never built. The Workflow ships the string `openai:gpt-4o` and `build_model` in `worker.py` turns it into a real client Worker-side, which is why no API key reaches Workflow input or Event History.
+The model is named, never built. The Workflow ships the string `openai:gpt-6-luna` and `build_model` in `worker.py` turns it into a real client Worker-side, which is why no API key reaches Workflow input or Event History.
 
 </details>
 

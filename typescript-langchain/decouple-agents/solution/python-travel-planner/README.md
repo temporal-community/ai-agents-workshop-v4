@@ -30,7 +30,7 @@ time, in the payload converter — not at build time.
 uv sync
 export OPENAI_API_KEY=...      # injected by the lab
 export OPENAI_BASE_URL=...     # optional; any OpenAI-compatible endpoint
-export OPENAI_MODEL=gpt-4o     # optional
+export OPENAI_MODEL=gpt-6-luna     # optional
 uv run python worker.py
 ```
 
@@ -44,7 +44,7 @@ deterministically, while every LLM call and every I/O tool call leaves as an Act
 crash mid-conversation costs the one step that was in flight, not the whole run — the same
 guarantee the TypeScript specialists get from the OpenAI Agents plugin.
 
-The model is named, never built, in Workflow code. The Workflow ships the string `openai:gpt-4o`;
+The model is named, never built, in Workflow code. The Workflow ships the string `openai:gpt-6-luna`;
 `worker.py`'s `build_model` turns it into a real client Worker-side, which is why no API key ever
 reaches Event History.
 

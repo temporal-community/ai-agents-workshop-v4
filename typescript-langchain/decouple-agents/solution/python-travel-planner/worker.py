@@ -20,7 +20,8 @@ def build_model(model_name: str):
     """
     from langchain.chat_models import init_chat_model
 
-    kwargs = {"api_key": os.environ["OPENAI_API_KEY"]}
+    # gpt-6-luna takes tools on Chat Completions only without reasoning.
+    kwargs = {"api_key": os.environ["OPENAI_API_KEY"], "reasoning_effort": "none"}
     base_url = os.environ.get("OPENAI_BASE_URL")
     if base_url:
         kwargs["base_url"] = base_url

@@ -497,7 +497,7 @@ const NODES = [
     note:"Nothing here mentions Python. The client names a TypeScript Workflow function and one Task Queue.",
     tqLabel:"targets c4-orchestrator-tq",
     desc:"The starter. It connects with the OpenAI Agents plugin registered on the Client, then executes triageAgentWorkflow by function reference. The model name is resolved here, in a plain Node process, because Workflow code has no access to the environment.",
-    members:["new Client({ connection, namespace, plugins: [openAIAgentsPlugin()] })","client.workflow.execute(triageAgentWorkflow, ...)","workflowId: c4-triage-<nanoid>","args: [{ question, model: modelName() }]","modelName() reads OPENAI_MODEL, defaulting to gpt-4o"],
+    members:["new Client({ connection, namespace, plugins: [openAIAgentsPlugin()] })","client.workflow.execute(triageAgentWorkflow, ...)","workflowId: c4-triage-<nanoid>","args: [{ question, model: modelName() }]","modelName() reads OPENAI_MODEL, defaulting to gpt-6-luna"],
     snippet:"const client = new Client({ connection, namespace, plugins: [openAIAgentsPlugin()] });\n\nconst result = await client.workflow.execute(triageAgentWorkflow, {\n  taskQueue: ORCHESTRATOR_TASK_QUEUE,\n  workflowId: 'c4-triage-' + nanoid(),\n  args: [{ question, model: modelName() }],\n});" },
 
   { id:"server", wk:null, tq:null, x:432, y:20, w:340, file:"external", lang:"ts",
@@ -655,11 +655,11 @@ const NODES = [
 
   { id:"svc_py", wk:null, tq:null, x:606, y:1717, w:550, file:"travel_planner_service.py", lang:"py",
     type:"Contract · Python half", name:"travel_planner_service.py",
-    code:"# python-travel-planner/travel_planner_service.py\nTASK_QUEUE = 'c4-python-travel-planner-tq'\n@dataclass\nclass AskRequest:    question: str; model: str = 'gpt-4o'\n@dataclass\nclass AskResponse:   answer: str\n@workflow.defn\nclass TravelPlannerAgentWorkflow: ...",
+    code:"# python-travel-planner/travel_planner_service.py\nTASK_QUEUE = 'c4-python-travel-planner-tq'\n@dataclass\nclass AskRequest:    question: str; model: str = 'gpt-6-luna'\n@dataclass\nclass AskResponse:   answer: str\n@workflow.defn\nclass TravelPlannerAgentWorkflow: ...",
     note:"Plain dataclasses, not Pydantic: the default JSON payload converter maps them to and from the flat objects the TypeScript caller sends. The FIELD NAMES are the wire contract.",
     tqLabel:"declares c4-python-travel-planner-tq",
     desc:"The whole of the Python side. Two dataclasses, one Task Queue constant and one Workflow class whose name is the wire type. Every name here has a counterpart in api.ts, and nothing keeps them in step except the person editing both files.",
-    members:["TASK_QUEUE = 'c4-python-travel-planner-tq'","@dataclass AskRequest: question: str, model: str = 'gpt-4o'","@dataclass AskResponse: answer: str","@workflow.defn class TravelPlannerAgentWorkflow","Field names are the contract, not the class names of the dataclasses"] },
+    members:["TASK_QUEUE = 'c4-python-travel-planner-tq'","@dataclass AskRequest: question: str, model: str = 'gpt-6-luna'","@dataclass AskResponse: answer: str","@workflow.defn class TravelPlannerAgentWorkflow","Field names are the contract, not the class names of the dataclasses"] },
 
   { id:"pairs", wk:null, tq:null, x:24, y:1951, w:1132, file:"api.ts", lang:"ts",
     type:"Duplicated, not generated", name:"Four names that must match, byte for byte",
@@ -671,7 +671,7 @@ const NODES = [
         py:"TASK_QUEUE =\n  'c4-python-travel-planner-tq'", pyWhere:"travel_planner_service.py",
         breaks:"Mistype it and the Child Workflow is enqueued where nothing polls. The caller waits out workflowExecutionTimeout: '5 minutes'." },
       { ts:"interface AskRequest {\n  question: string; model?: string }", tsWhere:"api.ts",
-        py:"@dataclass class AskRequest:\n  question: str; model: str = 'gpt-4o'", pyWhere:"travel_planner_service.py",
+        py:"@dataclass class AskRequest:\n  question: str; model: str = 'gpt-6-luna'", pyWhere:"travel_planner_service.py",
         breaks:"Rename a field on one side and the payload converter raises when it deserializes. Compile-clean, run-time failure." },
       { ts:"interface AskResponse {\n  answer: string }", tsWhere:"api.ts",
         py:"@dataclass class AskResponse:\n  answer: str", pyWhere:"travel_planner_service.py",
