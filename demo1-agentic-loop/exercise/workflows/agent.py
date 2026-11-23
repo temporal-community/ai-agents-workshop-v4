@@ -30,7 +30,7 @@ class AgentWorkflow:
         #     llm_result = await workflow.execute_activity(
         #         openai_responses.create,
         #         openai_responses.OpenAIResponsesRequest(
-        #             model="gpt-3.5-turbo",
+        #             model="gpt-5.6-terra",
         #             instructions=tool_helpers.HELPFUL_AGENT_SYSTEM_INSTRUCTIONS,
         #             input=input_list,
         #             tools=get_tools(),
@@ -39,10 +39,10 @@ class AgentWorkflow:
         #         start_to_close_timeout=timedelta(seconds=60),
         #     )
         #
-        #     # For this simple example, we only have one item in the output list.
-        #     # Either the LLM will have chosen a single function call or it will
-        #     # have chosen to respond with a message.
-        #     item = llm_result.output[0]
+        #     # For this simple example, the model either chooses a single function
+        #     # call or responds with a message. Reasoning models may put a reasoning
+        #     # item ahead of that decision, so skip it.
+        #     item = next(o for o in llm_result.output if o.type != "reasoning")
         #
         #     # if the result is a tool call, call the tool
         #     if item.type == "function_call":
@@ -66,9 +66,8 @@ class AgentWorkflow:
 
     async def _handle_function_call(self, item, llm_result, input_list):
         # serialize the LLM output - the decision the LLM made to call a tool
-        i = llm_result.output[0]
         input_list += [
-            i.model_dump() if hasattr(i, "model_dump") else i
+            item.model_dump() if hasattr(item, "model_dump") else item
         ]
         # execute dynamic activity with the tool name chosen by the LLM
         # and the arguments crafted by the LLM
